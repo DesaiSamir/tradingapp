@@ -1,0 +1,21 @@
+{
+  "name": "tradingapp",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "concurrently -k \"npm run server\" \"npm run client\"",
+    "prod": "node -r dotenv/config ./server/bin/www",
+    "server": "nodemon -r dotenv/config ./server/app.js",
+    "debug": "node -r dotenv/config ./server/app.js",
+    "client": "node client.js"
+  },
+  "dependencies": {
+    "concurrently": "^6.0.0",
+    "cookie-session": "^1.4.0",
+    "debug": "~2.6.9",
+    "dotenv": "^8.2.0",
+    "express": "~4.17.1",
+    "node-fetch": "^2.6.1",
+    "nodemon": "^2.0.7"
+  }
+}
