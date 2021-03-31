@@ -8,6 +8,7 @@ import TradestationLogo from "../../res/ts_logo.png";
 import HomeIcon from "@material-ui/icons/Home";
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import LogoutIcon from "@material-ui/icons/MeetingRoom";
+import TrendingUpIcon from '@material-ui/icons/TrendingUp';
 
 const MenuBar = () => {
     const userData = useContext(UserProvider.context);
@@ -44,16 +45,14 @@ const MenuBar = () => {
                 <HomeIcon />
             </Link>
 
-            {
-                !_.isEmpty(userData) &&
-                <Link className="btn menu-btn" to="/profile" title="Profile">
-                    <AccountCircleIcon />
-                </Link>
-            }
+            <Link className="btn menu-btn" to="/market" title="Market">
+                <TrendingUpIcon />
+            </Link>
 
             <UserDropDown />
 
-            {
+            {   
+                
                 !_.isEmpty(userData) &&
                 <a
                     className="btn menu-btn"
@@ -63,6 +62,17 @@ const MenuBar = () => {
                 >
                     <LogoutIcon />
                 </a>
+            }
+
+            {
+                !_.isEmpty(userData) &&
+                <Link 
+                    className="btn menu-btn" 
+                    to="/profile" 
+                    title="Profile" 
+                    style={{ float: "right" }}>
+                    <AccountCircleIcon />
+                </Link>
             }
         </div>
     );

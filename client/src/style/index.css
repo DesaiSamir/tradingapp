@@ -95,7 +95,7 @@ button {
 }
 
 .page {
-    width: 50%;
+    width: 80%;
     margin: 0 auto;
 }
 
@@ -105,17 +105,19 @@ button {
 }
 
 .window {
-    width: 80%;
-    margin: 0 auto;
+    width: 50%;
+    /* margin: 0 auto; */
     background: white;
     border-radius: 6px;
+    margin: 10px; 
+    font-size: 20px; 
 }
 
 .title-bar {
-    background-color: white;
+    background-color: rgb(109, 106, 106);
     border-top-right-radius: 6px;
     border-top-left-radius: 6px;
-    color: #4d494d;
+    color: #ffffff;
     padding-top: 5px;
     padding-bottom: 5px;
 }
@@ -160,15 +162,17 @@ button {
 }
 
 .col {
-    display: inline-block;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
 }
 
 .col-4 {
-    width: 25%;
+    width: 100%;
 }
 
 .col-8 {
-    width: 75%;
+    width: 100%;
 }
 
 .tag {
@@ -229,4 +233,3 @@ button {
         padding-right: 0;
     }
 }
-

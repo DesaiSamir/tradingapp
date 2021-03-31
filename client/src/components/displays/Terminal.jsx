@@ -1,9 +1,8 @@
 import React from "react";
 
-const Terminal = ({ userData, selected }) => {
+const Terminal = ({ userData, selected, title }) => {
     const selectedData = selected === "All" ? userData : userData[selected];
     const jsonCode = JSON.stringify(selectedData, null, 4);
-
     return (
         <div className="window">
             <div className="title-bar">
@@ -13,7 +12,7 @@ const Terminal = ({ userData, selected }) => {
                     <div className="mac-btn zoom" />
                 </div>
                 <p style={{ textAlign: "center", margin: 0 }}>
-                    json-terminal
+                    {title}
                 </p>
             </div>
             <div className="content">

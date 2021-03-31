@@ -1,23 +1,36 @@
 import React from 'react';
-import { Router, Route } from "react-router-dom";
-import history from "./history";
-import UserProvider from "./contexts/UserProvider";
-import Home from "./pages/Home";
-import Profile from "./pages/Profile";
-import MenuBar from "./components/menus/MenuBar";
-import Footer from "./components/footer/Footer";
+import { Paper } from '@material-ui/core';
 
-const App = () => {
+const App = ({children}) => {
     return (
-        <Router history={history}>
-            <UserProvider>
-                <Route path="/" component={MenuBar} />
-                <Route path="/profile" component={Profile} />
-            </UserProvider>
-            <Route path="/" exact component={Home} />
-            <Route path="/" exact component={Footer} />
-        </Router>
+        <Paper style={styles.body}>
+          {children}
+        </Paper>
     );
 };
 
+const styles = {
+    appLogo: {
+      height: 40,
+      animation: 'App-logo-spin infinite 20s linear'
+    },
+    footer: {
+      backgroundColor: '#26C6DA',
+      boxShadow: '0 -4px 10px 0px rgba(0,0,0,0.8)',
+    },
+    body: {
+    //   backgroundColor: '#009688',
+      overflowY: 'scroll',
+      WebkitOverflowScrolling: 'touch',
+    },
+    header: {
+      boxShadow: '0 4px 10px 0px rgba(0,0,0,0.8)',
+      fontFamily: 'MAGNETOB',
+    },
+    titleStyle: {
+      fontSize: '3em',
+      textShadow: 'rgb(0, 0, 0) 3px 3px 0px',
+    }
+  }
+  
 export default App;

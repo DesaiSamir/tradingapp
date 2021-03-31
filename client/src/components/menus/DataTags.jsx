@@ -10,7 +10,7 @@ const DataTags = ({ options, onClick, selected }) => {
     const allOptions = ["All", ...options];
 
     return (
-        <div>
+        <div style={{width: '50%', margin: '10px'}}>
             {allOptions.map(option => {
                 const extraClass = option === selected ? "selected" : "";
 

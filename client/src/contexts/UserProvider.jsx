@@ -1,23 +1,19 @@
 import React, { createContext, useState, useEffect } from "react";
 const context = createContext(null);
+const http = require("../utils/http");
 
 const UserProvider = ({ children }) => {
-  const [user, setUser] = useState({});
+    const [user, setUser] = useState({});
 
-  useEffect(() => {
-      fetch("api/profile")
-          .then(res => res.json())
-          .then(res => setUser(res))
-          .catch(err => {
-              console.log(err);
-          });
-  }, []);
+    useEffect(() => {
+        http.get("api/profile", setUser);        
+    }, []);
 
-  return (
-      <context.Provider value={user}>
-          {children}
-      </context.Provider>
-  );
+    return (
+        <context.Provider value={user}>
+            {children}
+        </context.Provider>
+    );
 };
 
 UserProvider.context = context;

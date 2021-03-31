@@ -35,6 +35,7 @@ const Profile = () => {
                 <Terminal
                     userData={userData}
                     selected={selected}
+                    title="Profile Data"
                 />
             </Col>
             <div style={{ marginBottom: 20 }} />
