@@ -2,6 +2,7 @@ var express = require('express');
 var path = require('path');
 var cookieSession = require('cookie-session');
 const { ts } = require('./config');
+var morgan = require('morgan')
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
@@ -12,6 +13,9 @@ const profileRouter = require('./routes/profile');
 const marketdataRouter = require('./routes/marketdata');
 
 const app = express();
+
+//logger
+app.use(morgan('common'));
 
 const PORT = process.env.PORT || 3001;
 
@@ -36,8 +40,10 @@ app.use('/api/logout', logoutRouter);
 app.use('/api/profile', profileRouter);
 app.use('/api/marketdata', marketdataRouter);
 
+
 // error handler
 app.use(function(err, req, res, next) {
+  
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

@@ -10,17 +10,40 @@ import Profile from "./pages/Profile";
 import MenuBar from "./components/menus/MenuBar";
 import Footer from "./components/footer/Footer";
 import Market from "./pages/Market";
+import { makeStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles((theme) => ({
+	page: {
+		width: '80%',
+		margin: '0 auto'
+	},
+	pageTitle: {
+		fontWeight: 400,
+		fontSize: '30px',
+	},
+    col: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    col4: {
+        width: '100%',
+    },
+    col8:{
+        width: '100%',
+    },
+}));
 
 const routes =         
     <Router history={history}>
-        <App>
+        <App parentStyles={useStyles}>
             <UserProvider>
-                <Route path="/" component={MenuBar} />
-                <Route path="/profile" component={Profile} />
+                <Route path="/" component={() => <MenuBar parentStyles={useStyles} />} />
+                <Route path="/profile" component={() => <Profile parentStyles={useStyles} />} />
             </UserProvider>
-            <Route path="/market" component={Market} />
-            <Route path="/" exact component={Home} />
-            <Route path="/" component={Footer} />
+            <Route path="/market" component={() => <Market parentStyles={useStyles} />} />
+            <Route path="/" exact component={() => <Home parentStyles={useStyles} />} />
+            <Route path="/" component={() => <Footer parentStyles={useStyles} />} />
         </App>
     </Router>
 

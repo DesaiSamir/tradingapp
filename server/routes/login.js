@@ -24,7 +24,7 @@ router.get('/callback', async function (req, res, next)  {
     
     const token_info = await helper.getAccessToken(req, code, null);
 
-    const user_data = await helper.getUser(token_info);
+    const user_data = await helper.getUser(req);
 
     if(user_data){
         ts.session_data.user_data = user_data;

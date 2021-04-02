@@ -1,16 +1,15 @@
 import React from "react";
 
-const IconButton = ({ app }) => {
+const IconButton = ({ app, styles }) => {
     const { img, href, alt, color, txt, name } = app;
-
     return (
         <a href={href}
-           className="btn login-btn"
+           className={`${styles.btn} ${styles.loginBtn}`}
            style={{ backgroundColor: color, margin: 5, display: "block" }}
            title={txt}
         >
-            <img src={img} alt={alt} className="btn-icon" />
-            <span className="btn-txt">{name.toUpperCase()} Login</span>
+            <img src={img} alt={alt} className={styles.btnIcon} />
+            <span className={styles.btnText}> {name.toUpperCase()} Login</span>
         </a>
     );
 };

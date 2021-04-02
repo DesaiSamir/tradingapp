@@ -1,36 +1,26 @@
 import React from 'react';
 import { Paper } from '@material-ui/core';
+import Footer from "./components/footer/Footer";
+import { makeStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles((theme) => ({
+	content: {
+		WebkitOverflowScrolling: 'touch',
+		height: window.innerHeight - 50,	  
+		flex: '1 0 auto',
+    }
+}));
 
 const App = ({children}) => {
-    return (
-        <Paper style={styles.body}>
-          {children}
-        </Paper>
-    );
+	const classes =useStyles();
+	return (
+		<div>
+			<Paper className={classes.content}>
+				{children}
+			</Paper>
+			<Footer />
+		</div>
+	);
 };
-
-const styles = {
-    appLogo: {
-      height: 40,
-      animation: 'App-logo-spin infinite 20s linear'
-    },
-    footer: {
-      backgroundColor: '#26C6DA',
-      boxShadow: '0 -4px 10px 0px rgba(0,0,0,0.8)',
-    },
-    body: {
-    //   backgroundColor: '#009688',
-      overflowY: 'scroll',
-      WebkitOverflowScrolling: 'touch',
-    },
-    header: {
-      boxShadow: '0 4px 10px 0px rgba(0,0,0,0.8)',
-      fontFamily: 'MAGNETOB',
-    },
-    titleStyle: {
-      fontSize: '3em',
-      textShadow: 'rgb(0, 0, 0) 3px 3px 0px',
-    }
-  }
   
 export default App;

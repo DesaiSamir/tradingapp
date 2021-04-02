@@ -44,17 +44,17 @@ const StyledMenuItem = withStyles(theme => ({
     }
 }))(MenuItem);
 
-const UserDropDown = () => {
+const UserDropDown = ({styles}) => {
     const [anchorEl, setAnchorEl] = React.useState(null);
     const handleClick = event => setAnchorEl(event.currentTarget);
     const handleClose = () => setAnchorEl(null);
-
+    
     return (
         <div style={{ float: "right" }}>
             <IconButton
                 href=""
                 style={{ color: "white", padding: "13px 12px" }}
-                onClick={handleClick}
+                onClick={handleClick}                
             >
                 <MoreVertIcon />
             </IconButton>
@@ -77,7 +77,7 @@ const UserDropDown = () => {
                     </ListItemIcon>
                     <ListItemText primary="Profile" />
                 </StyledMenuItem>
-                <ButtonList />
+                <ButtonList styles={styles}/>
             </StyledMenu>
         </div>
     );
