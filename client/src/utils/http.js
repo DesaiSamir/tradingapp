@@ -1,4 +1,6 @@
+var patterns = require('./patterns');
 const alpha = require('alphavantage')({ key: '' });
+
 var apiTimer;
 module.exports = {
     clearApiInterval: function () {
@@ -27,7 +29,8 @@ module.exports = {
                 // console.log(data)
 
                 if(JSON.stringify(payload).indexOf('barchart') > 0){
-                    responseData = this.formatTSData(data)
+                    responseData = patterns.detectPattern(this.formatTSData(data));
+                    // console.log(responseData)
                 }
 
                 cb(responseData);
@@ -53,7 +56,8 @@ module.exports = {
                         dividend: "",
                         absoluteChange: "",
                         percentChange: "",
-                        split: ""
+                        split: "",
+                        pattern: ""
                     });
                 }
             }

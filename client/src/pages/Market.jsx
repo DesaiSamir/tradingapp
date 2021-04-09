@@ -370,7 +370,8 @@ const Market = ({parentStyles}) => {
                 <TabPanel 
                     url={url}
                     userData={marketDataStream}
-                    barChartData={barChartData} 
+                    barChartData={barChartData}
+                    symbol={symbol} 
                 />
             </Col>
         </div>

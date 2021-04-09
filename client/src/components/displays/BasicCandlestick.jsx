@@ -9,17 +9,16 @@ import {
     MovingAverageTooltip, OHLCTooltip, SingleValueTooltip, HoverTooltip,
     lastVisibleItemBasedZoomAnchor, XAxis, YAxis, CrossHairCursor,
     EdgeIndicator, MouseCoordinateX, MouseCoordinateY,
-    ZoomButtons, withDeviceRatio, withSize,
+    ZoomButtons, withDeviceRatio, withSize, Label, Annotate, LabelAnnotation,
 } from "react-financial-charts";
 
-const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio, width }) => {
-    const margin = { left: 50, right: 50, top: 10, bottom: 24 };
+const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio, width, symbol, ...rest }) => {
+    const margin = { left: 50, right: 50, top: 0, bottom: 24 };
     const pricesDisplayFormat = format(".2f");
     const numberDisplayFormat = format(",");
     const xScaleProvider = discontinuousTimeScaleProviderBuilder().inputDateAccessor(
         (d => d.date),
     );
-
     const ema12 = ema()
         .id(1)
         .options({ windowSize: 12 })
@@ -79,6 +78,48 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
         return data.close > data.open ? "#26a69a" : "#ef5350";
     };
 
+    const candelFillColor = (data) => {
+        var fillColor = data.close > data.open ? "#26a69a" : "#ef5350"
+
+        switch (data.pattern) {
+            case "Bullish Engulfing":
+                fillColor = 'green';
+                break;
+            case "Berish Engulfing":
+                fillColor = 'red';
+                break;
+            default:
+                fillColor = data.close > data.open ? "#26a69a" : "#ef5350";
+                break;
+
+        }
+        return fillColor;
+    }
+
+    const candlestickYAccessor = (data) => {
+        return { open: data.open, high: data.high, low: data.low, close: data.close, pattern: data.pattern};
+    }
+    
+    const annotBullish = {
+        text: "Bullish",
+        tooltip: "Go Long",
+        y: ({ yScale, datum }) => yScale(datum.high),
+    };
+    
+    const whenBullish = (data) => {
+        return data.pattern === "Bullish Engulfing";
+    };
+    
+    const annotBerish = {
+        text: "Berish",
+        tooltip: "Go Short",
+        y: ({ yScale, datum }) => yScale(datum.low),
+    };
+    
+    const whenBerish = (data) => {
+        return data.pattern === "Berish Engulfing";
+    };
+
     return (
         <ChartCanvas
             height={height}
@@ -105,7 +146,7 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
             <Chart id={3} height={chartHeight} yExtents={candleChartExtents}>
                 <XAxis showGridLines showTickLabel={false} />
                 <YAxis showGridLines tickFormat={pricesDisplayFormat} />
-                <CandlestickSeries />
+                <CandlestickSeries fill={candelFillColor} yAccessor={candlestickYAccessor} />
                 <LineSeries yAccessor={ema26.accessor()} strokeStyle={ema26.stroke()} />
                 <CurrentCoordinate yAccessor={ema26.accessor()} fillStyle={ema26.stroke()} />
                 <LineSeries yAccessor={ema12.accessor()} strokeStyle={ema12.stroke()} />
@@ -138,38 +179,49 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                 />
 
                 <ZoomButtons />
-
+                <Label
+                    text={symbol}
+                    {...rest}
+                    x={(width - margin.left - margin.right) / 2}
+                    y={(height - margin.top - margin.bottom) / 2}
+                />
+                <Annotate with={LabelAnnotation} usingProps={annotBullish} when={whenBullish} />
+                <Annotate with={LabelAnnotation} usingProps={annotBerish} when={whenBerish} />
                 <OHLCTooltip origin={[8, 16]} textFill={(d) => (d.close > d.open ? "#26a69a" : "#ef5350")} />
                 <HoverTooltip
-                        yAccessor={ema12.accessor()}
-                        tooltip={{
-                            content: ({ currentItem, xAccessor }) => ({
-                                x: timeDisplayFormat(xAccessor(currentItem)),
-                                y: [
-                                    {
-                                        label: "Open",
-                                        value: currentItem.open && pricesDisplayFormat(currentItem.open),
-                                    },
-                                    {
-                                        label: "High",
-                                        value: currentItem.high && pricesDisplayFormat(currentItem.high),
-                                    },
-                                    {
-                                        label: "Low",
-                                        value: currentItem.low && pricesDisplayFormat(currentItem.low),
-                                    },
-                                    {
-                                        label: "Close",
-                                        value: currentItem.close && pricesDisplayFormat(currentItem.close),
-                                    },
-                                    {
-                                        label: "Volume",
-                                        value: currentItem.volume && numberDisplayFormat(currentItem.volume),
-                                    },
-                                ],
-                            }),
-                        }}
-                    />
+                    yAccessor={ema12.accessor()}
+                    tooltip={{
+                        content: ({ currentItem, xAccessor }) => ({
+                            x: timeDisplayFormat(xAccessor(currentItem)),
+                            y: [
+                                {
+                                    label: "Open",
+                                    value: currentItem.open && pricesDisplayFormat(currentItem.open),
+                                },
+                                {
+                                    label: "High",
+                                    value: currentItem.high && pricesDisplayFormat(currentItem.high),
+                                },
+                                {
+                                    label: "Low",
+                                    value: currentItem.low && pricesDisplayFormat(currentItem.low),
+                                },
+                                {
+                                    label: "Close",
+                                    value: currentItem.close && pricesDisplayFormat(currentItem.close),
+                                },
+                                {
+                                    label: "Diff",
+                                    value: pricesDisplayFormat(currentItem.high - currentItem.low),
+                                },
+                                {
+                                    label: "Volume",
+                                    value: currentItem.volume && numberDisplayFormat(currentItem.volume),
+                                },
+                            ],
+                        }),
+                    }}
+                />
             </Chart>
             <Chart
                 id={4}

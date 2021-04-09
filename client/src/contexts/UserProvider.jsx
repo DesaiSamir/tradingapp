@@ -6,7 +6,7 @@ const UserProvider = ({ children }) => {
     const [user, setUser] = useState({});
 
     useEffect(() => {
-        http.get("api/profile", setUser);        
+        http.get("api/profile", setUser);
     }, []);
 
     return (

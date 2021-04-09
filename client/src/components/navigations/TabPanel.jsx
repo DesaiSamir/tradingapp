@@ -63,7 +63,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function NavTabs({url, userData, barChartData}) {
+export default function NavTabs({url, userData, barChartData, symbol}) {
 	const classes = useStyles();
 	const [value, setValue] = React.useState(0);
 	const dateTimeFormat= url.indexOf('Minute') > 0 ? "%d %b %H:%M %p" : "%d %b";
@@ -93,7 +93,7 @@ export default function NavTabs({url, userData, barChartData}) {
             </TabPanel>
             <TabPanel value={value} index={1}>
                 {(barChartData.length > 0) ? 
-					<StockChart dateTimeFormat={dateTimeFormat} data={barChartData} />
+                    <StockChart dateTimeFormat={dateTimeFormat} data={barChartData} symbol={symbol} />
                 : <div>Loading...</div>}
             </TabPanel>
             <TabPanel value={value} index={2}>
