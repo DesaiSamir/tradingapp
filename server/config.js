@@ -26,5 +26,8 @@ module.exports = {
     cookie_secret: process.env.COOKIE_SECRET,
     api_callback: process.env.API_CALLBACK,
     session_data: null
+  },
+  aa: {
+    key: process.env.ALPHA_ADVANTAGE_KEY
   }
 };

@@ -10,12 +10,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function SimpleButtons({text, onClick}) {
+export default function SimpleButtons({text, onClick, name}) {
   const classes = useStyles();
 
   return (
     <div className={classes.root}>
-      <Button variant="contained" color="primary" onClick={onClick}>
+      <Button variant="contained" color="primary" onClick={(e) => onClick(e, name)}>
         {text}
       </Button>
     </div>

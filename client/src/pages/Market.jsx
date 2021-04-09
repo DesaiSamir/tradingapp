@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
-import Terminal from "../components/displays/Terminal";
+import React, { 
+    useState, 
+    // useEffect 
+} from "react";
 import Col from "../components/wrappers/Col";
 import http from "../utils/http";
 import helper from "../utils/helper";
@@ -8,22 +10,25 @@ import DatePicker from "../components/formcontrols/DatePicker";
 import SimpleTextField from '../components/formcontrols/SimpleTextField';
 import SimpleButton from '../components/formcontrols/SimpleButton';
 import InputLabel from '@material-ui/core/InputLabel';
+import TabPanel from '../components/navigations/TabPanel'
 import { makeStyles } from '@material-ui/core/styles';
 
 const Market = ({parentStyles}) => {
     const classes = useStyles();
     const parentClasses = parentStyles();
     const [marketDataStream, setMarketDataStream] = useState({});
+    const [barChartData, setBarChartData] = useState({});
     const [symbol, setSymbol] = useState('TSLA');
-    const [url, setUrl] = useState(`/v2/data/quote/${symbol}`);
     const [method, setMethod] = useState('GET');
     const [unit, setUnit] = useState('Minute');
-    const [interval, setInterval] = useState(240);
-    const [startDate, setStartDate] = useState(helper.formatDate(new Date()));
-    const [endDate, setEndDate] = useState(helper.formatDate(new Date()));
-    const [lastDate, setLastDate] = useState(helper.formatDate(new Date()));
-    const [barsBack, setBarsBack] = useState(20);
-    const [daysBack, setDaysBack] = useState(1);
+    const [interval, setInterval] = useState(5);
+    const [startDate, setStartDate] = useState(helper.formatDate(new Date().toUTCString()));
+    const [endDate, setEndDate] = useState(helper.formatDate(new Date().toUTCString()));
+    const [lastDate, setLastDate] = useState(helper.formatDate(new Date().toUTCString()));
+    const [barsBack, setBarsBack] = useState(100);
+    const [daysBack, setDaysBack] = useState(30);
+    // const [url, setUrl] = useState(`/v2/stream/barchart/${symbol}/${interval}/${unit}?SessionTemplate=USEQPreAndPost&daysBack=${daysBack}&lastDate=${lastDate}`);
+    const [url, setUrl] = useState(`/v2/data/quote/${symbol}`);
     const apis = [
         {
             id: 1,
@@ -136,9 +141,23 @@ const Market = ({parentStyles}) => {
             isLastDate: false,
             isDaysBack: false,
             isBarsBack: true
-        }
+        },
+        {
+            id: 9,
+            method: 'GET',
+            title: 'Get Symbol List',
+            value: `/v2/data/symbollists`,
+            url: `/v2/data/symbollists`,
+            isUnit: false,
+            isInteral: false,
+            isStartDate: false,
+            isEndDate: false,
+            isLastDate: false,
+            isDaysBack: false,
+            isBarsBack: false
+        },
     ];
-    const [api, setApi] = useState(apis[0]);
+    const [api, setApi] = useState(apis[6]);
     const units = [
         {
             id: 1, 
@@ -203,16 +222,34 @@ const Market = ({parentStyles}) => {
             value: 480
         }
     ];
-    
-    useEffect(() => {
-        const loading = {status: 'Loading data...'};
+    // const enterKeyHandler = (event) => {
+    //     if (e.key === 'Enter') {
+    //         console.log('do validate');
+    //     }
+    // };
+    const getMarketData = () => {
         const payload = {
             method: method,
             url: url 
         };
-        setMarketDataStream(loading);
-        http.send(payload, setMarketDataStream);
-    }, [method, url]);
+
+        ////AlphaAdvantage APIs
+        // setMarketDataStream(loading);
+        // http.getintraday(symbol, setMarketDataStream);
+        // http.getdaily(symbol, setMarketDataStream);
+
+        ////Tradestation APIs
+        if(url.indexOf('barchart') > 0){            
+            http.send(payload, setBarChartData);
+        } else {
+            http.send(payload, setMarketDataStream);
+        };
+    };
+
+    // useEffect(() => {
+    //     getMarketData();
+        
+    // }, [getMarketData]);
 
     const onSelectChange = (e, name, menuItems) => {
         const id = e.target.value;  
@@ -229,29 +266,36 @@ const Market = ({parentStyles}) => {
                 
                     case 'unit':
                         setUnit(item.value);
+                        var intervalSelect = document.getElementById('interval')
+                        intervalSelect.innerHTML = (item.value !== 'Minute') ? 1: interval;
+                        // console.log({unit: item.value, select: intervalSelect, interval})
                         break;
                 
                     default:
                         break;
                 }
                 
-		        // console.log(api);
+		        // console.log(interval);
             }
         } )
     }
 
     const onDateChange = (e, name) => {
+        var date = new Date(e.target.value);
+        // var newDate = new Date(date.setDate(date.getDate() + 2));
+        // date = helper.formatDate(newDate);
+        // console.log({name, origDate: e.target.value, date, newDate})
         switch (name) {
             case 'startDate':
-                setStartDate(helper.formatDate(e.target.value));
+                setStartDate(date);
                 break;
 
             case 'endDate':
-                setEndDate(helper.formatDate(e.target.value));
+                setEndDate(date);
                 break;
 
             case 'lastDate':
-                setLastDate(helper.formatDate(e.target.value));
+                setLastDate(date);
                 break;
             default:
                 break;
@@ -261,7 +305,11 @@ const Market = ({parentStyles}) => {
 	
     var timer;
     const onTextChanged = (e, name) => {        
-
+        if (e.key === 'Enter') {
+            onButtonClick(e, "GetData");
+            return;
+        }
+        
         clearTimeout(timer);
 
         timer = setTimeout(() => {
@@ -281,18 +329,22 @@ const Market = ({parentStyles}) => {
         }, 1000);
     }
 
-    const onButtonClick = (e) => { 
+    const onButtonClick = (e, name) => { 
         e.preventDefault();
-        resolveUrl();
+        if(name === 'GetData')
+            resolveUrl();
+        else
+            http.clearApiInterval();
     }
 
     const resolveUrl = () => {
-        const resolvedUrl = api.url.replace('$symbol', symbol).replace('$unit', unit).replace('$interval', interval).replace('$startDate', startDate)
-                    .replace('$endDate', endDate).replace('$lastDate', lastDate).replace('$daysBack', daysBack).replace('$barsBack', barsBack);
+        const resolvedUrl = api.url.replace('$symbol', symbol).replace('$unit', unit).replace('$interval', unit !== 'Minute' ? 1 : interval).replace('$startDate', helper.newDate(startDate))
+                    .replace('$endDate', helper.newDate(endDate)).replace('$lastDate', helper.newDate(lastDate)).replace('$daysBack', daysBack).replace('$barsBack', barsBack);
         
         setUrl(resolvedUrl);
         setMethod(api.method);
-        console.log(resolvedUrl);
+        getMarketData();
+        console.log(url);
     }
 
     return (
@@ -300,23 +352,25 @@ const Market = ({parentStyles}) => {
             <Col className={classes.search}>
                     <InputLabel className={parentClasses.pageTitle}>Stock Symbol:</InputLabel>
                     <SimpleTextField id="symbol" label="Symbol" name="symbol" onChange={onTextChanged} defaultValue={symbol} />
-                    <SimpleButton text="Get Data" onClick={onButtonClick} />
+                    <SimpleButton text="Get Data" name="GetData" onClick={onButtonClick} />
+                    <SimpleButton text="Stop Data" name="StopData" onClick={onButtonClick} />
             </Col>
             <Col className={classes.selectDiv}>
-                <SimpleSelect parentStyles={useStyles} onSelectChange={onSelectChange} name="api" menuItems={apis} title="Select Api" defaultValue="1" />
+                <SimpleSelect parentStyles={useStyles} onSelectChange={onSelectChange} name="api" menuItems={apis} title="Select Api" defaultValue="7" />
                 {api.isUnit ? <SimpleSelect parentStyles={useStyles} onSelectChange={onSelectChange} name="unit" menuItems={units} title="Select Unit" defaultValue="1" /> : ''}
-                {api.isInteral ? <SimpleSelect parentStyles={useStyles} onSelectChange={onSelectChange} name="interval" menuItems={intervals} title="Select Interval" defaultValue="240" /> : ''}
+                {api.isInteral ? <SimpleSelect parentStyles={useStyles} onSelectChange={onSelectChange} name="interval" menuItems={intervals} title="Select Interval" defaultValue={interval} /> : ''}
                 {api.isStartDate ? <DatePicker parentStyles={useStyles} onDateChange={onDateChange} title="Start Date" name="startDate" /> : ''}
                 {api.isEndDate ? <DatePicker parentStyles={useStyles} onDateChange={onDateChange} title="End Date" name="endDate" /> : ''}
                 {api.isLastDate ? <DatePicker parentStyles={useStyles} onDateChange={onDateChange} title="Last Date" name="lastDate" /> : ''}
                 {api.isDaysBack ? <SimpleTextField parentStyles={useStyles} id="daysBack" name="daysBack" label="Days Back" onChange={onTextChanged} defaultValue={daysBack} type="number" /> : ''}
                 {api.isBarsBack ? <SimpleTextField parentStyles={useStyles} id="barsBack" name="barsBack" label="Bars Back" onChange={onTextChanged} defaultValue={barsBack} type="number" /> : ''}
             </Col>
-
+            
             <Col className={parentClasses.col8}>
-                <Terminal
-                    title={url}
+                <TabPanel 
+                    url={url}
                     userData={marketDataStream}
+                    barChartData={barChartData} 
                 />
             </Col>
         </div>
@@ -343,7 +397,6 @@ const useStyles = makeStyles((theme) => ({
         padding: '.7rem 2rem',
         borderRadius: '0.2rem',
         width: '20%',
-        // display: 'block',
         border: '0.3rem solid',
         transition: 'all 0.3s',
       },

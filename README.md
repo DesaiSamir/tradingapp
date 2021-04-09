@@ -26,6 +26,12 @@ TS_CLIENT_ID="<TS_CLIENT_ID>"
 TS_CLIENT_SECRET="<TS_CLIENT_SECRET>"
 ```
 
+If you want to use AlphaAdvantage APIs add a key for that in the `.env` file. If you don't have a key get it from https://www.alphavantage.co/support/#api-key
+
+```dosini
+ALPHA_ADVANTAGE_KEY="<ALPHA_ADVANTAGE_KEY>" 
+```
+
 `process.env` now has the keys and values you defined in your `.env` file and these are loaded in `config.js` file present in the `./server` directory. You can see in the below example by default the `base_url` is set to simulated account. 
 
 ```javascript

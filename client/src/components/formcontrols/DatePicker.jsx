@@ -26,7 +26,7 @@ export default function DatePickers({title, name, onDateChange, parentStyles}) {
 				id = {name}
 				label = {title}
 				type = "date"
-				defaultValue = {helper.formatDate(new Date(), 'yyyy-mm-dd' )}
+				defaultValue = {helper.formatDate((new Date()).toDateString(), 'yyyy-mm-dd' )}
 				className = {classes.textField}
 				InputLabelProps = {{
 				shrink: true,

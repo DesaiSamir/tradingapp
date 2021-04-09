@@ -1,5 +1,10 @@
+const alpha = require('alphavantage')({ key: '' });
+var apiTimer;
 module.exports = {
-    send: async function (payload, cb) {
+    clearApiInterval: function () {
+        clearInterval(apiTimer);
+    },
+    send: function (payload, cb) {
         var options = {
             method: 'POST',
             headers: {
@@ -7,18 +12,54 @@ module.exports = {
             },
             body: JSON.stringify(payload)
         };
-        
-        const data = await fetch("api/marketdata", options)
-            .then(res => res.json())
-            .then(data => {
-                return data;
-            })
-            .catch(err => console.log({err})
-        );
-        
-        if(data){
-            cb(data);            
-        }
+        this.clearApiInterval();
+        apiTimer = setInterval(async () => {
+            const data = await fetch("api/marketdata", options)
+                .then(res => res.json())
+                .then(data => {
+                    return data;
+                })
+                .catch(err => console.log({err})
+            );
+            
+            if(data){
+                var responseData = data;
+                // console.log(data)
+
+                if(JSON.stringify(payload).indexOf('barchart') > 0){
+                    responseData = this.formatTSData(data)
+                }
+
+                cb(responseData);
+            }
+        }, 5000);
+    },
+    formatTSData: function (data){
+        var formatedData = [];
+        const tsRegX = /\d+/g;
+        // console.log(data)
+        data.forEach(dataPoint => {
+            if(dataPoint.TimeStamp){
+                const ts = parseInt(dataPoint.TimeStamp.match(tsRegX)[0]);
+                const date = new Date(ts);
+                if(dataPoint.Open > 0){
+                    formatedData.push({
+                        date,
+                        open: dataPoint.Open,
+                        high: dataPoint.High,
+                        low: dataPoint.Low,
+                        close: dataPoint.Close,
+                        volume: dataPoint.TotalVolume,
+                        dividend: "",
+                        absoluteChange: "",
+                        percentChange: "",
+                        split: ""
+                    });
+                }
+            }
+        })
+
+        return formatedData.sort((a, b) => (a.date > b.date) ? 1 : -1);
     },
 
     get: async function (url, cb) {
@@ -33,6 +74,60 @@ module.exports = {
         if(res){
             cb(res);
         }
+    },
+    getaa: function (symbol, cb) {
+        alpha.data.daily(symbol, 'compact').then(data => {
+            const polished = alpha.util.polish(data);
+            const formatPolished = this.formatAAData(polished)
+            // console.log(formatPolished)
+            cb(formatPolished);
+          });
+    },
+    getdaily: function (symbol, cb) {
+        alpha.data.daily(symbol, 'compact').then(data => {
+            const polished = alpha.util.polish(data);
+            const formatPolished = this.formatAAData(polished)
+            // console.log(formatPolished)
+            cb(formatPolished);
+          });
+    },
+    getintraday: function (symbol, cb) {
+        alpha.data.intraday(symbol, 'compact', 'json', '5min').then(data => {
+            const polished = alpha.util.polish(data);
+            const formatPolished = this.formatAAData(polished)
+            console.log(formatPolished)
+            cb(formatPolished);
+          });
+    },
+    formatAAData: function (data){
+        var formatedData = [];
+         Object.keys(data).forEach(key => {
+             const chartData = data[key]
+             if (key.indexOf('meta') !== 0) {
+                //  console.log(key)
+                 Object.keys(chartData).forEach(item => {
+                    const date = item;
+                    const dataPoints = chartData[item];
+                    // console.log(dataPoints)
+                    const dt = new Date(date);
+                    formatedData.push({
+                        date: dt,
+                        open: dataPoints.open,
+                        high: dataPoints.high, 
+                        low: dataPoints.low,
+                        close: dataPoints.close,
+                        volume: dataPoints.volume,
+                        dividend: "",
+                        absoluteChange: "",
+                        percentChange: "",
+                        split: ""
+                    })
+                 })
+             }
+         })
+
+         return formatedData.sort((a, b) => (a.date > b.date) ? 1 : -1);
+
     }
 };
 

@@ -25,7 +25,8 @@ export default function SimpleTextFields({id, label, name, onChange, defaultValu
 				label = {label} 
 				type = {type}
 				// variant = "filled" 
-				onChange = {(e) => onChange(e, name)} 
+				onKeyDown = {(e) => onChange(e, name)} 
+				// onChange = {(e) => onChange(e, name)} 
 				defaultValue = {defaultValue}
 			/>
 		</form>

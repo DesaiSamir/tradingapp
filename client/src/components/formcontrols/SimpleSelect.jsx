@@ -28,7 +28,7 @@ export default function SimpleSelect({menuItems, name, onSelectChange, title, pa
 				<InputLabel id="simple-select-label">{title}</InputLabel>
 				<Select
 					labelId="simple-select"
-					id="simple-select-id"
+					id={name}
 					value={api}
 					onChange={(e) => onSelectChange(e, name, menuItems)}
 				>

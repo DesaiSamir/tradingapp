@@ -24,6 +24,7 @@ app.use(
       secret: ts.cookie_secret
   })
 )
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -39,7 +40,6 @@ app.use('/api/admin', adminRouter);
 app.use('/api/logout', logoutRouter);
 app.use('/api/profile', profileRouter);
 app.use('/api/marketdata', marketdataRouter);
-
 
 // error handler
 app.use(function(err, req, res, next) {

@@ -1,6 +1,6 @@
 const request = require('request');
 const fetch = require('node-fetch');
-const { ts } = require('../config');
+const { ts, aa } = require('../config');
 
 module.exports = {
     getAccessToken: async function (req, code, refresh_token){
@@ -37,6 +37,7 @@ module.exports = {
             }
             req.session.provider = "Tradestation"
             req.session.name = "Samir Desai"
+            req.session.alpha_advantage_key = aa.key
             ts.session_data = req.session;
         }
         

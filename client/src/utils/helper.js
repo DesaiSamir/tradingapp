@@ -1,6 +1,7 @@
 module.exports = {
     formatDate: function(date, format) {
         var newDate = new Date(date);
+        // console.log({date, newDate});
         var dd = newDate.getDate();
         var mm = newDate.getMonth()+1; 
         var yyyy = newDate.getFullYear();
@@ -27,5 +28,10 @@ module.exports = {
         }
         
         return newDate;
+    },
+    newDate: function(date){
+        date = new Date(date)
+        var newDate = new Date(date.setDate(date.getDate() + 1));
+        return this.formatDate(newDate);
     }
 }
