@@ -6,7 +6,7 @@ module.exports = {
     clearApiInterval: function () {
         clearInterval(apiTimer);
     },
-    send: function (payload, cb) {
+    send: function (payload, cb, origData) {
         var options = {
             method: 'POST',
             headers: {
@@ -34,6 +34,8 @@ module.exports = {
                 }
 
                 cb(responseData);
+                if(origData)
+                    origData(data);
             }
         }, 5000);
     },

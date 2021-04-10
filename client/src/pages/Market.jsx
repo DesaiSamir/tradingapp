@@ -240,7 +240,7 @@ const Market = ({parentStyles}) => {
 
         ////Tradestation APIs
         if(url.indexOf('barchart') > 0){            
-            http.send(payload, setBarChartData);
+            http.send(payload, setBarChartData, setMarketDataStream);
         } else {
             http.send(payload, setMarketDataStream);
         };

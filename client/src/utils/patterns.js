@@ -1,23 +1,27 @@
 module.exports = {
     detectPattern: function(candles) {
-
-        for (let index = 1; index < candles.length; index++) {
-            if(this.isBullisEngulfing(candles, index)) {
-                candles[index].pattern = "Bullish Engulfing";
-            } else if(this.isBerishEngulfing(candles, index)) {
-                candles[index].pattern = "Berish Engulfing";
+        if(candles.length > 10)
+            for (let index = 10; index < candles.length; index++) {
+                if(this.isBullisEngulfing(candles, index)) {
+                    // console.log({previous: candles[index - 5], current: candles[index]})
+                    candles[index].pattern = "Bullish Engulfing";
+                } else if(this.isBerishEngulfing(candles, index)) {
+                    // console.log({previous: candles[index - 7], current: candles[index]})
+                    candles[index].pattern = "Berish Engulfing";
+                }
             }
-        }
         
         return candles;
     },
     isBullisEngulfing: function(candles, index) {
         const currentDayCandle = candles[index];
         const previousDayCandle = candles[index - 1];
+        const pastFifthCandle = candles[index - 7];
 
         if(this.isBerishCandle(previousDayCandle) && 
-            currentDayCandle.open < previousDayCandle.close && 
-            currentDayCandle.close > previousDayCandle.open) {
+            currentDayCandle.open  < previousDayCandle.close && 
+            currentDayCandle.close > previousDayCandle.open &&
+            currentDayCandle.close < pastFifthCandle.open) {
             return true;
         }
 
@@ -26,10 +30,12 @@ module.exports = {
     isBerishEngulfing: function(candles, index) {
         const currentDayCandle = candles[index];
         const previousDayCandle = candles[index - 1];
+        const pastFifthCandle = candles[index - 7];
 
         if(this.isBullishCandle(previousDayCandle) && 
             currentDayCandle.open > previousDayCandle.close && 
-            currentDayCandle.close < previousDayCandle.open) {
+            currentDayCandle.close < previousDayCandle.open &&
+            currentDayCandle.close > pastFifthCandle.open) {
             return true;
         }
 
