@@ -27,15 +27,25 @@ module.exports = {
             if(data){
                 var responseData = data;
                 // console.log(data)
+                if(responseData.statusCode >= 400) {
+                    if(origData)
+                        origData(data);
+                    this.clearApiInterval();
+                } else {
+                    // console.log(responseData.length)
+                    if(responseData.length > 0 && JSON.stringify(payload).indexOf('barchart') > 0){
+                        responseData = patterns.detectPattern(this.formatTSData(responseData));
+                        // console.log(responseData)
+                    } else {
+                        responseData = {
+                            status: "Error fetching data.", 
+                        };
+                    }
 
-                if(JSON.stringify(payload).indexOf('barchart') > 0){
-                    responseData = patterns.detectPattern(this.formatTSData(data));
-                    // console.log(responseData)
+                    cb(responseData);
+                    if(origData)
+                        origData(data);
                 }
-
-                cb(responseData);
-                if(origData)
-                    origData(data);
             }
         }, 5000);
     },

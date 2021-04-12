@@ -139,7 +139,7 @@ module.exports = {
                         }
                     }).then(function (response) {
 
-                        // console.log(response)
+                        console.log(response)
                         const lines = response.split(/\r?\n/);
                         var retRes = [];
                         lines.forEach((line) => {
@@ -178,23 +178,24 @@ module.exports = {
                         req.on('response', (res) => {
                             let data = '';
                             if (res.statusCode !== 200) {
-                                resolve('http error');
-                            }
+                                resolve(res);
+                            } else {
                     
-                            res.on('data', (chunk) => {
-                                data += chunk;
-                            });
-                    
-                            res.on('end', () => {
-                                // console.log(data)
-                                const lines = data.split(/\r?\n/);
-                                var retRes = [];
-                                lines.forEach((line) => {
-                                    if(line.length > 0 && line !== "END")
-                                        retRes.push(JSON.parse(line));
+                                res.on('data', (chunk) => {
+                                    data += chunk;
                                 });
-                                resolve(retRes);
-                            });
+                        
+                                res.on('end', () => {
+                                    // console.log(data)
+                                    const lines = data.split(/\r?\n/);
+                                    var retRes = [];
+                                    lines.forEach((line) => {
+                                        if(line.length > 0 && line !== "END")
+                                            retRes.push(JSON.parse(line));
+                                    });
+                                    resolve(retRes);
+                                });
+                            }
                         });
                     
                         req.on('error', (error) => {

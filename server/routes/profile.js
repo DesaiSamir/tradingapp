@@ -18,7 +18,7 @@ router.get('/', async function  (req, res, next)  {
             res.send(req.session);
         }
     } else {
-        res.redirect('/login');
+        res.redirect('/');
     };
 })
 

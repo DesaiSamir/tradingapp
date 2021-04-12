@@ -1,21 +1,15 @@
-import React, { useContext } from "react";
-import { Link } from "react-router-dom";
 import UserDropDown from "./UserDropDown";
-import UserProvider from "../../contexts/UserProvider";
 import { data } from "../../data";
 import _ from "lodash";
 import { makeStyles } from '@material-ui/core/styles';
 import TradestationLogo from "../../res/ts_logo.png";
-import HomeIcon from "@material-ui/icons/Home";
-import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import LogoutIcon from "@material-ui/icons/MeetingRoom";
-import TrendingUpIcon from '@material-ui/icons/TrendingUp';
 
 const useStyles = makeStyles((theme) => ({
     menuBar: {
         overflow: 'hidden',
-        backgroundColor: 'var(--primary-red)',
-        height: '56px',
+        backgroundColor: '#26C6DA',
+        height: '50px',
     },
     btn: {
         textDecoration: 'none',
@@ -57,16 +51,15 @@ const useStyles = makeStyles((theme) => ({
     },
   }));
 
-const MenuBar = () => {
+const MenuBar = ({userData}) => {
     const classes = useStyles();
-    const userData = useContext(UserProvider.context);
     const loginType = !_.isEmpty(userData) ? _.find(data, d => d.name === userData.provider) : {};
 
     return (
         <div className={classes.menuBar}>
             {
                 !_.isEmpty(userData) &&
-                <Link className={`${classes.btn} ${classes.menuBtn}`} to="/profile" title={`${loginType.name} data`}>
+                <div className={`${classes.btn} ${classes.menuBtn}`} title={`${loginType.name} data`}>
                     <div className={classes.appIconContainer} style={{ backgroundColor: loginType.color }}>
                         <img
                             className={classes.btnIcon}
@@ -75,7 +68,7 @@ const MenuBar = () => {
                             style={{ position: "absolute", top: 17, paddingLeft: 5 }}
                         />
                     </div>
-                </Link>
+                </div>
             }
 
             {
@@ -88,14 +81,6 @@ const MenuBar = () => {
                     />
                 </a>
             }
-
-            <Link className={`${classes.btn} ${classes.menuBtn}`} to="/" title="Home">
-                <HomeIcon />
-            </Link>
-
-            <Link className={`${classes.btn} ${classes.menuBtn}`} to="/market" title="Market">
-                <TrendingUpIcon />
-            </Link>
 
             <UserDropDown styles={classes} />
 
@@ -111,17 +96,7 @@ const MenuBar = () => {
                     <LogoutIcon />
                 </a>
             }
-
-            {
-                !_.isEmpty(userData) &&
-                <Link 
-                    className={`${classes.btn} ${classes.menuBtn}`}
-                    to="/profile" 
-                    title="Profile" 
-                    style={{ float: "right" }}>
-                    <AccountCircleIcon />
-                </Link>
-            }
+            
         </div>
     );
 };

@@ -8,14 +8,15 @@ const Footer = () => {
     return (
         <div className={classes.footer}>
             <span>
-                Developed by <a href="https://github.com/DesaiSamir/tradingapp">Samir Desai</a>, with project scaffolding from <a href="https://github.com/rmbh4211995/passport-react">RyanMichael</a>.
+                Developed by <a href="https://github.com/DesaiSamir/tradingapp">Samir Desai</a>. 
+                {/* , with project scaffolding from <a href="https://github.com/rmbh4211995/passport-react">RyanMichael</a>. */}
             </span>
             <IconLink
                 href={"https://github.com/DesaiSamir/tradingapp"}
                 icon={Github}
                 title="Github"
                 className={classes.socialIcon}
-                buttonStyle={{ verticalAlign: "sub" }}
+                buttonStyle={{ verticalAlign: "top" }}
             />
         </div>
     );
@@ -28,15 +29,12 @@ const useStyles = makeStyles((theme) => ({
 	footer: {
         backgroundColor: '#26C6DA',
         bottom:0,
-        marginTop: '10px',
         position: 'fixed',
-        boxShadow: '0 -4px 10px 0px rgba(0,0,0,0.8)',
-        flexShrink: 0,
+        // boxShadow: '0 -4px 10px 0px rgba(0,0,0,0.8)',
         textAlign: 'center',
-      //   background-color: tomato;
         color: 'white',
         width: '100%',
-        height: '50px'
+        padding: '10px',
       },
     socialIcon: {
         width: '24px',

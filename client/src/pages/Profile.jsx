@@ -1,32 +1,16 @@
-import React, { useContext } from "react";
-import UserProvider from "../contexts/UserProvider";
+import React from "react";
 import Terminal from "../components/displays/Terminal";
-import Col from "../components/wrappers/Col";
-import _ from "lodash";
+import { Paper } from "@material-ui/core";
 
-const LoginMsg = "Uh oh, there's nothing to show! " +
-    "Login to see how much of your invaluable personal " +
-    "data tech companies have at their disposal.";
-
-const Profile = ({parentStyles}) => {
-    const parentClasses = parentStyles();
-    const userData = [useContext(UserProvider.context)];
-    const text = _.isEmpty(userData) ? LoginMsg: "Explore Your Data";
+const Profile = ({userData}) => {
 
     return (
-        <div className={parentClasses.page}>
-            <p className={parentClasses.pageTitle} style={{ textAlign: "center" }}>
-                {text}
-            </p>
-
-            <Col className={parentClasses.col8}>
-                <Terminal
-                    userData={userData}
-                    title="Profile Data"
+        <Paper>
+            <Terminal
+                userData={userData}
+                title="Profile Data"
                 />
-            </Col>
-            <div style={{ marginBottom: 20 }} />
-        </div>
+        </Paper>
     );
 };
 

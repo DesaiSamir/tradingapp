@@ -1,6 +1,6 @@
 import React, { 
     useState, 
-    // useEffect 
+    useEffect 
 } from "react";
 import Col from "../components/wrappers/Col";
 import http from "../utils/http";
@@ -21,7 +21,7 @@ const Market = ({parentStyles}) => {
     const [symbol, setSymbol] = useState('TSLA');
     const [method, setMethod] = useState('GET');
     const [unit, setUnit] = useState('Minute');
-    const [interval, setInterval] = useState(5);
+    const [interval, setInterval] = useState(15);
     const [startDate, setStartDate] = useState(helper.formatDate(new Date().toUTCString()));
     const [endDate, setEndDate] = useState(helper.formatDate(new Date().toUTCString()));
     const [lastDate, setLastDate] = useState(helper.formatDate(new Date().toUTCString()));
@@ -37,7 +37,7 @@ const Market = ({parentStyles}) => {
             value: `/v2/data/quote/${symbol}`,
             url: `/v2/data/quote/$symbol`,
             isUnit: false,
-            isInteral: false,
+            isInterval: false,
             isStartDate: false,
             isEndDate: false,
             isLastDate: false,
@@ -51,7 +51,7 @@ const Market = ({parentStyles}) => {
             value: `/v2/stream/quote/changes/${symbol}`,
             url: `/v2/stream/quote/changes/$symbol`,
             isUnit: false,
-            isInteral: false,
+            isInterval: false,
             isStartDate: false,
             isEndDate: false,
             isLastDate: false,
@@ -65,7 +65,7 @@ const Market = ({parentStyles}) => {
             value: `/v2/stream/quote/snapshots/${symbol}`,
             url: `/v2/stream/quote/snapshots/$symbol`,
             isUnit: false,
-            isInteral: false,
+            isInterval: false,
             isStartDate: false,
             isEndDate: false,
             isLastDate: false,
@@ -79,7 +79,7 @@ const Market = ({parentStyles}) => {
             value: `/v2/stream/barchart/${symbol}/${interval}/${unit}/${startDate}?SessionTemplate=USEQPreAndPost`,
             url: `/v2/stream/barchart/$symbol/$interval/$unit/$startDate?SessionTemplate=USEQPreAndPost`,
             isUnit: true,
-            isInteral: true,
+            isInterval: true,
             isStartDate: true,
             isEndDate: false,
             isLastDate: false,
@@ -93,7 +93,7 @@ const Market = ({parentStyles}) => {
             value: `/v2/stream/barchart/${symbol}/${interval}/${unit}/${startDate}/${endDate}?SessionTemplate=USEQPreAndPost`,
             url: `/v2/stream/barchart/$symbol/$interval/$unit/$startDate/$endDate?SessionTemplate=USEQPreAndPost`,
             isUnit: true,
-            isInteral: true,
+            isInterval: true,
             isStartDate: true,
             isEndDate: true,
             isLastDate: false,
@@ -107,7 +107,7 @@ const Market = ({parentStyles}) => {
             value: `/v2/stream/barchart/${symbol}/${interval}/${unit}/${barsBack}/${startDate}/${lastDate}?SessionTemplate=USEQPreAndPost`,
             url: `/v2/stream/barchart/$symbol/$interval/$unit/$barsBack/$startDate/$lastDate?SessionTemplate=USEQPreAndPost`,
             isUnit: true,
-            isInteral: true,
+            isInterval: true,
             isStartDate: true,
             isEndDate: false,
             isLastDate: true,
@@ -121,7 +121,7 @@ const Market = ({parentStyles}) => {
             value: `/v2/stream/barchart/${symbol}/${interval}/${unit}?SessionTemplate=USEQPreAndPost&daysBack=${daysBack}&lastDate=${lastDate}`,
             url: `/v2/stream/barchart/$symbol/$interval/$unit?SessionTemplate=USEQPreAndPost&daysBack=$daysBack&lastDate=$lastDate`,
             isUnit: true,
-            isInteral: true,
+            isInterval: true,
             isStartDate: false,
             isEndDate: false,
             isLastDate: true,
@@ -135,7 +135,7 @@ const Market = ({parentStyles}) => {
             value: `/v2/stream/tickbars/${symbol}/${interval}/${barsBack}?SessionTemplate=USEQPreAndPost`,
             url: `/v2/stream/tickbars/$symbol/$interval/$barsBack?SessionTemplate=USEQPreAndPost`,
             isUnit: false,
-            isInteral: true,
+            isInterval: true,
             isStartDate: false,
             isEndDate: false,
             isLastDate: false,
@@ -149,7 +149,7 @@ const Market = ({parentStyles}) => {
             value: `/v2/data/symbollists`,
             url: `/v2/data/symbollists`,
             isUnit: false,
-            isInteral: false,
+            isInterval: false,
             isStartDate: false,
             isEndDate: false,
             isLastDate: false,
@@ -227,7 +227,26 @@ const Market = ({parentStyles}) => {
     //         console.log('do validate');
     //     }
     // };
-    const getMarketData = () => {
+    // const getMarketData = () => {
+    //     const payload = {
+    //         method: method,
+    //         url: url 
+    //     };
+
+    //     ////AlphaAdvantage APIs
+    //     // setMarketDataStream(loading);
+    //     // http.getintraday(symbol, setMarketDataStream);
+    //     // http.getdaily(symbol, setMarketDataStream);
+
+    //     ////Tradestation APIs
+    //     if(url.indexOf('barchart') > 0){            
+    //         http.send(payload, setBarChartData, setMarketDataStream);
+    //     } else {
+    //         http.send(payload, setMarketDataStream);
+    //     };
+    // };
+
+    useEffect(() => {
         const payload = {
             method: method,
             url: url 
@@ -244,12 +263,8 @@ const Market = ({parentStyles}) => {
         } else {
             http.send(payload, setMarketDataStream);
         };
-    };
-
-    // useEffect(() => {
-    //     getMarketData();
         
-    // }, [getMarketData]);
+    }, [url, method]);
 
     const onSelectChange = (e, name, menuItems) => {
         const id = e.target.value;  
@@ -274,7 +289,7 @@ const Market = ({parentStyles}) => {
                     default:
                         break;
                 }
-                
+                resolveUrl();
 		        // console.log(interval);
             }
         } )
@@ -300,7 +315,7 @@ const Market = ({parentStyles}) => {
             default:
                 break;
         }
-
+        resolveUrl();
     }
 	
     var timer;
@@ -326,6 +341,7 @@ const Market = ({parentStyles}) => {
                 default:
                     break;
             }
+            resolveUrl();
         }, 1000);
     }
 
@@ -343,7 +359,7 @@ const Market = ({parentStyles}) => {
         
         setUrl(resolvedUrl);
         setMethod(api.method);
-        getMarketData();
+        // getMarketData();
         console.log(url);
     }
 
@@ -356,9 +372,9 @@ const Market = ({parentStyles}) => {
                     <SimpleButton text="Stop Data" name="StopData" onClick={onButtonClick} />
             </Col>
             <Col className={classes.selectDiv}>
-                <SimpleSelect parentStyles={useStyles} onSelectChange={onSelectChange} name="api" menuItems={apis} title="Select Api" defaultValue="7" />
+                <SimpleSelect parentStyles={useStyles} onSelectChange={onSelectChange} name="api" menuItems={apis} title="Select Api" defaultValue="1" />
                 {api.isUnit ? <SimpleSelect parentStyles={useStyles} onSelectChange={onSelectChange} name="unit" menuItems={units} title="Select Unit" defaultValue="1" /> : ''}
-                {api.isInteral ? <SimpleSelect parentStyles={useStyles} onSelectChange={onSelectChange} name="interval" menuItems={intervals} title="Select Interval" defaultValue={interval} /> : ''}
+                {api.isInterval ? <SimpleSelect parentStyles={useStyles} onSelectChange={onSelectChange} name="interval" menuItems={intervals} title="Select Interval" defaultValue={interval} /> : ''}
                 {api.isStartDate ? <DatePicker parentStyles={useStyles} onDateChange={onDateChange} title="Start Date" name="startDate" /> : ''}
                 {api.isEndDate ? <DatePicker parentStyles={useStyles} onDateChange={onDateChange} title="End Date" name="endDate" /> : ''}
                 {api.isLastDate ? <DatePicker parentStyles={useStyles} onDateChange={onDateChange} title="Last Date" name="lastDate" /> : ''}
@@ -366,7 +382,7 @@ const Market = ({parentStyles}) => {
                 {api.isBarsBack ? <SimpleTextField parentStyles={useStyles} id="barsBack" name="barsBack" label="Bars Back" onChange={onTextChanged} defaultValue={barsBack} type="number" /> : ''}
             </Col>
             
-            <Col className={parentClasses.col8}>
+            <Col className={parentClasses.page}>
                 <TabPanel 
                     url={url}
                     userData={marketDataStream}

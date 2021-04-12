@@ -30,12 +30,9 @@ export default Terminal;
 
 const useStyles = makeStyles((theme) => ({
     window: {
-        width: '100%',
         background: 'white',
         borderRadius: '6px',
-        margin: '10px',
         fontSize: '20px',
-        overflow: 'hidden'
     },
     content: {
         backgroundColor: '#EEEEEE',
@@ -43,7 +40,6 @@ const useStyles = makeStyles((theme) => ({
         borderBottomLeftRadius: '6px',
         borderBottomRightRadius: '6px',
         overflowY: 'auto',
-        height: '670px',
     },
     titleBar: {
         backgroundColor: 'rgb(109, 106, 106)',

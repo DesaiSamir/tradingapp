@@ -28,7 +28,7 @@ router.get('/callback', async function (req, res, next)  {
 
     if(user_data){
         ts.session_data.user_data = user_data;
-        res.redirect('/profile');
+        res.redirect('/');
     } else {
         console.log('Error');
         res.send('Error happend');

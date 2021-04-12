@@ -28,7 +28,7 @@ pre {
     word-wrap: break-word;       /* Internet Explorer 5.5+ */
 }
 
-@media (max-width: 860px) {
+/* @media (max-width: 860px) {
     .page {
         width: 65%;
     }
@@ -52,4 +52,4 @@ pre {
         padding-left: 0;
         padding-right: 0;
     }
-}
+} */

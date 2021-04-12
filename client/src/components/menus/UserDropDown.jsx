@@ -71,7 +71,7 @@ const UserDropDown = ({styles}) => {
                     <ListItemText primary="Home" />
                 </StyledMenuItem>
 
-                <StyledMenuItem onClick={() => history.push("/profile")}>
+                <StyledMenuItem onClick={() => history.push("/")}>
                     <ListItemIcon>
                         <AccountCircle />
                     </ListItemIcon>
