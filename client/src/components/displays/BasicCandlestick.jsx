@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import { format } from "d3-format";
 import { timeFormat } from "d3-time-format";
-import * as React from "react";
+// import { useState } from "react";
 import {
     elderRay, ema, discontinuousTimeScaleProviderBuilder, 
     Chart, ChartCanvas, BarSeries, CandlestickSeries, LineSeries,
@@ -12,8 +12,9 @@ import {
     ZoomButtons, withDeviceRatio, withSize, Label, Annotate, LabelAnnotation,
 } from "react-financial-charts";
 
-const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio, width, symbol, ...rest }) => {
+const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio, width, chartText, ...rest }) => {
     const margin = { left: 50, right: 50, top: 0, bottom: 24 };
+    // const [minimumBars, setMinimumBars] = useState(100);
     const pricesDisplayFormat = format(".2f");
     const numberDisplayFormat = format(",");
     const xScaleProvider = discontinuousTimeScaleProviderBuilder().inputDateAccessor(
@@ -44,7 +45,7 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
     const max = xAccessor(data[data.length - 1]);
     const min = xAccessor(data[Math.max(0, data.length - 100)]);
     const xExtents = [min, max + 5];
-
+        // console.log(lastVisibleItemBasedZoomAnchor)
     const gridHeight = height - margin.top - margin.bottom;
 
     const elderRayHeight = 100;
@@ -119,6 +120,13 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
     const whenBerish = (data) => {
         return data.pattern === "Berish Engulfing";
     };
+    
+    const averageVolume = (data) => {
+        const { length } = data;
+        return data.reduce((acc, val) => {
+           return acc + (val.volume/length);
+        }, 0);
+     };
 
     return (
         <ChartCanvas
@@ -138,9 +146,11 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                 
                 <YAxis axisAt="left" orient="left" ticks={5} tickFormat={format(".2s")}/>
                 
-                <MouseCoordinateY at="left" orient="left" displayFormat={format(".4s")} />
+                <LineSeries yAccessor={() => averageVolume(data)} strokeStyle="#9B0A47" />
+                <MouseCoordinateY at="left" orient="left" displayFormat={format(".4s")} arrowWidth={10} />
                 <BarSeries fillStyle={volumeColor} yAccessor={volumeSeries}  />
                 <CurrentCoordinate yAccessor={d => d.volume} fill="#9B0A47" />
+                <EdgeIndicator orient="right" at="left" rectWidth={margin.right} fill="#9B0A47" displayFormat={format(".4s")} yAccessor={() => averageVolume(data)} />
 
             </Chart>
             <Chart id={3} height={chartHeight} yExtents={candleChartExtents}>
@@ -151,15 +161,8 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                 <CurrentCoordinate yAccessor={ema26.accessor()} fillStyle={ema26.stroke()} />
                 <LineSeries yAccessor={ema12.accessor()} strokeStyle={ema12.stroke()} />
                 <CurrentCoordinate yAccessor={ema12.accessor()} fillStyle={ema12.stroke()} />
-                <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat} />
-                <EdgeIndicator
-                    itemType="last"
-                    rectWidth={margin.right}
-                    fill={openCloseColor}
-                    lineStroke={openCloseColor}
-                    displayFormat={pricesDisplayFormat}
-                    yAccessor={yEdgeIndicator}
-                />
+                <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat} arrowWidth={10} />
+                <EdgeIndicator itemType="last" rectWidth={margin.right} fill={openCloseColor} lineStroke={openCloseColor} displayFormat={pricesDisplayFormat} yAccessor={yEdgeIndicator} />
                 <MovingAverageTooltip
                     origin={[8, 24]}
                     options={[
@@ -180,7 +183,7 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
 
                 <ZoomButtons />
                 <Label
-                    text={symbol}
+                    text={chartText}
                     {...rest}
                     x={(width - margin.left - margin.right) / 2}
                     y={(height - margin.top - margin.bottom) / 2}
@@ -234,7 +237,7 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                 <YAxis ticks={4} tickFormat={pricesDisplayFormat} />
 
                 <MouseCoordinateX displayFormat={timeDisplayFormat} />
-                <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat} />
+                <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat} arrowWidth={10} />
 
                 <ElderRaySeries yAccessor={elder.accessor()} />
 

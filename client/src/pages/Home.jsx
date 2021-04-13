@@ -5,12 +5,13 @@ const helper = require("../utils/helper");
 
 const Home = ({parentStyles, userData}) => {
     const parentClasses = parentStyles();
-    const [stockQuote, setStockQuote] = useState({});
+    const [stockQuote, setStockQuote] = useState();
     const [barChartData, setBarChartData] = useState({});
-    const [symbol, setSymbol] = useState('TSLA');
+    const [symbol, setSymbol] = useState('SPY');
     const [method, setMethod] = useState('GET');
     const [unit, setUnit] = useState('Minute');
     const [interval, setInterval] = useState(15);
+	const [chartText, setChartText] = useState(`${symbol}, ${interval} ${unit}`);
     const [startDate, setStartDate] = useState(helper.formatDate(new Date().toUTCString()));
     const [endDate, setEndDate] = useState(helper.formatDate(new Date().toUTCString()));
     const [lastDate, setLastDate] = useState(helper.formatDate(new Date().toUTCString()));
@@ -106,8 +107,8 @@ const Home = ({parentStyles, userData}) => {
             id: 7,
             method: 'CHUNK',
             title: 'Stream BarChart - Days Back',
-            value: `/v2/stream/barchart/${symbol}/${interval}/${unit}?SessionTemplate=USEQPreAndPost&daysBack=${daysBack}&lastDate=${lastDate}`,
-            url: `/v2/stream/barchart/$symbol/$interval/$unit?SessionTemplate=USEQPreAndPost&daysBack=$daysBack&lastDate=$lastDate`,
+            value: `/v2/stream/barchart/${symbol}/${interval}/${unit}?daysBack=${daysBack}&lastDate=${lastDate}`,
+            url: `/v2/stream/barchart/$symbol/$interval/$unit?daysBack=$daysBack&lastDate=$lastDate`,
             isUnit: true,
             isInteral: true,
             isStartDate: false,
@@ -153,6 +154,8 @@ const Home = ({parentStyles, userData}) => {
 
         setUrl(resolvedUrl);
         setMethod(api.method);
+        setChartText(`${symbol.toUpperCase()}, ${interval} ${unit}`);
+        
         // console.log(api);
         const payload = {
             method: api.method,
@@ -165,10 +168,11 @@ const Home = ({parentStyles, userData}) => {
         // http.getdaily(symbol, setMarketDataStream);
 
         ////Tradestation APIs
+        
+        http.send({ method: 'GET', url: `/v2/data/quote/${symbol}`}, setStockQuote);
+        
         if(url.indexOf('barchart') > 0){            
-            http.send(payload, setBarChartData, setStockQuote);
-        } else {
-            http.send(payload, setStockQuote);
+            http.send(payload, setBarChartData);
         };
     }, [url, api, method, unit, interval, lastDate, daysBack, symbol]);
     
@@ -256,6 +260,8 @@ const Home = ({parentStyles, userData}) => {
                 stockQuote={stockQuote} 
                 barChartData={barChartData} 
                 symbol={symbol} 
+                setSymbol={setSymbol}
+                chartText={chartText}
                 onTextChanged={onTextChanged} 
                 onSelectChange={onSelectChange}
                 onDateChange={onDateChange} 

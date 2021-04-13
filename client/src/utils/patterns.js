@@ -16,11 +16,11 @@ module.exports = {
     isBullisEngulfing: function(candles, index) {
         const currentDayCandle = candles[index];
         const previousDayCandle = candles[index - 1];
-        const pastFifthCandle = candles[index - 7];
+        const pastFifthCandle = candles[index - 5];
 
         if(this.isBerishCandle(previousDayCandle) && 
-            currentDayCandle.open  < previousDayCandle.close && 
-            currentDayCandle.close > previousDayCandle.open &&
+            currentDayCandle.open  <= previousDayCandle.close && 
+            currentDayCandle.close >= previousDayCandle.open &&
             currentDayCandle.close < pastFifthCandle.open) {
             return true;
         }
@@ -30,11 +30,11 @@ module.exports = {
     isBerishEngulfing: function(candles, index) {
         const currentDayCandle = candles[index];
         const previousDayCandle = candles[index - 1];
-        const pastFifthCandle = candles[index - 7];
+        const pastFifthCandle = candles[index - 5];
 
         if(this.isBullishCandle(previousDayCandle) && 
-            currentDayCandle.open > previousDayCandle.close && 
-            currentDayCandle.close < previousDayCandle.open &&
+            currentDayCandle.open >= previousDayCandle.close && 
+            currentDayCandle.close <= previousDayCandle.open &&
             currentDayCandle.close > pastFifthCandle.open) {
             return true;
         }

@@ -54,7 +54,7 @@ const UserDropDown = ({styles}) => {
             <IconButton
                 href=""
                 style={{ color: "white", padding: "13px 12px" }}
-                onClick={handleClick}                
+                onClick={handleClick}
             >
                 <MoreVertIcon />
             </IconButton>

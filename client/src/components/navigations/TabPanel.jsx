@@ -1,15 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
-import AppBar from '@material-ui/core/AppBar';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import Box from '@material-ui/core/Box';
-import Terminal from "../displays/Terminal";
-import { Paper } from '@material-ui/core';
-import TrendingUpIcon from '@material-ui/icons/TrendingUp';
-import CodeIcon from '@material-ui/icons/Code';
-import StockChart from "../displays/BasicCandlestick";
+import { Paper, AppBar, Tabs, Tab, Box } from '@material-ui/core';
+import { TrendingUpIcon, CodeIcon } from '@material-ui/icons';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -63,10 +56,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function NavTabs({url, userData, barChartData, symbol}) {
+export default function NavTabs({}) {
 	const classes = useStyles();
 	const [value, setValue] = React.useState(0);
-	const dateTimeFormat= url.indexOf('Minute') > 0 ? "%d %b %H:%M %p" : "%d %b";
 	const handleChange = (event, newValue) => {
 		setValue(newValue);
 	};
@@ -86,21 +78,13 @@ export default function NavTabs({url, userData, barChartData, symbol}) {
                 </Tabs>
             </AppBar>
 			<TabPanel value={value} index={0}>
-                <Terminal 
-                    title={url}
-                    userData={userData} 
-                />
+				Tab One
             </TabPanel>
             <TabPanel value={value} index={1}>
-                {(barChartData.length > 0) ? 
-                    <StockChart dateTimeFormat={dateTimeFormat} data={barChartData} symbol={symbol} />
-                : <div>Loading...</div>}
+				Tab Two
             </TabPanel>
             <TabPanel value={value} index={2}>
-                <Terminal 
-                    title={url}
-                    userData={barChartData} 
-                />
+				Tab Three
             </TabPanel>
         </div>
     );

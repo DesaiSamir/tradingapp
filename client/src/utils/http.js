@@ -6,7 +6,25 @@ module.exports = {
     clearApiInterval: function () {
         clearInterval(apiTimer);
     },
-    send: function (payload, cb, origData) {
+    getRefreshInterval: function () {
+        if(this.isRegularSessionTime()){
+            return 1000;
+        }
+
+        return 10000;
+    },
+    isRegularSessionTime: function () {
+        const sessionStartTime = new Date("1/1/2001 9:30:00 AM").getTime();
+        const sessionEndTime = new Date("1/1/2001 4:00:00 PM").getTime();
+        const currentTime = new Date().getTime();
+
+        if (currentTime > sessionStartTime && currentTime < sessionEndTime) {
+            return true;
+        }
+
+        return false;
+    },
+    send: async function (payload, cb) {
         var options = {
             method: 'POST',
             headers: {
@@ -14,40 +32,55 @@ module.exports = {
             },
             body: JSON.stringify(payload)
         };
-        this.clearApiInterval();
-        apiTimer = setInterval(async () => {
-            const data = await fetch("api/marketdata", options)
-                .then(res => res.json())
-                .then(data => {
-                    return data;
-                })
-                .catch(err => console.log({err})
-            );
-            
-            if(data){
-                var responseData = data;
-                // console.log(data)
-                if(responseData.statusCode >= 400) {
-                    if(origData)
-                        origData(data);
-                    this.clearApiInterval();
-                } else {
-                    // console.log(responseData.length)
-                    if(responseData.length > 0 && JSON.stringify(payload).indexOf('barchart') > 0){
-                        responseData = patterns.detectPattern(this.formatTSData(responseData));
-                        // console.log(responseData)
-                    } else {
-                        responseData = {
-                            status: "Error fetching data.", 
-                        };
-                    }
+        console.log(options)
+        const isBarChart = JSON.stringify(payload).indexOf('barchart') > 0 ? true : false;
 
-                    cb(responseData);
-                    if(origData)
-                        origData(data);
+        if (isBarChart) {
+            this.clearApiInterval();
+        
+            apiTimer = setInterval(async () => {
+                // console.log(options)
+                const barData = await this.getMarketData(options, isBarChart);
+                if(barData){
+                    cb(barData);
                 }
+
+            }, this.getRefreshInterval());
+        } else {
+            
+            // console.log(options)
+            const quoteData = await this.getMarketData(options, isBarChart);
+            if(quoteData){
+                cb(quoteData[0]);
             }
-        }, 5000);
+        }
+        
+    },
+    getMarketData: async function (options, isBarChart) {
+        const data = await fetch("api/marketdata", options)
+            .then(res => res.json())
+            .then(data => {
+                return data;
+            })
+            .catch(err => console.log({err})
+        );
+        
+        if(data){
+            var responseData = data;
+            // console.log(data)
+            if(responseData.statusCode >= 400) {
+                this.clearApiInterval();
+            } else {
+                if(responseData.length > 0 && isBarChart){
+                    responseData = patterns.detectPattern(this.formatTSData(responseData));
+                } else if(isBarChart) {
+                    responseData = {
+                        status: "Error fetching data.", 
+                    };
+                } 
+            }
+            return responseData;
+        }
     },
     formatTSData: function (data){
         var formatedData = [];
