@@ -27,14 +27,14 @@ export default Footer;
 
 const useStyles = makeStyles((theme) => ({
 	footer: {
-        backgroundColor: '#26C6DA',
+        backgroundColor: '#3f51b5',
         bottom:0,
         position: 'fixed',
-        // boxShadow: '0 -4px 10px 0px rgba(0,0,0,0.8)',
         textAlign: 'center',
         color: 'white',
         width: '100%',
         padding: '10px',
+        zIndex: 2000,
       },
     socialIcon: {
         width: '24px',

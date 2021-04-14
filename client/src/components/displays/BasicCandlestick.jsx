@@ -265,7 +265,7 @@ StockChart.propTypes = {
 	// type: PropTypes.oneOf(["svg", "hybrid"]).isRequired,
 };
 
-export default (withSize({ style: { height: window.innerHeight - 230, padding: 0 } })(withDeviceRatio()(StockChart)));
+export default (withSize({ style: { height: window.innerHeight - 122, padding: 0 } })(withDeviceRatio()(StockChart)));
 
 // export const Daily = (withSize({ style: { minHeight: 600 } })(withDeviceRatio()(StockChart)));
 

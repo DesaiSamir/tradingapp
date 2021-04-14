@@ -1,19 +1,12 @@
-import React, { 
-    // useState, 
-    // useEffect 
-} from "react";
+import React, { useState, useEffect } from "react";
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import StockChart from "../components/displays/BasicCandlestick";
-import SimpleTextField from '../components/formcontrols/SimpleTextField';
-import SimpleSelect from "../components/formcontrols/SimpleSelect";
-import DatePicker from "../components/formcontrols/DatePicker";
-import SimpleButton from "../components/formcontrols/SimpleButton";
+import FormDialog from "../components/formcontrols/FormDialog";
 import http from '../utils/http';
 import { 
-    Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Fab 
+    Paper, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography 
 } from "@material-ui/core";
 import { watchlist } from "../data/watchlist";
-import AddIcon from '@material-ui/icons/Add';
 
 const StyledTableCell = withStyles((theme) => ({
     head: {
@@ -34,91 +27,34 @@ const StyledTableRow = withStyles((theme) => ({
     },
 }))(TableRow);
 
-const handleClick = (e) => {
-    e.preventDefault();
-    console.log(e);
-}
-
-const Market = ({url, userData, stockQuote, barChartData, symbol, chartText, onTextChanged, onSelectChange, onDateChange, setSymbol}) => {
+const Market = ({url, barChartData, chartText, setSymbol}) => {
     const classes = useStyles();
-    
-    // useEffect(() => {
-        
-    // }, []);
+    const [currentWatchlist, setCurrentWatchlist] = useState(watchlist);
     
 	const dateTimeFormat= url && url.indexOf('Minute') > 0 ? "%d %b %H:%M %p" : "%d %b";
-    const units = [
-        {
-            id: 1, 
-            title: 'Minute',
-            value: 'Minute'
-        },
-        {
-            id: 2, 
-            title: 'Daily',
-            value: 'Daily'
-        },
-        {
-            id: 3, 
-            title: 'Weekly',
-            value: 'Weekly'
-        },
-        {
-            id: 4, 
-            title: 'Monthly',
-            value: 'Monthly'
-        }
-    ];
 
-    const intervals = [
-        {
-            id: 1, 
-            title: 1,
-            value: 1
-        }, 
-        {
-            id: 5, 
-            title: 5,
-            value: 5
-        }, 
-        {
-            id: 10, 
-            title: 10,
-            value: 10
-        }, 
-        {
-            id: 15, 
-            title: 15,
-            value: 15
-        }, 
-        {
-            id: 30, 
-            title: 30,
-            value: 30
-        }, 
-        {
-            id: 60, 
-            title: 60,
-            value: 60
-        }, 
-        {
-            id: 240, 
-            title: 240,
-            value: 240
-        }, 
-        {
-            id: 480, 
-            title: 480,
-            value: 480
-        }
-    ];
+    useEffect(() => {           
+        const stocks =  Array.prototype.map.call(currentWatchlist, s => s.Symbol).toString();    
+        http.getQuoteDataRecursive({ method: 'GET', url: `/v2/data/quote/${stocks}`}, setCurrentWatchlist);
+    }, [currentWatchlist]);
+
+    const handleClick = (e, setOpen) => {
+        if (e.type === 'keydown' && e.key !== 'Enter') return;
+        e.preventDefault();
+        var stockSymbol = document.getElementById('addStockSymbol');
+        http.clearQuoteInterval();
+        const addSymbol = { 
+            Symbol: stockSymbol.value,
+        };
+        setCurrentWatchlist([...currentWatchlist,  addSymbol]);
+        setOpen(false);
+    }
 
     const onListItemClick = (e, data) => {
         e.preventDefault();
-        console.log(data);
         var symbolText = document.getElementById('symbol');
-        symbolText.value = data.symbol;
-        setSymbol(data.symbol);
+        symbolText.value = data.Symbol;
+        setSymbol(data.Symbol);
     }
 
     return (
@@ -129,17 +65,7 @@ const Market = ({url, userData, stockQuote, barChartData, symbol, chartText, onT
                         <Typography variant="h5" component="h2" className={classes.title}>
                             Watchlist
                         </Typography>
-                        <Fab color="primary" aria-label="add" onClick={handleClick} className={classes.buttonStyle}>
-                            <AddIcon />
-                        </Fab>
-                        {/* <IconButton
-                            href=""
-                            className={classes.buttonStyle}
-                            // style={{ color: "white", }}
-                            onClick={handleClick}
-                        >
-                            <AddIcon  />
-                        </IconButton> */}
+                        <FormDialog handleClick={handleClick}/>
                     </Paper>
                     <Paper className={classes.stockList}>
                         <TableContainer component={Paper}>
@@ -147,20 +73,20 @@ const Market = ({url, userData, stockQuote, barChartData, symbol, chartText, onT
                                 <TableHead>
                                     <TableRow>
                                         <StyledTableCell>Symbol</StyledTableCell>
+                                        <StyledTableCell align="right">Last Price</StyledTableCell>
                                         <StyledTableCell align="right">Previous Close</StyledTableCell>
-                                        <StyledTableCell align="right">High 52w</StyledTableCell>
-                                        <StyledTableCell align="right">Low 52w</StyledTableCell>
+                                        <StyledTableCell align="right">VWAP</StyledTableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {watchlist.map((stock) => (
-                                        <StyledTableRow key={stock.symbol} hover onClick={(e) => onListItemClick(e, stock)}>
+                                    {currentWatchlist && currentWatchlist.length > 0 && currentWatchlist.map((stock) => (
+                                        <StyledTableRow key={stock.Symbol} hover onClick={(e) => onListItemClick(e, stock)}>
                                             <StyledTableCell component="th" scope="row">
-                                                {stock.symbol}
+                                                {stock.Symbol}
                                             </StyledTableCell>
-                                            <StyledTableCell align="right">{stock.previousClose}</StyledTableCell>
-                                            <StyledTableCell align="right">{stock.high52Week}</StyledTableCell>
-                                            <StyledTableCell align="right">{stock.low52Week}</StyledTableCell>
+                                            <StyledTableCell align="right">{stock.LastPriceDisplay}</StyledTableCell>
+                                            <StyledTableCell align="right">{stock.PreviousClosePriceDisplay}</StyledTableCell>
+                                            <StyledTableCell align="right">{stock.VWAPDisplay}</StyledTableCell>
                                             
                                         </StyledTableRow>
                                     ))}
@@ -170,14 +96,6 @@ const Market = ({url, userData, stockQuote, barChartData, symbol, chartText, onT
                     </Paper>
                 </Grid>
                 <Grid item xs={10}>
-                    <Paper className={classes.formcontrols}>
-                        <SimpleTextField id="symbol" label="Symbol" name="symbol" onChange={onTextChanged} defaultValue={symbol} />
-                        <SimpleSelect parentStyles={useStyles} onSelectChange={onSelectChange} name="unit" menuItems={units} title="Select Unit" defaultValue="1" />
-                        <SimpleSelect parentStyles={useStyles} onSelectChange={onSelectChange} name="interval" menuItems={intervals} title="Select Interval" defaultValue={"15"} />
-                        <DatePicker parentStyles={useStyles} onDateChange={onDateChange} title="Last Date" name="lastDate" />
-                        <SimpleTextField parentStyles={useStyles} id="daysBack" name="daysBack" label="Days Back" onChange={onTextChanged} defaultValue={"30"} type="number" />
-                        <SimpleButton text="Stop Data" name="StopData" onClick={http.clearApiInterval} />
-                    </Paper>
                     {
                         (barChartData && barChartData.length > 0) ? 
                             <StockChart dateTimeFormat={dateTimeFormat} data={barChartData} chartText={chartText} />
@@ -195,21 +113,13 @@ export default Market
 const useStyles = makeStyles((theme) => ({
     root: {
         flexGrow: 1,
-        // padding: theme.spacing(1),
+        marginTop: "5px",
     },
-	formcontrols: {
-		flexDirection: 'row',
-        display: 'flex',
-        width: '100%',
+	spacer: {
+        marginTop: "5px",
 	},
     stockList:{
-        // height: `calc(100% + 62px)`,
-        height: '100%',
-    },
-    buttonText: {
-        
-        ...theme.typography.button,
-        backgroundColor: theme.palette.background.paper,
+        height: `calc(100% - 62px)`,
     },
     watchlistBar:{
         height: '62px',
@@ -218,14 +128,6 @@ const useStyles = makeStyles((theme) => ({
     },
     title: {
         padding: '16px',
-    },
-    buttonStyle: {
-        backgroundColor: "#26C6DA",
-        // color: theme.palette.common.white,
-        margin: '3px',
-        // "&:hover": {
-        //     color: "grey",
-        // }
     },
 }));
 

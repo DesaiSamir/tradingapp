@@ -1,10 +1,13 @@
 var patterns = require('./patterns');
 const alpha = require('alphavantage')({ key: '' });
 
-var apiTimer;
+var barChartTimer, quoteTimer;
 module.exports = {
-    clearApiInterval: function () {
-        clearInterval(apiTimer);
+    clearBarChartInterval: function () {
+        clearInterval(barChartTimer);
+    },
+    clearQuoteInterval: function () {
+        clearInterval(quoteTimer);
     },
     getRefreshInterval: function () {
         if(this.isRegularSessionTime()){
@@ -24,7 +27,42 @@ module.exports = {
 
         return false;
     },
-    send: async function (payload, cb) {
+    getQuoteData: async function (payload, cb) {
+        const quoteData = await this.send(payload);
+        if(quoteData){
+            cb(quoteData);
+        }
+    },
+    getQuoteDataRecursive: function (payload, cb) {
+        this.clearQuoteInterval();
+        
+        quoteTimer = setInterval(async () => {
+            const quoteData = await this.send(payload);
+            if(quoteData){
+                cb(quoteData);
+            }
+        }, this.getRefreshInterval());
+    },
+    getBarChartData: function (payload, cb) {
+        this.clearBarChartInterval();
+        
+        barChartTimer = setInterval(async () => {
+            const barData = await this.send(payload);
+            if(barData){
+                var responseData = barData;
+                if(responseData.length > 0){
+                    responseData = patterns.detectPattern(this.formatTSData(responseData));
+                } else {
+                    responseData = {
+                        status: "Error fetching data.", 
+                    };
+                } 
+                cb(responseData);
+            }
+
+        }, this.getRefreshInterval());
+    },
+    send: async function (payload) {
         var options = {
             method: 'POST',
             headers: {
@@ -32,55 +70,21 @@ module.exports = {
             },
             body: JSON.stringify(payload)
         };
+        
         console.log(options)
-        const isBarChart = JSON.stringify(payload).indexOf('barchart') > 0 ? true : false;
 
-        if (isBarChart) {
-            this.clearApiInterval();
-        
-            apiTimer = setInterval(async () => {
-                // console.log(options)
-                const barData = await this.getMarketData(options, isBarChart);
-                if(barData){
-                    cb(barData);
-                }
-
-            }, this.getRefreshInterval());
-        } else {
-            
-            // console.log(options)
-            const quoteData = await this.getMarketData(options, isBarChart);
-            if(quoteData){
-                cb(quoteData[0]);
-            }
-        }
-        
-    },
-    getMarketData: async function (options, isBarChart) {
         const data = await fetch("api/marketdata", options)
             .then(res => res.json())
             .then(data => {
                 return data;
             })
             .catch(err => console.log({err})
+
         );
-        
         if(data){
-            var responseData = data;
-            // console.log(data)
-            if(responseData.statusCode >= 400) {
-                this.clearApiInterval();
-            } else {
-                if(responseData.length > 0 && isBarChart){
-                    responseData = patterns.detectPattern(this.formatTSData(responseData));
-                } else if(isBarChart) {
-                    responseData = {
-                        status: "Error fetching data.", 
-                    };
-                } 
-            }
-            return responseData;
+            return data;
         }
+        
     },
     formatTSData: function (data){
         var formatedData = [];

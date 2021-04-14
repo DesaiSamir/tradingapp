@@ -1,26 +1,32 @@
 export const watchlist = [
     {
-        symbol: "SPY",
+        Symbol: "SPY",
         name: "SPDR S&P 500 ETF",
-        previousClose: "411.49",
-        high52Week: "411.67",
-        low52Week: "271.41",
-        exchange: "SPDR S&P 500 ETF"
+        PreviousClosePriceDisplay: "411.49",
+        High52WeekPriceDisplay: "411.67",
+        Low52WeekPriceDisplay: "271.41",
+        exchange: "ARCX",
+        LastPriceDisplay: "",
+        VWAPDisplay:""
     },
     {
-        symbol: "TSLA",
+        Symbol: "TSLA",
         name: "Tesla Inc",
-        previousClose: "677.02",
-        high52Week: "900.40",
-        low52Week: "116.11",
-        exchange: "NASDAQ"
+        PreviousClosePriceDisplay: "677.02",
+        High52WeekPriceDisplay: "900.40",
+        Low52WeekPriceDisplay: "116.11",
+        exchange: "NASDAQ",
+        LastPriceDisplay: "",
+        VWAPDisplay:""
     },
     {
-        symbol: "BILI",
+        Symbol: "BILI",
         name: "Bilibili Inc ADS",
-        previousClose: "105.80",
-        high52Week: "157.66",
-        low52Week: "25.00",
-        exchange: "NASDAQ"
+        PreviousClosePriceDisplay: "105.80",
+        High52WeekPriceDisplay: "157.66",
+        Low52WeekPriceDisplay: "25.00",
+        exchange: "NASDAQ",
+        LastPriceDisplay: "",
+        VWAPDisplay:""
     },
 ];
