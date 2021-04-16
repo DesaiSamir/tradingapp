@@ -33,7 +33,10 @@ const Market = ({url, barChartData, chartText, setSymbol}) => {
     
 	const dateTimeFormat= url && url.indexOf('Minute') > 0 ? "%d %b %H:%M %p" : "%d %b";
 
-    useEffect(() => {           
+    useEffect(() => {
+        if(currentWatchlist.length === 0){
+            setCurrentWatchlist(watchlist);
+        }
         const stocks =  Array.prototype.map.call(currentWatchlist, s => s.Symbol).toString();    
         http.getQuoteDataRecursive({ method: 'GET', url: `/v2/data/quote/${stocks}`}, setCurrentWatchlist);
     }, [currentWatchlist]);
@@ -46,6 +49,9 @@ const Market = ({url, barChartData, chartText, setSymbol}) => {
         const addSymbol = { 
             Symbol: stockSymbol.value,
         };
+        if(currentWatchlist.length === 0){
+            setCurrentWatchlist(watchlist);
+        }
         setCurrentWatchlist([...currentWatchlist,  addSymbol]);
         setOpen(false);
     }

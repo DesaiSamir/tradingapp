@@ -258,18 +258,51 @@ module.exports = {
                         return data;
                     }
                     break;
+                
                 case 'POST':
+                    payload = JSON.stringify(payload);
                     const payloadLen = payload.length;
-                    // console.log({url, payloadLen, payload});
-                    res = await fetch(url, {
+                    console.log({url, payloadLen, payload});
+                    res = await fetch(`${ts.base_url}${url}`, {
                         method: "POST",
                         headers: {
                             Authorization: `bearer ${ts.session_data.access_token}`,
-                            "Content-Type": "application/x-www-form-urlencoded",
+                            "Content-Type": "application/json; charset=utf-8",
+                            'Accept': 'application/vnd.tradestation.streams+json',
                             "Content-Length": payloadLen
                         },
                         body: payload
+                    }).then(async function (response) {
+                        if (!response.body[Symbol.asyncIterator]) {
+                            response.body[Symbol.asyncIterator] = () => {
+                              const reader = response.body.getReader();
+                              return {
+                                next: () => reader.read(),
+                              };
+                            };
+                          }
+                        let data = ''
+                        for await (const result of response.body) {
+                            data += result;
+                        }
+
+                        const result = {
+                            status: response.status, 
+                            statusText: response.statusText,
+                            data: JSON.parse(data),
+                            url: response.url, 
+                            ok: response.ok,
+                        }
+
+                        return result;
+                        
+                    }).catch(function (err) {
+                        return {
+                            message: err.message, 
+                            stack: err.stack
+                        };
                     });
+
                 default:
                     break;
             }

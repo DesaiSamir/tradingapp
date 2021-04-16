@@ -1,0 +1,18 @@
+version: "3.7"
+services:
+  tradingapp:
+    build:
+      context: .
+      target: development
+    ports:
+      - 5000:3000
+    volumes:
+      - .:/code
+    networks:
+      - public
+networks:
+  public:
+  private:
+volumes:
+  back-notused:
+  db-data:

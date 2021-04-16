@@ -10,7 +10,7 @@ import AddIcon from '@material-ui/icons/Add';
 
 const useStyles = makeStyles((theme) => ({
     buttonStyle: {
-        backgroundColor: "#26C6DA",
+        backgroundColor: "#3f51b5",
         margin: '3px',
     },
 }));

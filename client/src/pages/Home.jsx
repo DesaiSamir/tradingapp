@@ -15,10 +15,10 @@ const Home = ({parentStyles, userData}) => {
     const [isPreMarket, setIsPreMarket] = useState(false);
     
     useEffect(() => {
-        const sessionTemplate = "?SessionTemplate=USEQPreAndPost";
-        const url= `/v2/stream/barchart/$symbol/$interval/$unit?daysBack=$daysBack&lastDate=$lastDate${isPreMarket ? sessionTemplate : ''}`;
+        const sessionTemplate = isPreMarket ? "&SessionTemplate=USEQPreAndPost" : '';
+        const url= `/v2/stream/barchart/$symbol/$interval/$unit?daysBack=$daysBack&lastDate=$lastDate${sessionTemplate}`;
         const resolvedUrl = url.replace('$symbol', symbol).replace('$unit', unit).replace('$interval', unit !== 'Minute' ? 1 : interval)
-                    .replace('$lastDate', helper.newDate(new Date())).replace('$daysBack', unit !== 'Minute' ? 1000 : isPreMarket ? 30 : 300);
+                    .replace('$lastDate', helper.newDate(new Date())).replace('$daysBack', unit !== 'Minute' ? 1000 : isPreMarket || interval < 15 ? 30 : 300);
 
         setUrl(resolvedUrl);
         setChartText(`${symbol},${unit === 'Minute' ? interval : ''} ${unit}`);
@@ -34,12 +34,13 @@ const Home = ({parentStyles, userData}) => {
         // http.getdaily(symbol, setMarketDataStream);
 
         ////Tradestation APIs
-        
-        http.getQuoteData({ method: 'GET', url: `/v2/data/quote/${symbol}`}, setStockQuote);
-        
-        if(url && url.indexOf('barchart') > 0){
-            http.getBarChartData(payload, setBarChartData);
-        };
+        if(userData){
+            http.getQuoteData({ method: 'GET', url: `/v2/data/quote/${symbol}`}, setStockQuote);
+            
+            if(url && url.indexOf('barchart') > 0){
+                http.getBarChartData(payload, setBarChartData);
+            };
+        }
     }, [unit, interval, symbol, isPreMarket]);
     
     const onUnitClicked = (e, item) => {

@@ -12,7 +12,8 @@ router.get('/', async function (req, res, next)  {
 
 router.post('/', async function (req, res, next)  {
     ts.session_data = req.session;
-    const marketdata = await helper.send(req, req.body.method,req.body.url);
+    // console.log(req.body);
+    const marketdata = await helper.send(req, req.body.method, req.body.url, req.body.payload && req.body.payload);
     
     if(marketdata){
         // console.log(marketdata)

@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import { format } from "d3-format";
 import { timeFormat } from "d3-time-format";
-// import { useState } from "react";
+import { useState } from "react";
 import {
     elderRay, ema, discontinuousTimeScaleProviderBuilder, 
     Chart, ChartCanvas, BarSeries, CandlestickSeries, LineSeries,
@@ -17,6 +17,8 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
     // const [minimumBars, setMinimumBars] = useState(100);
     const pricesDisplayFormat = format(".2f");
     const numberDisplayFormat = format(",");
+    const [lastClose, setLastClose] = useState(0);
+    const [lastColor, setLastColor] = useState("#26a69a");
     const xScaleProvider = discontinuousTimeScaleProviderBuilder().inputDateAccessor(
         (d => d.date),
     );
@@ -60,10 +62,11 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
     };
 
     const candleChartExtents = (data) => {
-        return [data.high, data.low];
+        return [data.high + 0.1, data.low - 0.1];
     };
 
     const yEdgeIndicator = (data) => {
+        setLastClose(data.close);
         return data.close;
     };
 
@@ -76,24 +79,25 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
     };
 
     const openCloseColor = (data) => {
-        return data.close > data.open ? "#26a69a" : "#ef5350";
+        const color = data.close > data.open ? "#26a69a" : "#ef5350";
+        setLastColor(color);
+        return color;
     };
 
     const candelFillColor = (data) => {
         var fillColor = data.close > data.open ? "#26a69a" : "#ef5350"
 
         switch (data.pattern) {
-            case "Bullish Engulfing":
+            case "isBullishEngulfing":
                 fillColor = 'green';
                 break;
-            case "Berish Engulfing":
+            case "isBearishEngulfing":
                 fillColor = 'red';
                 break;
             default:
-                fillColor = data.close > data.open ? "#26a69a" : "#ef5350";
                 break;
-
         }
+        
         return fillColor;
     }
 
@@ -104,21 +108,13 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
     const annotBullish = {
         text: "Bullish",
         tooltip: "Go Long",
-        y: ({ yScale, datum }) => yScale(datum.high),
-    };
-    
-    const whenBullish = (data) => {
-        return data.pattern === "Bullish Engulfing";
+        y: ({ yScale, datum }) => yScale(datum.low),
     };
     
     const annotBerish = {
         text: "Berish",
         tooltip: "Go Short",
-        y: ({ yScale, datum }) => yScale(datum.low),
-    };
-    
-    const whenBerish = (data) => {
-        return data.pattern === "Berish Engulfing";
+        y: ({ yScale, datum }) => yScale(datum.high),
     };
     
     const averageVolume = (data) => {
@@ -150,7 +146,7 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                 <MouseCoordinateY at="left" orient="left" displayFormat={format(".4s")} arrowWidth={10} />
                 <BarSeries fillStyle={volumeColor} yAccessor={volumeSeries}  />
                 <CurrentCoordinate yAccessor={d => d.volume} fill="#9B0A47" />
-                <EdgeIndicator orient="right" at="left" rectWidth={margin.right} fill="#9B0A47" displayFormat={format(".4s")} yAccessor={() => averageVolume(data)} />
+                <EdgeIndicator orient="right" at="left" rectWidth={margin.right} fill="#9B0A47" displayFormat={format(".4s")} yAccessor={() => averageVolume(data)} arrowWidth={10} />
 
             </Chart>
             <Chart id={3} height={chartHeight} yExtents={candleChartExtents}>
@@ -162,7 +158,8 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                 <LineSeries yAccessor={ema12.accessor()} strokeStyle={ema12.stroke()} />
                 <CurrentCoordinate yAccessor={ema12.accessor()} fillStyle={ema12.stroke()} />
                 <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat} arrowWidth={10} />
-                <EdgeIndicator itemType="last" rectWidth={margin.right} fill={openCloseColor} lineStroke={openCloseColor} displayFormat={pricesDisplayFormat} yAccessor={yEdgeIndicator} />
+                <LineSeries yAccessor={() => lastClose} strokeStyle={lastColor}  />
+                <EdgeIndicator itemType="last" rectWidth={margin.right} fill={openCloseColor} lineStroke={openCloseColor} displayFormat={pricesDisplayFormat} yAccessor={yEdgeIndicator} arrowWidth={10} />
                 <MovingAverageTooltip
                     origin={[8, 24]}
                     options={[
@@ -188,8 +185,8 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                     x={(width - margin.left - margin.right) / 2}
                     y={(height - margin.top - margin.bottom) / 2}
                 />
-                <Annotate with={LabelAnnotation} usingProps={annotBullish} when={whenBullish} />
-                <Annotate with={LabelAnnotation} usingProps={annotBerish} when={whenBerish} />
+                <Annotate with={LabelAnnotation} usingProps={annotBullish} when={(data) => data.isBullishEngulfing} />
+                <Annotate with={LabelAnnotation} usingProps={annotBerish} when={(data) => data.isBearishEngulfing} />
                 <OHLCTooltip origin={[8, 16]} textFill={(d) => (d.close > d.open ? "#26a69a" : "#ef5350")} />
                 <HoverTooltip
                     yAccessor={ema12.accessor()}

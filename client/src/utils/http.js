@@ -11,16 +11,16 @@ module.exports = {
     },
     getRefreshInterval: function () {
         if(this.isRegularSessionTime()){
-            return 1000;
+            return 2000;
         }
 
         return 10000;
     },
     isRegularSessionTime: function () {
-        const sessionStartTime = new Date("1/1/2001 9:30:00 AM").getTime();
-        const sessionEndTime = new Date("1/1/2001 4:00:00 PM").getTime();
-        const currentTime = new Date().getTime();
-
+        const sessionStartTime = new Date(new Date().toLocaleDateString() + " 9:30:00 AM");
+        const sessionEndTime = new Date(new Date().toLocaleDateString() + " 4:00:00 PM");
+        const currentTime = new Date();
+        
         if (currentTime > sessionStartTime && currentTime < sessionEndTime) {
             return true;
         }
@@ -55,6 +55,7 @@ module.exports = {
                 } else {
                     responseData = {
                         status: "Error fetching data.", 
+                        response: responseData,
                     };
                 } 
                 cb(responseData);
@@ -62,7 +63,14 @@ module.exports = {
 
         }, this.getRefreshInterval());
     },
+    postPurchaseOrder: async function(payload, cb) {
+        const purchaseOrder = await this.send(payload);
+        if(purchaseOrder){
+            cb(purchaseOrder);
+        }
+    },
     send: async function (payload) {
+        console.log(payload);
         var options = {
             method: 'POST',
             headers: {
@@ -71,7 +79,7 @@ module.exports = {
             body: JSON.stringify(payload)
         };
         
-        console.log(options)
+        // console.log(options)
 
         const data = await fetch("api/marketdata", options)
             .then(res => res.json())
@@ -97,11 +105,11 @@ module.exports = {
                 if(dataPoint.Open > 0){
                     formatedData.push({
                         date,
-                        open: dataPoint.Open,
-                        high: dataPoint.High,
-                        low: dataPoint.Low,
-                        close: dataPoint.Close,
-                        volume: dataPoint.TotalVolume,
+                        open: parseFloat(dataPoint.Open),
+                        high: parseFloat(dataPoint.High),
+                        low: parseFloat(dataPoint.Low),
+                        close: parseFloat(dataPoint.Close),
+                        volume: parseInt(dataPoint.TotalVolume),
                         dividend: "",
                         absoluteChange: "",
                         percentChange: "",
@@ -114,7 +122,6 @@ module.exports = {
 
         return formatedData.sort((a, b) => (a.date > b.date) ? 1 : -1);
     },
-
     get: async function (url, cb) {
         const res = await fetch(url)
             .then(res => res.json())

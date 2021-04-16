@@ -164,7 +164,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export default function DrawerPanel({url, userData, stockQuote, barChartData, symbol, chartText, onTextChanged, onUnitClicked, setIsPreMarket}) {
+export default function DrawerPanel({url, userData, stockQuote, barChartData, symbol, chartText, onTextChanged, onUnitClicked, setIsPreMarket, setSymbol}) {
 	const classes = useStyles();
 	const theme = useTheme();
 	const [open, setOpen] = React.useState(false);  
@@ -339,40 +339,42 @@ export default function DrawerPanel({url, userData, stockQuote, barChartData, sy
 						Trading-bot
 					</Typography>
 					<div className={classes.grow} />
-					{
-						unitIntervalList.map((item) => (
-							<IconButton
-								aria-label={`${item.id} data pull`}
-								className={classes.buttonText}
-								color="inherit"
-								name={item.id}
-								key={item.id}
-								id={item.id}
-								title={`${item.unit === 'Minute' ? item.interval : ''} ${item.unit}`}
-								onClick={(e) => {onUnitClicked(e, item); }}
-							>
-								{item.id}
-							</IconButton>
-						))
-					}
-					<IconButton
-						aria-label="regular session data pull"
-						color="inherit"
-						name="RegularSession"
-						title="Regular Session"
-						onClick={() => {setIsPreMarket(false); }}
-					>
-						<PreMarketIcon />
-					</IconButton>
-					<IconButton
-						aria-label="pre - post data pull"
-						color="default"
-						name="PreMarket"
-						title="Pre Post Data Pull"
-						onClick={() => {setIsPreMarket(true); }}
-					>
-						<PreMarketIcon />
-					</IconButton>
+					<div className={classes.sectionDesktop}>
+						{
+							unitIntervalList.map((item) => (
+								<IconButton
+									aria-label={`${item.id} data pull`}
+									className={classes.buttonText}
+									color="inherit"
+									name={item.id}
+									key={item.id}
+									id={item.id}
+									title={`${item.unit === 'Minute' ? item.interval : ''} ${item.unit}`}
+									onClick={(e) => {onUnitClicked(e, item); }}
+								>
+									{item.id}
+								</IconButton>
+							))
+						}
+						<IconButton
+							aria-label="regular session data pull"
+							color="inherit"
+							name="RegularSession"
+							title="Regular Session"
+							onClick={() => {setIsPreMarket(false); }}
+						>
+							<PreMarketIcon />
+						</IconButton>
+						<IconButton
+							aria-label="pre - post data pull"
+							color="default"
+							name="PreMarket"
+							title="Pre Post Data Pull"
+							onClick={() => {setIsPreMarket(true); }}
+						>
+							<PreMarketIcon />
+						</IconButton>
+					</div>
 					<div className={classes.search}>
 						<div className={classes.searchIcon}>
 							<SearchIcon />
@@ -493,7 +495,7 @@ export default function DrawerPanel({url, userData, stockQuote, barChartData, sy
 						component === 'ChartData' ?
 							<Terminal 
 								title={url}
-								userData={barChartData} 
+								userData={null} 
 							/>
 						:
 						component === 'Profile' ?
@@ -509,6 +511,7 @@ export default function DrawerPanel({url, userData, stockQuote, barChartData, sy
 								url={url}
 								barChartData={barChartData} 
 								symbol={symbol}
+								setSymbol={setSymbol}
 								chartText={chartText}
 							/>
 					}
