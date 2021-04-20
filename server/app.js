@@ -12,6 +12,10 @@ const logoutRouter = require('./routes/logout');
 const profileRouter = require('./routes/profile');
 const marketdataRouter = require('./routes/marketdata');
 
+//DB Routers
+const watchlistRouter = require('./routes/watchlist');
+const orderRouter = require('./routes/order');
+
 const app = express();
 
 //logger
@@ -20,9 +24,9 @@ app.use(morgan('common'));
 const PORT = process.env.PORT || 3001;
 
 app.use(
-  cookieSession({
-      secret: ts.cookie_secret
-  })
+	cookieSession({
+		secret: ts.cookie_secret
+	})
 )
 
 // view engine setup
@@ -41,20 +45,27 @@ app.use('/api/logout', logoutRouter);
 app.use('/api/profile', profileRouter);
 app.use('/api/marketdata', marketdataRouter);
 
+//DB Endpoints
+app.use('/api/watchlist', watchlistRouter);
+app.use('/api/order', orderRouter);
+
 // error handler
 app.use(function(err, req, res, next) {
-  
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+	try {
+		// set locals, only providing error in development
+		res.locals.message = err.message;
+		res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+		// render the error page
+		res.status(err.status || 500);
+		res.render('error');
+	} catch (error) {
+		console.log(error);
+	}
 });
 
 app.listen(PORT, () => {
-  console.log(`Find the server at: http://localhost:${PORT}/`); // eslint-disable-line no-console
+  	console.log(`Find the server at: http://localhost:${PORT}/`); // eslint-disable-line no-console
 });
 
 module.exports = app;

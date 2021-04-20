@@ -1,4 +1,4 @@
-version: "3.7"
+version: "3"
 services:
   tradingapp:
     build:
@@ -6,10 +6,13 @@ services:
       target: development
     ports:
       - 5000:3000
+      - 3306:3306/tcp
     volumes:
-      - .:/code
+      - .:/root
     networks:
       - public
+    command:
+      - /root/docker/startup.sh
 networks:
   public:
   private:

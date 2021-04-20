@@ -9,13 +9,16 @@ router.get('/', async function  (req, res, next)  {
         const currentDT = new Date();
         if(new Date(req.session.expires_in) < currentDT){
             // res.redirect('/api/refresh_token');
-            const sessionInfo = await helper.refreshToken(req);
+            const sessionInfo = await helper.refreshToken(req, res);
             if(sessionInfo){
-                res.send(req.session)
+                
+                helper.returnResponse(req, res);
+                // res.send(req.session)
             }
         }
         else {
-            res.send(req.session);
+            helper.returnResponse(req, res);
+            // res.send(req.session);
         }
     } else {
         res.redirect('/');

@@ -6,14 +6,13 @@ const helper = require("../utils/helper");
 const Home = ({parentStyles, userData}) => {
     const parentClasses = parentStyles();
     const [stockQuote, setStockQuote] = useState();
-    const [barChartData, setBarChartData] = useState({});
+    const [barChartData, setBarChartData] = useState([]);
     const [symbol, setSymbol] = useState('SPY');
     const [unit, setUnit] = useState('Minute');
     const [interval, setInterval] = useState(15);
 	const [chartText, setChartText] = useState(`${symbol}, ${interval} ${unit}`);
     const [url, setUrl] = useState();
     const [isPreMarket, setIsPreMarket] = useState(false);
-    
     useEffect(() => {
         const sessionTemplate = isPreMarket ? "&SessionTemplate=USEQPreAndPost" : '';
         const url= `/v2/stream/barchart/$symbol/$interval/$unit?daysBack=$daysBack&lastDate=$lastDate${sessionTemplate}`;
@@ -27,20 +26,21 @@ const Home = ({parentStyles, userData}) => {
             method: 'STREAM',
             url: resolvedUrl 
         };
-
+        // setBarChartData([]);
         ////AlphaAdvantage APIs
         // setMarketDataStream(loading);
         // http.getintraday(symbol, setMarketDataStream);
         // http.getdaily(symbol, setMarketDataStream);
 
         ////Tradestation APIs
-        if(userData){
-            http.getQuoteData({ method: 'GET', url: `/v2/data/quote/${symbol}`}, setStockQuote);
-            
-            if(url && url.indexOf('barchart') > 0){
-                http.getBarChartData(payload, setBarChartData);
-            };
-        }
+        // if(userData){
+        http.getQuoteData({ method: 'GET', url: `/v2/data/quote/${symbol}`}, setStockQuote);
+        
+        http.getBarChartData(payload, setBarChartData);
+            // if(url && url.indexOf('barchart') > 0){
+        http.getBarChartDataRecursive(payload, setBarChartData);
+            // };
+        // }
     }, [unit, interval, symbol, isPreMarket]);
     
     const onUnitClicked = (e, item) => {

@@ -1,9 +1,10 @@
 const request = require('request');
 const fetch = require('node-fetch');
 const { ts, aa } = require('../config');
+const db = require('./db_access');
 
 module.exports = {
-    getAccessToken: async function (req, code, refresh_token){
+    getAccessToken: async function (req, res, code, refresh_token){
         var redirect_uri = `http://${req.headers.host}${ts.api_callback}`;
         var payload = `grant_type=authorization_code&code=${code}&redirect_uri=${redirect_uri}&client_id=${ts.client_id}&client_secret=${ts.client_secret}`
     
@@ -13,7 +14,7 @@ module.exports = {
     
         const reqLen = payload.length
         
-        const res = await fetch(`${ts.base_url}/v2/security/authorize`, {
+        const response = await fetch(`${ts.base_url}/v2/security/authorize`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
@@ -22,7 +23,7 @@ module.exports = {
             body: payload
         })
         
-        const token_info = await res.json()
+        const token_info = await response.json()
     
         if(token_info){
             var now = new Date()
@@ -39,12 +40,13 @@ module.exports = {
             req.session.name = "Samir Desai"
             req.session.alpha_advantage_key = aa.key
             ts.session_data = req.session;
+            db.updateProviderUserInfo(req.session);
         }
         
         return token_info
     },
 
-    login: async function(req){
+    login: async function(req, res){
         const currentDT = new Date();
         if(new Date(req.session.expires_in) < currentDT) { 
             const sessionInfo = await this.refreshToken(req);
@@ -56,11 +58,11 @@ module.exports = {
         };
     },
 
-    refreshToken: async function(req){
+    refreshToken: async function(req, res){
         if(req.session && req.session.expires_in) {
             const currentDT = new Date();
             if(new Date(req.session.expires_in) < currentDT){
-                const token_info = await this.getAccessToken(req, null, req.session.refresh_token)
+                const token_info = await this.getAccessToken(req, res, null, req.session.refresh_token)
                 if(token_info){
                     return req.session;
                 }
@@ -69,26 +71,35 @@ module.exports = {
             }
         }
     },
+
+    returnResponse: function(req, res) {
+        const sessionData = req.session;
+        // db.updateProviderUserInfo(sessionData);
+        res.send(sessionData);
+    },
     
-    getUser: function(req){
-        const user_data = this.get(req,`/v2/users/${ts.session_data.userid}/accounts`);
-        return user_data
+    getUserAccountInfo: function(req, res){
+        const user_data = this.get(req, res,`/v2/users/${ts.session_data.userid}/accounts`);
+        if(user_data){
+            return user_data
+        }
+        return null;
     },
 
-    get: async function(req, url) {
-        return await this.send(req, 'GET', url);
+    get: async function(req, res, url) {
+        return await this.send(req, res, 'GET', url);
     },
 
-    post: async function(req, url, payload) {
-        return await this.send(req, 'POST', url, payload);
+    post: async function(req, res, url, payload) {
+        return await this.send(req, res, 'POST', url, payload);
     },
 
-    send: async function(req, method, url, payload = null) {
+    send: async function(req, res, method, url, payload = null) {
         var tokenActive = false;
         if(req.session && req.session.expires_in) {
             const currentDT = new Date();
             if(new Date(req.session.expires_in) < currentDT){
-                const sessionInfo = await this.refreshToken(req);
+                const sessionInfo = await this.refreshToken(req, res);
                 if(sessionInfo){
                     tokenActive = true;
                 }
@@ -104,7 +115,7 @@ module.exports = {
                 case 'GET':
                     res = await fetch(`${ts.base_url}${url}`, {
                         headers: {
-                            Authorization: `bearer ${ts.session_data.access_token}`
+                            Authorization: `bearer ${req.session.access_token}`
                         }
                     }).then(function (response) {
                         if (response.ok) {
@@ -125,7 +136,7 @@ module.exports = {
                 case 'GETSTREAM':
                     res = await fetch(`${ts.base_url}${url}`, {
                         headers: {
-                            'Authorization': `bearer ${ts.session_data.access_token}`,
+                            'Authorization': `bearer ${req.session.access_token}`,
                             'Accept': 'application/vnd.tradestation.streams+json',
                             'Transfer-Encoding': 'chunked',
                             'Connection': 'keep-alive'
@@ -167,25 +178,25 @@ module.exports = {
                             timeout: 120000,
                             url: `${ts.base_url}${url}`,
                             headers: {
-                                'Authorization': `bearer ${ts.session_data.access_token}`,
+                                'Authorization': `bearer ${req.session.access_token}`,
                                 'Accept': 'application/vnd.tradestation.streams+json',
                                 'Transfer-Encoding': 'chunked',
                                 'Connection': 'keep-alive'
                             }
                         };
-                        const req = request(opts);
+                        const thisRequest = request(opts);
                     
-                        req.on('response', (res) => {
+                        thisRequest.on('response', (thisRes) => {
                             let data = '';
-                            if (res.statusCode !== 200) {
-                                resolve(res);
+                            if (thisRes.statusCode !== 200) {
+                                resolve(thisRes);
                             } else {
                     
-                                res.on('data', (chunk) => {
+                                thisRes.on('data', (chunk) => {
                                     data += chunk;
                                 });
                         
-                                res.on('end', () => {
+                                thisRes.on('end', () => {
                                     // console.log(data)
                                     const lines = data.split(/\r?\n/);
                                     var retRes = [];
@@ -198,7 +209,7 @@ module.exports = {
                             }
                         });
                     
-                        req.on('error', (error) => {
+                        thisRequest.on('error', (error) => {
                             console.log({error})
                         });
                     });
@@ -261,47 +272,152 @@ module.exports = {
                 
                 case 'POST':
                     payload = JSON.stringify(payload);
-                    const payloadLen = payload.length;
-                    console.log({url, payloadLen, payload});
+                    const postPayloadLen = payload.length;
+                    console.log({method:'POST', url, postPayloadLen, payload});
                     res = await fetch(`${ts.base_url}${url}`, {
                         method: "POST",
                         headers: {
-                            Authorization: `bearer ${ts.session_data.access_token}`,
+                            Authorization: `bearer ${req.session.access_token}`,
                             "Content-Type": "application/json; charset=utf-8",
                             'Accept': 'application/vnd.tradestation.streams+json',
-                            "Content-Length": payloadLen
+                            "Content-Length": postPayloadLen
                         },
                         body: payload
-                    }).then(async function (response) {
-                        if (!response.body[Symbol.asyncIterator]) {
-                            response.body[Symbol.asyncIterator] = () => {
-                              const reader = response.body.getReader();
-                              return {
-                                next: () => reader.read(),
-                              };
-                            };
-                          }
-                        let data = ''
-                        for await (const result of response.body) {
-                            data += result;
-                        }
-
-                        const result = {
-                            status: response.status, 
-                            statusText: response.statusText,
-                            data: JSON.parse(data),
-                            url: response.url, 
-                            ok: response.ok,
-                        }
-
-                        return result;
-                        
-                    }).catch(function (err) {
-                        return {
-                            message: err.message, 
-                            stack: err.stack
-                        };
+                    })
+                    .then(response => response.json())
+                    .then((json) => {
+                        return json;
                     });
+                    // .then(async function (response) {
+                        
+                    //     if (!response.body[Symbol.asyncIterator]) {
+                    //         response.body[Symbol.asyncIterator] = () => {
+                    //           const reader = response.body.getReader();
+                    //           return {
+                    //             next: () => reader.read(),
+                    //           };
+                    //         };
+                    //       }
+                    //     let data = ''
+                    //     for await (const result of response.body) {
+                    //         data += result;
+                    //     }
+
+                    //     const result = {
+                    //         status: response.status, 
+                    //         statusText: response.statusText,
+                    //         data: JSON.parse(data),
+                    //         url: response.url, 
+                    //         ok: response.ok,
+                    //     }
+
+                    //     return result;
+                        
+                    // })
+                    // .catch(function (err) {
+                    //     return {
+                    //         message: err.message, 
+                    //         stack: err.stack
+                    //     };
+                    // });
+                    break;
+
+                case 'PUT':
+                    payload = JSON.stringify(payload);
+                    const putPayloadLen = payload.length;
+                    console.log({method:'PUT', url, payload});
+                    res = await fetch(`${ts.base_url}${url}`, {
+                        method: "PUT",
+                        headers: {
+                            Authorization: `bearer ${req.session.access_token}`,
+                            "Content-Type": "application/json; charset=utf-8",
+                            'Accept': 'application/vnd.tradestation.streams+json',
+                            "Content-Length": putPayloadLen
+                        },
+                        body: payload
+                    })
+                    .then(response => response.json())
+                    .then((json) => {
+                        return json;
+                    });
+                    // .then(async function (response) {
+                    //     if (!response.body[Symbol.asyncIterator]) {
+                    //         response.body[Symbol.asyncIterator] = () => {
+                    //             const reader = response.body.getReader();
+                    //             return {
+                    //             next: () => reader.read(),
+                    //             };
+                    //         };
+                    //         }
+                    //     let data = ''
+                    //     for await (const result of response.body) {
+                    //         data += result;
+                    //     }
+
+                    //     const result = {
+                    //         status: response.status, 
+                    //         statusText: response.statusText,
+                    //         data: JSON.parse(data),
+                    //         url: response.url, 
+                    //         ok: response.ok,
+                    //     }
+
+                    //     return result;
+                        
+                    // }).catch(function (err) {
+                    //     return {
+                    //         message: err.message, 
+                    //         stack: err.stack
+                    //     };
+                    // });
+                    break;
+
+                case 'DELETE':
+                    payload = JSON.stringify(payload);
+                    console.log({method:'DELETE', url, payload});
+                    res = await fetch(`${ts.base_url}${url}`, {
+                        method: "DELETE",
+                        headers: {
+                            Authorization: `bearer ${req.session.access_token}`,
+                            "Content-Type": "application/json; charset=utf-8",
+                            'Accept': 'application/vnd.tradestation.streams+json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then((json) => {
+                        return json;
+                    });
+                    // .then(async function (response) {
+                    //     if (!response.body[Symbol.asyncIterator]) {
+                    //         response.body[Symbol.asyncIterator] = () => {
+                    //             const reader = response.body.getReader();
+                    //             return {
+                    //             next: () => reader.read(),
+                    //             };
+                    //         };
+                    //         }
+                    //     let data = ''
+                    //     for await (const result of response.body) {
+                    //         data += result;
+                    //     }
+
+                    //     const result = {
+                    //         status: response.status, 
+                    //         statusText: response.statusText,
+                    //         data: JSON.parse(data),
+                    //         url: response.url, 
+                    //         ok: response.ok,
+                    //     }
+
+                    //     return result;
+                        
+                    // }).catch(function (err) {
+                    //     return {
+                    //         message: err.message, 
+                    //         stack: err.stack
+                    //     };
+                    // });
+                    break;
 
                 default:
                     break;

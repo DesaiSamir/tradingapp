@@ -17,10 +17,18 @@
 .env.test.local
 .env.production.local
 *.vscode
+.config
+.ssh
+.vscode-server
+.gitconfig
+.bash_history
+.mysql_history
+.cache
 
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
 *.lock
-service-api/package-lock.json
+package-lock.json
+.npm

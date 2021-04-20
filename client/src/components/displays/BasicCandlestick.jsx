@@ -12,8 +12,14 @@ import {
     ZoomButtons, withDeviceRatio, withSize, Label, Annotate, LabelAnnotation,
 } from "react-financial-charts";
 
+var stockChartHeight = 20;//document.getElementById('timeframes').clientHeight ? document.getElementById('timeframes').clientHeight : 0;
+
 const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio, width, chartText, ...rest }) => {
     const margin = { left: 50, right: 50, top: 0, bottom: 24 };
+    
+    if(document.getElementById('timeframes').clientHeight)
+        stockChartHeight = document.getElementById('timeframes').clientHeight;
+    
     // const [minimumBars, setMinimumBars] = useState(100);
     const pricesDisplayFormat = format(".2f");
     const numberDisplayFormat = format(",");
@@ -262,7 +268,7 @@ StockChart.propTypes = {
 	// type: PropTypes.oneOf(["svg", "hybrid"]).isRequired,
 };
 
-export default (withSize({ style: { height: window.innerHeight - 122, padding: 0 } })(withDeviceRatio()(StockChart)));
+export default (withSize({ style: { height: window.innerHeight - 122 - stockChartHeight, padding: 0 } })(withDeviceRatio()(StockChart)));
 
 // export const Daily = (withSize({ style: { minHeight: 600 } })(withDeviceRatio()(StockChart)));
 

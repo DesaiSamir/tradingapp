@@ -27,9 +27,17 @@ module.exports = {
 
         return false;
     },
+    getProfileData: async function (cb) {
+        const profileData = await this.get('api/profile');
+        if(profileData){
+            console.log({profileData});
+            cb(profileData);
+        }
+    },
     getQuoteData: async function (payload, cb) {
-        const quoteData = await this.send(payload);
+        const quoteData = await this.send('POST', 'api/marketdata', payload);
         if(quoteData){
+            console.log({quoteData});
             cb(quoteData);
         }
     },
@@ -37,17 +45,33 @@ module.exports = {
         this.clearQuoteInterval();
         
         quoteTimer = setInterval(async () => {
-            const quoteData = await this.send(payload);
+            const quoteData = await this.send('POST', 'api/marketdata', payload);
             if(quoteData){
                 cb(quoteData);
             }
         }, this.getRefreshInterval());
     },
-    getBarChartData: function (payload, cb) {
+    getBarChartData: async function (payload, cb) {
+        const barData = await this.send('POST', 'api/marketdata', payload);
+        if(barData){
+            var responseData = barData;
+            if(responseData.length > 0){
+                responseData = patterns.detectPattern(this.formatTSData(responseData));
+            } else {
+                responseData = {
+                    status: "Error fetching data.", 
+                    response: responseData,
+                };
+            } 
+            console.log({responseData});
+            cb(responseData);
+        }
+    },
+    getBarChartDataRecursive: function (payload, cb) {
         this.clearBarChartInterval();
         
         barChartTimer = setInterval(async () => {
-            const barData = await this.send(payload);
+            const barData = await this.send('POST', 'api/marketdata', payload);
             if(barData){
                 var responseData = barData;
                 if(responseData.length > 0){
@@ -63,16 +87,47 @@ module.exports = {
 
         }, this.getRefreshInterval());
     },
+    getWatchlist: async function(cb){
+        const watchlistData = await this.get("api/watchlist", cb);
+        
+        if(watchlistData){
+            console.log({watchlistData});
+            cb(watchlistData);
+        }
+    },
+    getWatchlistRecursive: function(cb){
+        this.clearQuoteInterval();
+        
+        quoteTimer = setInterval(async () => {
+            const watchlistData = await this.get("api/watchlist", cb);
+            
+            if(watchlistData){
+                cb(watchlistData);
+            }
+        }, this.getRefreshInterval());
+    },
     postPurchaseOrder: async function(payload, cb) {
-        const purchaseOrder = await this.send(payload);
+        const purchaseOrder = await this.send('POST','api/order', payload);
         if(purchaseOrder){
             cb(purchaseOrder);
         }
     },
-    send: async function (payload) {
-        console.log(payload);
+    updatePurchaseOrder: async function(payload, cb){
+        const purchaseOrder = await this.send('PUT','api/order', payload);
+        if(purchaseOrder){
+            cb(purchaseOrder);
+        }
+    },
+    deletePurchaseOrder: async function(payload, cb){
+        const purchaseOrder = await this.send('DELETE','api/order', payload);
+        if(purchaseOrder){
+            cb(purchaseOrder);
+        }
+    },
+    send: async function (method, url, payload = {}) {
+        // console.log({method, url, payload});
         var options = {
-            method: 'POST',
+            method: method,
             headers: {
                 'Content-type': 'application/json'
             },
@@ -81,7 +136,7 @@ module.exports = {
         
         // console.log(options)
 
-        const data = await fetch("api/marketdata", options)
+        const data = await fetch(url, options)
             .then(res => res.json())
             .then(data => {
                 return data;
@@ -122,7 +177,7 @@ module.exports = {
 
         return formatedData.sort((a, b) => (a.date > b.date) ? 1 : -1);
     },
-    get: async function (url, cb) {
+    get: async function (url) {
         const res = await fetch(url)
             .then(res => res.json())
             .then(res => {
@@ -132,7 +187,7 @@ module.exports = {
         );
 
         if(res){
-            cb(res);
+            return res;
         }
     },
     getaa: function (symbol, cb) {
