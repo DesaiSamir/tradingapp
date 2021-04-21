@@ -6,6 +6,7 @@ const helper = require("../utils/helper");
 const Home = ({parentStyles, userData}) => {
     const parentClasses = parentStyles();
     const [stockQuote, setStockQuote] = useState();
+    const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
     const [barChartData, setBarChartData] = useState([]);
     const [symbol, setSymbol] = useState('SPY');
     const [unit, setUnit] = useState('Minute');
@@ -33,16 +34,18 @@ const Home = ({parentStyles, userData}) => {
         // http.getdaily(symbol, setMarketDataStream);
 
         ////Tradestation APIs
-        // if(userData){
-        http.getQuoteData({ method: 'GET', url: `/v2/data/quote/${symbol}`}, setStockQuote);
         
-        http.getBarChartData(payload, setBarChartData);
-            // if(url && url.indexOf('barchart') > 0){
-        http.getBarChartDataRecursive(payload, setBarChartData);
-            // };
-        // }
-    }, [unit, interval, symbol, isPreMarket]);
+        if(isUserLoggedIn){
+            http.getQuoteData({ method: 'GET', url: `/v2/data/quote/${symbol}`}, setStockQuote);
+            http.getBarChartData(payload, setBarChartData);
+            http.getBarChartDataRecursive(payload, setBarChartData);
+        }
+    }, [unit, interval, symbol, isPreMarket, isUserLoggedIn]);
     
+    if(userData && !isUserLoggedIn){
+        setIsUserLoggedIn(true);
+    }
+
     const onUnitClicked = (e, item) => {
         e.preventDefault();
         setInterval(item.interval);

@@ -10,8 +10,9 @@ import {
     Paper, Grid, Typography 
 } from "@material-ui/core";
 
-const Market = ({url, barChartData = [], chartText, setSymbol, symbol}) => {
+const Market = ({userData, url, barChartData = [], chartText, setSymbol, symbol}) => {
     const classes = useStyles();
+    const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
     const [currentWatchlist, setCurrentWatchlist] = useState([]);
 	const dateTimeFormat= url && url.indexOf('Minute') > 0 ? "%d %b %H:%M %p" : "%d %b";
 
@@ -44,11 +45,16 @@ const Market = ({url, barChartData = [], chartText, setSymbol, symbol}) => {
     }
     useEffect(() => {
         
-        http.getWatchlistRecursive(setCurrentWatchlist);
-        
-    }, []);
+        if(isUserLoggedIn){
+            http.getWatchlistRecursive(setCurrentWatchlist);
+        }
+    }, [isUserLoggedIn]);
 
-    if(currentWatchlist.length === 0){
+    if(userData && !isUserLoggedIn){
+        setIsUserLoggedIn(true);
+    }
+
+    if(currentWatchlist.length === 0 && isUserLoggedIn){
         http.getWatchlist(setCurrentWatchlist);
     }
     const handleAddWatchlist = async (e, setOpen) => {
@@ -145,7 +151,7 @@ const Market = ({url, barChartData = [], chartText, setSymbol, symbol}) => {
                         <Grid item xs={12}>
                             {
                                 (barChartData && barChartData.length > 0) ? 
-                                    <StockChart dateTimeFormat={dateTimeFormat} data={barChartData} chartText={chartText} />
+                                    <StockChart dateTimeFormat={dateTimeFormat} data={barChartData} chartText={chartText} width="100%" />
                                 : <div>Loading...</div>
                             }
                         </Grid>

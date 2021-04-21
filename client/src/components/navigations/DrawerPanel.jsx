@@ -513,6 +513,7 @@ export default function DrawerPanel({url, userData, stockQuote, barChartData, sy
 								symbol={symbol}
 								setSymbol={setSymbol}
 								chartText={chartText}
+								userData={userData}
 							/>
 					}
 				</div>

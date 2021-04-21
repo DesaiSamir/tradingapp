@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
 
 const App = () => {
 	const classes = useStyles();
-    const [userData, setUserData] = useState({});useEffect(() => {
+    const [userData, setUserData] = useState(null);useEffect(() => {
         http.getProfileData(setUserData);
     }, []);
 
