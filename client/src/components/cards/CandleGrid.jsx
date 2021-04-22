@@ -31,7 +31,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export default function CandleGrid({candles, symbol}) {
+export default function CandleGrid({candles}) {
     const classes = useStyles();
     return (
         <div className={classes.root}>
@@ -40,7 +40,7 @@ export default function CandleGrid({candles, symbol}) {
                     <Grid item >
                         <ButtonBase className={classes.symbol} >
                             <Typography variant="h4" component="h2">
-                                {symbol}
+                                {candles[1].symbol}
                             </Typography>
                         </ButtonBase>
                     </Grid>

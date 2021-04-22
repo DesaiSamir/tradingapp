@@ -273,7 +273,7 @@ module.exports = {
                 case 'POST':
                     payload = JSON.stringify(payload);
                     const postPayloadLen = payload.length;
-                    console.log({method:'POST', url, postPayloadLen, payload});
+                    // console.log({method:'POST', url, postPayloadLen, payload});
                     res = await fetch(`${ts.base_url}${url}`, {
                         method: "POST",
                         headers: {
@@ -288,44 +288,12 @@ module.exports = {
                     .then((json) => {
                         return json;
                     });
-                    // .then(async function (response) {
-                        
-                    //     if (!response.body[Symbol.asyncIterator]) {
-                    //         response.body[Symbol.asyncIterator] = () => {
-                    //           const reader = response.body.getReader();
-                    //           return {
-                    //             next: () => reader.read(),
-                    //           };
-                    //         };
-                    //       }
-                    //     let data = ''
-                    //     for await (const result of response.body) {
-                    //         data += result;
-                    //     }
-
-                    //     const result = {
-                    //         status: response.status, 
-                    //         statusText: response.statusText,
-                    //         data: JSON.parse(data),
-                    //         url: response.url, 
-                    //         ok: response.ok,
-                    //     }
-
-                    //     return result;
-                        
-                    // })
-                    // .catch(function (err) {
-                    //     return {
-                    //         message: err.message, 
-                    //         stack: err.stack
-                    //     };
-                    // });
                     break;
 
                 case 'PUT':
                     payload = JSON.stringify(payload);
                     const putPayloadLen = payload.length;
-                    console.log({method:'PUT', url, payload});
+                    // console.log({method:'PUT', url, payload});
                     res = await fetch(`${ts.base_url}${url}`, {
                         method: "PUT",
                         headers: {
@@ -340,36 +308,6 @@ module.exports = {
                     .then((json) => {
                         return json;
                     });
-                    // .then(async function (response) {
-                    //     if (!response.body[Symbol.asyncIterator]) {
-                    //         response.body[Symbol.asyncIterator] = () => {
-                    //             const reader = response.body.getReader();
-                    //             return {
-                    //             next: () => reader.read(),
-                    //             };
-                    //         };
-                    //         }
-                    //     let data = ''
-                    //     for await (const result of response.body) {
-                    //         data += result;
-                    //     }
-
-                    //     const result = {
-                    //         status: response.status, 
-                    //         statusText: response.statusText,
-                    //         data: JSON.parse(data),
-                    //         url: response.url, 
-                    //         ok: response.ok,
-                    //     }
-
-                    //     return result;
-                        
-                    // }).catch(function (err) {
-                    //     return {
-                    //         message: err.message, 
-                    //         stack: err.stack
-                    //     };
-                    // });
                     break;
 
                 case 'DELETE':
@@ -387,36 +325,6 @@ module.exports = {
                     .then((json) => {
                         return json;
                     });
-                    // .then(async function (response) {
-                    //     if (!response.body[Symbol.asyncIterator]) {
-                    //         response.body[Symbol.asyncIterator] = () => {
-                    //             const reader = response.body.getReader();
-                    //             return {
-                    //             next: () => reader.read(),
-                    //             };
-                    //         };
-                    //         }
-                    //     let data = ''
-                    //     for await (const result of response.body) {
-                    //         data += result;
-                    //     }
-
-                    //     const result = {
-                    //         status: response.status, 
-                    //         statusText: response.statusText,
-                    //         data: JSON.parse(data),
-                    //         url: response.url, 
-                    //         ok: response.ok,
-                    //     }
-
-                    //     return result;
-                        
-                    // }).catch(function (err) {
-                    //     return {
-                    //         message: err.message, 
-                    //         stack: err.stack
-                    //     };
-                    // });
                     break;
 
                 default:

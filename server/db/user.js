@@ -38,7 +38,7 @@ User.getUserById = async function (userId) {
     if(result){
         return result[0];
     }
-    return qpll;
+    return null;
 };
 
 User.getUserByUsername = async function (username) {
@@ -48,7 +48,7 @@ User.getUserByUsername = async function (username) {
     if(result){
         return result[0];
     }
-    return qpll;
+    return null;
 };
 
 User.getAllUser = async function () {
@@ -58,7 +58,7 @@ User.getAllUser = async function () {
     if(result){
         return result[0];
     }
-    return qpll;
+    return null;
 };
 
 module.exports= User;

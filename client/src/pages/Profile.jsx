@@ -30,42 +30,6 @@ const Profile = ({userData}) => {
     const classes = useStyles();
     const [orderResponseData, setOrderResponseData] = useState({});
 
-    const handleClick= (e) => {
-        e.preventDefault();
-        var currentTime = new Date();
-        const OrderConfirmId = 'SPY15M' + currentTime.getHours() + currentTime.getMinutes() + currentTime.getSeconds();
-        const payload = {
-            Symbol: 'SPY',
-            AccountKey: '789891384',
-            AssetType: 'EQ',
-            Duration: 'GTC',
-            OrderType: 'StopLimit',
-            StopPrice: '418.00',
-            LimitPrice: '418.05',
-            Quantity: '1',
-            TradeAction: 'BUY',
-            OrderConfirmId: 'BUY' + OrderConfirmId,
-            OSOs: [
-                {
-                    Type: 'NORMAL',
-                    Orders: [
-                        {
-                            Symbol: 'SPY',
-                            AccountKey: '789891384',
-                            AssetType: 'EQ',
-                            Duration: 'GTC',
-                            OrderType: 'StopMarket',
-                            StopPrice: '417.50',
-                            Quantity: '1',
-                            TradeAction: 'SELL',
-                            OrderConfirmId: 'SELL' + OrderConfirmId,
-                        }
-                    ]
-                }
-            ],
-        };
-        http.postPurchaseOrder(payload, orderResponse);
-    };
     const handleClickUpdate= (e) => {
         e.preventDefault();
         const payload = {
@@ -88,6 +52,39 @@ const Profile = ({userData}) => {
         };
         http.deletePurchaseOrder(payload, orderResponse);
     };
+    
+    const handleClickGetOrders= (e) => {
+        e.preventDefault();
+        const account = userData.user_data.filter(item => item.Type === 'M')[0];
+        const url = `/v2/accounts/${account.Key}/orders`;
+        const payload = {
+            method: 'GET',
+            url: url 
+        };
+        http.getAccountOrders(payload, setOrderResponseData);
+    };
+    
+    const handleClickGetPositions= (e) => {
+        e.preventDefault();
+        const account = userData.user_data.filter(item => item.Type === 'M')[0];
+        const url = `/v2/accounts/${account.Key}/positions`;
+        const payload = {
+            method: 'GET',
+            url: url 
+        };
+        http.getAccountPositions(payload, setOrderResponseData);
+    };
+    
+    const handleClickGetBalances= (e) => {
+        e.preventDefault();
+        const account = userData.user_data.filter(item => item.Type === 'M')[0];
+        const url = `/v2/accounts/${account.Key}/balances`;
+        const payload = {
+            method: 'GET',
+            url: url 
+        };
+        http.getAccountPositions(payload, setOrderResponseData);
+    };
 
     const orderResponse = (data) => {
         setOrderResponseData(data);
@@ -95,9 +92,11 @@ const Profile = ({userData}) => {
     
     return (
         <Paper>
-            <Button variant="contained" color="primary" onClick={handleClick} className={classes.spacer} >Purchase Order</Button>
             <Button variant="contained" color="primary" onClick={handleClickUpdate} className={classes.spacer} >Update Order</Button>
             <Button variant="contained" color="primary" onClick={handleClickDelete} className={classes.spacer} >Delete Order</Button>
+            <Button variant="contained" color="primary" onClick={handleClickGetOrders} className={classes.spacer} >Get Orders</Button>
+            <Button variant="contained" color="primary" onClick={handleClickGetPositions} className={classes.spacer} >Get Positions</Button>
+            <Button variant="contained" color="primary" onClick={handleClickGetBalances} className={classes.spacer} >Get Balances</Button>
             <Grid container>
                 <Grid item xs={6}> 
                     <Terminal

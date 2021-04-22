@@ -12,7 +12,7 @@ import {
     ZoomButtons, withDeviceRatio, withSize, Label, Annotate, LabelAnnotation,
 } from "react-financial-charts";
 
-var stockChartHeight = 20;//document.getElementById('timeframes').clientHeight ? document.getElementById('timeframes').clientHeight : 0;
+var stockChartHeight = 40;
 
 const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio, width, chartText, ...rest }) => {
     const margin = { left: 50, right: 50, top: 0, bottom: 24 };

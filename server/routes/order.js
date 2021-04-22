@@ -14,7 +14,6 @@ router.post('/', async function  (req, res, next)  {
 
     if(orderData){
         payload.response = orderData;
-        console.log(payload)
         order.createStopOrder(payload);
         res.send(orderData);
     }
@@ -28,7 +27,6 @@ router.put('/', async function  (req, res, next)  {
 
     if(orderData){
         payload.response = orderData;
-        console.log(payload)
         order.updateStopOrder(payload);
         res.send(orderData);
     }
@@ -40,7 +38,6 @@ router.delete('/', async function  (req, res, next)  {
     const orderData = await helper.send(req, res, 'DELETE', url);
 
     if(orderData){
-        console.log(orderData)
         order.updateStopOrder(orderData);
         res.send(orderData);
     }

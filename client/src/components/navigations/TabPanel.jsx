@@ -72,9 +72,8 @@ export default function NavTabs({}) {
                     onChange={handleChange}
                     aria-label="nav tabs example"
                     >
-                    <LinkTab href="/quote" icon={<CodeIcon />} {...a11yProps(0)} />
-                    <LinkTab href="/chart" icon={<TrendingUpIcon />} {...a11yProps(1)} />
-                    <LinkTab href="/json" icon={<CodeIcon />} {...a11yProps(2)} />
+                    <LinkTab icon={<CodeIcon />} {...a11yProps(0)} />
+                    <LinkTab icon={<TrendingUpIcon />} {...a11yProps(1)} />
                 </Tabs>
             </AppBar>
 			<TabPanel value={value} index={0}>
@@ -82,9 +81,6 @@ export default function NavTabs({}) {
             </TabPanel>
             <TabPanel value={value} index={1}>
 				Tab Two
-            </TabPanel>
-            <TabPanel value={value} index={2}>
-				Tab Three
             </TabPanel>
         </div>
     );

@@ -84,7 +84,7 @@ CREATE TABLE `orders` (
   `stop_price` varchar(54) DEFAULT NULL,
   `order_type` enum('Limit','Market','StopLimit','StopMarket') NOT NULL DEFAULT 'Limit',
   `quantity` varchar(54) NOT NULL,
-  `trade_action` enum('BUY','SELL') NOT NULL,
+  `trade_action` enum('BUY','SELL','BUYTOCOVER','SELLSHORT') NOT NULL,
   `order_confirm_id` varchar(100) DEFAULT NULL,
   `order_status` varchar(100) DEFAULT NULL,
   `oso_app_order_id` int(11) DEFAULT NULL,

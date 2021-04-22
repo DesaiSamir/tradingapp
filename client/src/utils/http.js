@@ -49,6 +49,11 @@ module.exports = {
             if(quoteData){
                 cb(quoteData);
             }
+            
+            if(!this.isRegularSessionTime()){
+                console.log(payload, !this.isRegularSessionTime());
+                this.clearQuoteInterval();
+            }
         }, this.getRefreshInterval());
     },
     getBarChartData: async function (payload, cb) {
@@ -85,6 +90,9 @@ module.exports = {
                 cb(responseData);
             }
 
+            if(!this.isRegularSessionTime() && payload.url.indexOf(`USEQPreAndPost`) < 0){
+                this.clearBarChartInterval();
+            }
         }, this.getRefreshInterval());
     },
     getWatchlist: async function(cb){
@@ -104,12 +112,16 @@ module.exports = {
             if(watchlistData){
                 cb(watchlistData);
             }
+
+            if(!this.isRegularSessionTime()){
+                this.clearQuoteInterval();
+            }
         }, this.getRefreshInterval());
     },
     postPurchaseOrder: async function(payload, cb) {
         const purchaseOrder = await this.send('POST','api/order', payload);
         if(purchaseOrder){
-            cb(purchaseOrder);
+            cb({purchaseOrder, payload});
         }
     },
     updatePurchaseOrder: async function(payload, cb){
@@ -124,14 +136,38 @@ module.exports = {
             cb(purchaseOrder);
         }
     },
-    send: async function (method, url, payload = {}) {
+    getAccountOrders: async function(payload, cb){
+        
+        const orders = await this.send('POST', 'api/marketdata', payload);
+
+        if(orders){
+            cb(orders);
+        }
+    },
+    getAccountPositions: async function(payload, cb){
+        
+        const positions = await this.send('POST', 'api/marketdata', payload);
+
+        if(positions){
+            cb(positions);
+        }
+    },
+    getAccountBalances: async function(payload, cb){
+        
+        const balances = await this.send('POST', 'api/marketdata', payload);
+
+        if(balances){
+            cb(balances);
+        }
+    },
+    send: async function (method, url, payload = null) {
         // console.log({method, url, payload});
         var options = {
             method: method,
             headers: {
                 'Content-type': 'application/json'
             },
-            body: JSON.stringify(payload)
+            body: payload && JSON.stringify(payload)
         };
         
         // console.log(options)

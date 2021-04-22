@@ -1,3 +1,4 @@
+
 module.exports = {
     formatDate: function(date, format) {
         var newDate = new Date(date);
@@ -34,20 +35,40 @@ module.exports = {
         var newDate = new Date(date.setDate(date.getDate() + 1));
         return this.formatDate(newDate);
     },
+    getPatternCandleList: function(chartData, symbol){
+        var patternCandles = [];
+        if(chartData.length > 0){
+            chartData.reverse();
+            var currentCandles = [], lastCandles = [], lastBullCandles = [], lastBearCandles = [];
+
+            currentCandles.push({...chartData[1], title: '', symbol});
+            currentCandles.push({...chartData[0], title: 'Current Candle', symbol});
+            patternCandles.push(currentCandles);
+            
+            lastCandles.push({...chartData[2], title: '', symbol});
+            lastCandles.push({...chartData[1], title: 'Last Closed Candle', symbol});
+            patternCandles.push(lastCandles);
+
+            const lastBullishIndex = chartData.findIndex(candle=> candle.isBullishEngulfing);
+            lastBullCandles.push({...chartData[lastBullishIndex + 1], title: '', symbol});
+            lastBullCandles.push({...chartData[lastBullishIndex], title: 'Last Bullish Candle', symbol});
+            patternCandles.push(lastBullCandles);
+
+            const lastBearishIndex = chartData.findIndex(candle=> candle.isBearishEngulfing);
+            lastBearCandles.push({...chartData[lastBearishIndex + 1], title: '', symbol});
+            lastBearCandles.push({...chartData[lastBearishIndex], title: 'Last Bearish Candle', symbol});
+            patternCandles.push(lastBearCandles);
+        }
+        return patternCandles;
+    },
     getMiniChartCandles: function(candles){
         var newCandles = [];
         const patternCandle = candles[1];
         const previousCandle = candles[0];
-        const todayDate = new Date(new Date().toLocaleDateString() + " 0:00:00 AM");
         const dayBeforeYesterday = new Date(new Date().toLocaleDateString() + " 0:00:00 AM");
         dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 2);
-        const yesterday = new Date(new Date().toLocaleDateString() + " 0:00:00 AM");
-        yesterday.setDate(yesterday.getDate() - 1);
         const tomorrow = new Date(new Date().toLocaleDateString() + " 0:00:00 AM");
         tomorrow.setDate(tomorrow.getDate() + 1);
-
-        previousCandle.date = yesterday;
-        patternCandle.date = todayDate;
 
         newCandles.push({
             "date": dayBeforeYesterday,
@@ -55,6 +76,8 @@ module.exports = {
             "close": previousCandle.open,
             "high": previousCandle.open,
             "low": previousCandle.open,
+            "title": '',
+            "symbol": previousCandle.symbol,
         });
 
         newCandles.push(previousCandle);
@@ -67,6 +90,8 @@ module.exports = {
             "high": patternCandle.close,
             "low": patternCandle.close,
             "close": patternCandle.close,
+            "title": '',
+            "symbol": previousCandle.symbol,
         });
 
         return newCandles;
