@@ -49,7 +49,7 @@ ProviderAccount.getProviderAccountByProviderId = async function(provider_id, acc
 
 ProviderAccount.updateProviderAccount = function (params) {
     
-    const providerUserData = params.user_data;
+    const providerUserData = params;
     providerUserData.forEach(async function(account) {
         const provider = await Provider.getProviderByName(params.provider);
         if (provider){

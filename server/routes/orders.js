@@ -9,12 +9,14 @@ router.get('/:key', async function  (req, res, next)  {
     const accountOrders = await helper.send(req, res, 'GET', url);
 
     if(accountOrders){
-        const orderIds =  Array.prototype.map.call(accountOrders, o => o.OrderID).toString();
-        const dbOrders = await order.getOrderByProviderListOfOrderIds(orderIds);
-        if(dbOrders){
-            const dbOrderIds = Array.prototype.map.call(dbOrders, o => o.provider_order_id);
-            const retOrders = accountOrders.filter(order => dbOrderIds.includes(order.OrderID.toString()));
-            res.send({retOrders, dbOrders});
+        if(accountOrders.length > 0){
+            const orderIds =  Array.prototype.map.call(accountOrders, o => o.OrderID).toString();
+            const dbOrders = await order.getOrderByProviderListOfOrderIds(orderIds);
+            if(dbOrders){
+                const dbOrderIds = Array.prototype.map.call(dbOrders, o => o.provider_order_id);
+                const retOrders = accountOrders.filter(order => dbOrderIds.includes(order.OrderID.toString()));
+                res.send({retOrders, dbOrders});
+            }
         }
     }
 })

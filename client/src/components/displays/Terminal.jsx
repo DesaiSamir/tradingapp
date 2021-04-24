@@ -1,10 +1,8 @@
-import React from "react";
 import { makeStyles } from '@material-ui/core/styles';
 
-const Terminal = ({ userData, title = 'Terminal'}) => {
+const Terminal = ({ jsonData, title = 'Terminal'}) => {
     const classes = useStyles();
-    const selectedData = userData;
-    const jsonCode = JSON.stringify(selectedData, null, 4);
+    const jsonCode = JSON.stringify(jsonData, null, 4);
     
     return (
         <div className={classes.window} >

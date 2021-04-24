@@ -5,7 +5,7 @@ const { ts } = require('./config');
 var morgan = require('morgan')
 
 const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
+const accountsRouter = require('./routes/accounts');
 const loginRouter = require('./routes/login');
 const adminRouter = require('./routes/admin');
 const logoutRouter = require('./routes/logout');
@@ -14,7 +14,7 @@ const marketdataRouter = require('./routes/marketdata');
 
 //DB Routers
 const watchlistRouter = require('./routes/watchlist');
-const orderRouter = require('./routes/order');
+const ordersRouter = require('./routes/orders');
 
 const app = express();
 
@@ -38,7 +38,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/', indexRouter);
-app.use('/api/users', usersRouter);
+app.use('/api/accounts', accountsRouter);
 app.use('/api/login', loginRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/logout', logoutRouter);
@@ -47,7 +47,7 @@ app.use('/api/marketdata', marketdataRouter);
 
 //DB Endpoints
 app.use('/api/watchlist', watchlistRouter);
-app.use('/api/order', orderRouter);
+app.use('/api/orders', ordersRouter);
 
 // error handler
 app.use(function(err, req, res, next) {

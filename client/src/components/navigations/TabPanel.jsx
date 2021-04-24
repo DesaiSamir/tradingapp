@@ -62,7 +62,7 @@ export default function NavTabs({}) {
 	const handleChange = (event, newValue) => {
 		setValue(newValue);
 	};
-	// console.log({url, userData, barChartData, minuteIndex: url.indexOf('Minute')})
+  
 	return (
         <div className={classes.root}>
             <AppBar position="static">

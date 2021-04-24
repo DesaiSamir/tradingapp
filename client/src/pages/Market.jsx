@@ -1,3 +1,4 @@
+import { useContext } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import StockChart from "../components/displays/BasicCandlestick";
 import TimeFrames from "../components/menus/TimeFrames";
@@ -5,37 +6,39 @@ import {
     Grid, 
 } from "@material-ui/core";
 import PatternsPanel from "../components/navigations/PatternsPanel";
+import ChartActionsProvider from '../contexts/ChartActionsProvider';
+import loading from '../res/loading.gif';
 
-const Market = ({userData, url, barChartData = [], chartText, setSymbol, symbol, onUnitClicked, setIsPreMarket, onTextChanged}) => {
+const Market = () => {
     const classes = useStyles();
+	const { 
+		url, barChartData, chartText
+	} = useContext(ChartActionsProvider.context);
 	const dateTimeFormat= url && url.indexOf('Minute') > 0 ? "%d %b %H:%M %p" : "%d %b";
 
     return (
         <div className={classes.root} >
             <Grid container>
                 <Grid item xs={4}>
-                    <PatternsPanel 
-                        userData={userData}
-                        symbol={symbol}
-                        setSymbol={setSymbol}
-                        barChartData={barChartData}
-                        chartText={chartText}
-                    /> 
+                    <PatternsPanel /> 
                 </Grid>
                 <Grid item xs={8}>
                     <Grid container >
                         <Grid item xs={12} id="timeframes" className={classes.head}>
-                            <TimeFrames 
-                                onUnitClicked={onUnitClicked}
-                                setIsPreMarket={setIsPreMarket}
-                                onTextChanged={onTextChanged}
-                            />
+                            <TimeFrames />
                         </Grid>
                         <Grid item xs={12}>
                             {
                                 (barChartData && barChartData.length > 0) ? 
-                                    <StockChart dateTimeFormat={dateTimeFormat} data={barChartData} chartText={chartText} width="100%" />
-                                : <div>Loading...</div>
+                                    <StockChart 
+                                        width="100%"
+                                        dateTimeFormat={dateTimeFormat}
+                                        data={barChartData}
+                                        chartText={chartText} 
+                                    />
+                                :   <div className={classes.loading}>
+                                        <img src={loading} alt="Loading" />
+                                    </div>
                             }
                         </Grid>
                     </Grid>
@@ -58,5 +61,13 @@ const useStyles = makeStyles((theme) => ({
         backgroundColor: theme.palette.common.black,
         color: theme.palette.common.white,
     },
+    loading:{
+        display: 'flex',
+        flexWrap: 'wrap',
+        width: '100%',
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    }
 }));
 

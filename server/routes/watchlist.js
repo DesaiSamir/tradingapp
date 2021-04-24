@@ -16,6 +16,14 @@ router.get('/', async function  (req, res, next)  {
     }
 })
 
+router.get('/:symbol', async function  (req, res, next)  {
+    const url = `/v2/data/quote/${req.params.symbol}`;
+    const quote = await helper.send(req, res, 'GET', url);
+    if(quote){
+        res.send(quote);
+    }
+})
+
 router.post('/', async function  (req, res, next)  {
     const payload = req.body;
     const addData = await watchlist.saveWatchlist(payload);

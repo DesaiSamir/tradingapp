@@ -24,10 +24,7 @@ router.get('/callback', async function (req, res, next)  {
     
     const token_info = await helper.getAccessToken(req, res, code, null);
 
-    const user_data = await helper.getUserAccountInfo(req, res);
-
-    if(user_data){
-        ts.session_data.user_data = user_data;
+    if(token_info){
         res.redirect('/');
     } else {
         console.log('Error');

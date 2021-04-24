@@ -1,5 +1,5 @@
 import { makeStyles } from '@material-ui/core/styles';
-import OrdersTable from "../components/displays/OrdersTable";
+import PositionsTable from "../components/displays/PositionsTable";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -7,14 +7,14 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const Orders = () => {
+const Positions = () => {
     const classes = useStyles();
 
     return (
         <div className={classes.root}>
-            <OrdersTable />
+            <PositionsTable />
         </div>
     )
 }
 
-export default Orders
+export default Positions

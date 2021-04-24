@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
@@ -15,6 +15,7 @@ import TrendingUpIcon from '@material-ui/icons/TrendingUp';
 import { green, red } from '@material-ui/core/colors';
 import greenCandle from '../../res/green.png';
 import redCandle from '../../res/red.png';
+import UserProvider from '../../contexts/UserProvider';
 
 function NumberFormatCustom(props) {
     const { inputRef, onChange, prefix, ...other } = props;
@@ -45,8 +46,9 @@ NumberFormatCustom.propTypes = {
 	prefix: PropTypes.string,
 };
 
-export default function OrderDialog({userData, patternCandles, setOrderResponseData, setShowResponse}) {
+export default function OrderDialog({patternCandles, setOrderResponseData, setShowResponse}) {
 	const classes = useStyles();
+	const { equitiesAccountKey } = useContext(UserProvider.context);
 	const [open, setOpen] = useState(false);
 	const [candleInAction, setCandleInAction] = useState({
 		date: new Date(),
@@ -137,12 +139,11 @@ export default function OrderDialog({userData, patternCandles, setOrderResponseD
 	};
 
 	const handleSendOrderClick = () => {
-        const accountKey = userData.user_data.filter(item => item.Type === 'M')[0].Key;
 		setOpen(false);
 		
 		const payload = {
 			Symbol: symbol,
-			AccountKey: accountKey,
+			AccountKey: equitiesAccountKey,
 			AssetType: 'EQ',
 			Duration: 'GTC',
 			OrderType: 'StopLimit',
@@ -157,7 +158,7 @@ export default function OrderDialog({userData, patternCandles, setOrderResponseD
 					Orders: [
 						{
 							Symbol: symbol,
-							AccountKey: accountKey,
+							AccountKey: equitiesAccountKey,
 							AssetType: 'EQ',
 							Duration: 'GTC',
 							OrderType: 'StopMarket',

@@ -38,7 +38,7 @@ export default function AlertDialog({jsonData, showResponse, setShowResponse}) {
 				<Paper id="alert-dialog-description">
 					<Terminal
 						title="Order Response"
-						userData={jsonData} 
+						jsonData={jsonData} 
 					/>
 				</Paper>
 			</DialogContent>

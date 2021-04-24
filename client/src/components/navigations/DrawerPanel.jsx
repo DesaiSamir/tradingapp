@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import clsx from 'clsx';
 import _ from "lodash";
 import { makeStyles, useTheme } from '@material-ui/core/styles';
@@ -16,10 +16,14 @@ import MoreIcon from '@material-ui/icons/MoreVert';
 import LogoutIcon from "@material-ui/icons/MeetingRoom";
 import LoginIcon from '@material-ui/icons/VpnKey';
 import ReceiptIcon from '@material-ui/icons/Receipt';
+import ListAltIcon from '@material-ui/icons/ListAlt';
 import Terminal from "../displays/Terminal";
 import Profile from "../../pages/Profile";
 import Market from "../../pages/Market";
 import Orders from '../../pages/Orders';
+import UserProvider from '../../contexts/UserProvider';
+import Positions from '../../pages/Positions';
+import ChartActionsProvider from '../../contexts/ChartActionsProvider';
 
 const drawerWidth = 240;
 const contentWidthOpen = window.innerWidth - drawerWidth;
@@ -97,9 +101,13 @@ const useStyles = makeStyles((theme) => ({
 	},
 }));
 
-export default function DrawerPanel({url, userData, stockQuote, barChartData, symbol, chartText, onTextChanged, onUnitClicked, setIsPreMarket, setSymbol}) {
+export default function DrawerPanel() {
 	const classes = useStyles();
 	const theme = useTheme();
+	const { userId } =  useContext(UserProvider.context);
+	const { 
+		url, stockQuote
+	} = useContext(ChartActionsProvider.context);
 	const [open, setOpen] = React.useState(false);  
 	const [anchorEl, setAnchorEl] = React.useState(null);
 	const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
@@ -160,7 +168,7 @@ export default function DrawerPanel({url, userData, stockQuote, barChartData, sy
 			onClose={handleMobileMenuClose}
 		>
 			{   
-				!_.isEmpty(userData) ?
+				!_.isNull(userId) ?
 					<div>
 						<MenuItem onClick={handleProfileMenuOpen}>
 							<IconButton
@@ -228,7 +236,7 @@ export default function DrawerPanel({url, userData, stockQuote, barChartData, sy
 					<div className={classes.grow} />
 					<div className={classes.sectionDesktop}>
 						{   
-							!_.isEmpty(userData) ?
+							!_.isNull(userId) ?
 								<div>
 									<IconButton
 										edge="end"
@@ -296,52 +304,47 @@ export default function DrawerPanel({url, userData, stockQuote, barChartData, sy
 				</div>
 				<Divider />
 				<List>
-					<ListItem button key={"Market"} onClick={()=> setComponent("Market")}>
-					<ListItemIcon><TrendingUpIcon /></ListItemIcon>
-					<ListItemText primary={"Chart"} />
+					<ListItem button key={"Chart"} onClick={()=> setComponent("Chart")}>
+						<ListItemIcon><TrendingUpIcon /></ListItemIcon>
+						<ListItemText primary={"Chart"} />
 					</ListItem>
-					<ListItem button key={"ChartData"} onClick={()=> setComponent("ChartData")}>
-					<ListItemIcon><ReceiptIcon /></ListItemIcon>
-					<ListItemText primary={"ChartData"} />
+					<ListItem button key={"Orders"} onClick={()=> setComponent("Orders")}>
+						<ListItemIcon><ReceiptIcon /></ListItemIcon>
+						<ListItemText primary={"Orders"} />
+					</ListItem>
+					<ListItem button key={"Positions"} onClick={()=> setComponent("Positions")}>
+						<ListItemIcon><ListAltIcon /></ListItemIcon>
+						<ListItemText primary={"Positions"} />
 					</ListItem>
 					<ListItem button key={"Quote"} onClick={()=> setComponent("Quote")}>
-					<ListItemIcon><CodeIcon /></ListItemIcon>
-					<ListItemText primary={"Primary Quote"} />
+						<ListItemIcon><CodeIcon /></ListItemIcon>
+						<ListItemText primary={"Primary Quote"} />
 					</ListItem>
 					<ListItem button key={"Profile"} onClick={()=> setComponent("Profile")}>
-					<ListItemIcon><AccountCircleIcon /></ListItemIcon>
-					<ListItemText primary={"Profile"} />
+						<ListItemIcon><AccountCircleIcon /></ListItemIcon>
+						<ListItemText primary={"Profile"} />
 					</ListItem>
 				</List>
 			</Drawer>
 			<main className={classes.content}>
 				<div className={open ? classes.containerOpen : classes.containerClose}>
 					{
-						component === 'ChartData' ?
-							<Orders
-								userData={userData}
-							/>
+						component === 'Orders' ?
+							<Orders />
 						:
 						component === 'Profile' ?
-							<Profile userData={userData}/>
+							<Profile />
+						:
+						component === 'Positions' ?
+							<Positions />
 						:
 						component === 'Quote' ?
 							<Terminal 
 								title={url}
-								userData={stockQuote} 
+								jsonData={stockQuote} 
 							/>
 						:
-							<Market 
-								url={url}
-								barChartData={barChartData} 
-								symbol={symbol}
-								setSymbol={setSymbol}
-								chartText={chartText}
-								userData={userData}
-								onUnitClicked={onUnitClicked}
-								setIsPreMarket={setIsPreMarket}
-								onTextChanged={onTextChanged}
-							/>
+							<Market />
 					}
 				</div>
 			</main>

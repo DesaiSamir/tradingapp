@@ -1,7 +1,7 @@
 var patterns = require('./patterns');
 const alpha = require('alphavantage')({ key: '' });
 
-var barChartTimer, quoteTimer;
+var barChartTimer, watchlistTimer, quoteTimer, ordersInterval, positionsInterval, balancesInterval;
 module.exports = {
     clearBarChartInterval: function () {
         clearInterval(barChartTimer);
@@ -34,15 +34,16 @@ module.exports = {
             cb(profileData);
         }
     },
-    getQuoteData: async function (payload, cb) {
-        const quoteData = await this.send('POST', 'api/marketdata', payload);
+    getQuoteData: async function (symbol, cb) {
+        const quoteData = await this.get(`api/watchlist/${symbol}`, cb);
         if(quoteData){
             console.log({quoteData});
             cb(quoteData);
         }
     },
     getQuoteDataRecursive: function (payload, cb) {
-        this.clearQuoteInterval();
+        
+        clearInterval(quoteTimer);
         
         quoteTimer = setInterval(async () => {
 
@@ -66,12 +67,14 @@ module.exports = {
                     response: responseData,
                 };
             } 
-            console.log({responseData});
+            console.log({barChartData: responseData});
             cb(responseData);
         }
+        this.getBarChartDataRecursive(payload, cb);
     },
     getBarChartDataRecursive: function (payload, cb) {
-        this.clearBarChartInterval();
+        
+        clearInterval(barChartTimer);
         
         barChartTimer = setInterval(async () => {
             if(this.isRegularSessionTime() || payload.url.indexOf(`USEQPreAndPost`) > 0){
@@ -100,9 +103,10 @@ module.exports = {
         }
     },
     getWatchlistRecursive: function(cb){
-        this.clearQuoteInterval();
         
-        quoteTimer = setInterval(async () => {
+        clearInterval(watchlistTimer);
+        
+        watchlistTimer = setInterval(async () => {
             if(this.isRegularSessionTime()){
                 const watchlistData = await this.get("api/watchlist", cb);
                 
@@ -130,29 +134,85 @@ module.exports = {
             cb(purchaseOrder);
         }
     },
+    getAccounts: async function(userid, cb){
+        
+        const accounts = await this.get(`api/accounts/${userid}`);
+
+        if(accounts){
+            cb(accounts);
+        }
+    },
     getAccountOrders: async function(key, cb){
         
-        const orders = await this.get(`api/order/${key}`);
+        const orders = await this.get(`api/orders/${key}`);
 
         if(orders){
             cb(orders);
         }
-    },
-    getAccountPositions: async function(payload, cb){
+        this.getAccountOrdersRecursive(key, cb);
         
-        const positions = await this.send('POST', 'api/marketdata', payload);
+    },
+    getAccountOrdersRecursive: function(key, cb){
+
+        clearInterval(ordersInterval);
+
+        ordersInterval = setInterval(async () => {
+            if(this.isRegularSessionTime()){
+                const orders = await this.get(`api/orders/${key}`);
+
+                if(orders){
+                    cb(orders);
+                }
+            }
+        }, this.getRefreshInterval());
+    },
+    getAccountPositions: async function(key, cb){
+
+        const positions = await this.get(`api/accounts/positions/${key}`);
 
         if(positions){
             cb(positions);
         }
+
+        this.getAccountPositionsRecursive(key, cb);
     },
-    getAccountBalances: async function(payload, cb){
+    getAccountPositionsRecursive: function(key, cb){
         
-        const balances = await this.send('POST', 'api/marketdata', payload);
+        clearInterval(positionsInterval);
+
+        positionsInterval = setInterval(async () => {
+            if(this.isRegularSessionTime()){
+                const positions = await this.get(`api/accounts/positions/${key}`);
+
+                if(positions){
+                    cb(positions);
+                }
+            }
+        }, this.getRefreshInterval());
+    },
+    getAccountBalances: async function(key, cb){
+
+        const balances = await this.get(`api/accounts/balances/${key}`);
 
         if(balances){
             cb(balances);
         }
+
+        this.getAccountBalancesRecursive(key, cb);
+    },
+    getAccountBalancesRecursive: async function(key, cb){
+
+        clearInterval(balancesInterval);
+
+        balancesInterval = setInterval(async () => {
+            if(this.isRegularSessionTime()){
+                const balances = await this.get(`api/accounts/balances/${key}`);
+
+                if(balances){
+                    cb(balances);
+                }
+            }
+        }, this.getRefreshInterval());
     },
     send: async function (method, url, payload = null) {
         // console.log({method, url, payload});
@@ -213,8 +273,13 @@ module.exports = {
             .then(res => {
                 return res
             })
-            .catch(err => console.log({err})
-        );
+            .catch(err => {
+                if(url.indexOf('profile') > 0){
+                    console.log('Login expired!')
+                } else {
+                    console.log({err})
+                }
+            });
 
         if(res){
             return res;

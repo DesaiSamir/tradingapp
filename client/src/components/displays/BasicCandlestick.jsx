@@ -16,7 +16,7 @@ var stockChartHeight = 40;
 
 const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio, width, chartText, ...rest }) => {
     const margin = { left: 50, right: 50, top: 0, bottom: 24 };
-    
+
     if(document.getElementById('timeframes').clientHeight)
         stockChartHeight = document.getElementById('timeframes').clientHeight;
     

@@ -1,3 +1,4 @@
+import { useContext } from 'react';
 import { makeStyles, fade } from '@material-ui/core/styles';
 import { 
     IconButton, InputBase
@@ -6,9 +7,13 @@ import SearchIcon from '@material-ui/icons/Search';
 import StopDataIcon from '@material-ui/icons/StopScreenShare';
 import PreMarketIcon from '@material-ui/icons/WatchLater';
 import http from "../../utils/http";
+import ChartActionsProvider from '../../contexts/ChartActionsProvider';
 
-const TimeFrames = ({onUnitClicked, setIsPreMarket, onTextChanged}) => {
+const TimeFrames = () => {
     const classes = useStyles();
+	const { 
+		onUnitClicked, setIsPreMarket, onTextChanged,
+	} = useContext(ChartActionsProvider.context);
     
 	const unitIntervalList = [
 		{

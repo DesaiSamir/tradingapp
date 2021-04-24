@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import _ from "lodash";
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
@@ -11,6 +11,8 @@ import WatchlistGrid from '../cards/WatchlistGrid';
 import TerminalDialog from '../formcontrols/TerminalDialog';
 import http from '../../utils/http';
 import helper from '../../utils/helper';
+import UserProvider from "../../contexts/UserProvider";
+import ChartActionsProvider from "../../contexts/ChartActionsProvider";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -57,28 +59,24 @@ function LinkTab(props) {
   );
 }
 
-export default function PatternsPanel({userData, barChartData, symbol, setSymbol, chartText}) {
+export default function PatternsPanel() {
 	const classes = useStyles();
+	const { 
+		barChartData, chartText, setSymbol, symbol
+	} = useContext(ChartActionsProvider.context);
     const [orderResponseData, setOrderResponseData] = useState({});
 	const [showResponse, setShowResponse] = useState(false);
+	const { equitiesAccountKey } = useContext(UserProvider.context);
     const [currentWatchlist, setCurrentWatchlist] = useState([]);
-    const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
     var patternCandles = helper.getPatternCandleList(_.clone(barChartData), symbol);
     
     useEffect(() => {
         
-        if(isUserLoggedIn){
-            http.getWatchlistRecursive(setCurrentWatchlist);
+        if(equitiesAccountKey){
+            http.getWatchlist(setCurrentWatchlist);
         }
-    }, [isUserLoggedIn]);
+    }, [equitiesAccountKey]);
 
-    if(userData && !isUserLoggedIn){
-        setIsUserLoggedIn(true);
-    }
-
-    if(currentWatchlist.length === 0 && isUserLoggedIn){
-        http.getWatchlist(setCurrentWatchlist);
-    }
 	const [value, setValue] = React.useState(0);
 	const handleChange = (event, newValue) => {
 		setValue(newValue);
@@ -88,7 +86,7 @@ export default function PatternsPanel({userData, barChartData, symbol, setSymbol
 		if (e.type === 'keydown' && e.key !== 'Enter') return;
 		e.preventDefault();
 		var stockSymbol = document.getElementById('addStockSymbol');
-		http.clearQuoteInterval();
+		
 		const payload = { 
 			Symbol: stockSymbol.value,
 		};
@@ -101,21 +99,21 @@ export default function PatternsPanel({userData, barChartData, symbol, setSymbol
 				Symbol: addedSymbol.symbol
 			};
 			setCurrentWatchlist([...currentWatchlist,  newSymbol]);
+			http.getWatchlist(setCurrentWatchlist);
 		}
 		setOpen(false);
 	}
 	
 	const handleDeleteWatchlist = async (e, stock) => {
 		e.preventDefault();
-		// console.log(stock.Symbol)
+		
+		setCurrentWatchlist(currentWatchlist.filter(list => list.Symbol !== stock.Symbol));
+		
 		const payload = { 
 			Symbol: stock.Symbol,
 		};
-		const deleteSymbol = await http.send('DELETE',`api/watchlist/${stock.Symbol}`, payload);
-	
-		if(deleteSymbol){
-			http.getWatchlist(setCurrentWatchlist);
-		}
+
+		http.send('DELETE',`api/watchlist/${stock.Symbol}`, payload);
 	}
 	
 	const onListItemClick = (e, data) => {
@@ -124,7 +122,7 @@ export default function PatternsPanel({userData, barChartData, symbol, setSymbol
 		symbolText.value = data.Symbol;
 		setSymbol(data.Symbol);
 	}
-	// console.log({url, userData, barChartData, minuteIndex: url.indexOf('Minute')})
+	
 	return (
         <div className={classes.root}>
             <AppBar position="static">
@@ -150,7 +148,6 @@ export default function PatternsPanel({userData, barChartData, symbol, setSymbol
 							patternCandles={patternCandles}
 							setOrderResponseData={setOrderResponseData}
 							setShowResponse={setShowResponse}
-							userData={userData}
 						/>
 						{showResponse ?
 							<TerminalDialog 

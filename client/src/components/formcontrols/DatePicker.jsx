@@ -15,12 +15,11 @@ const useStyles = makeStyles((theme) => ({
 	},
 }));
 
-export default function DatePickers({title, name, onDateChange, parentStyles}) {
+export default function DatePickers({title, name, onDateChange}) {
   	const classes = useStyles();
-	const parentClasses = parentStyles ? parentStyles() : classes;
 
   return (
-		<form className={`${classes.container} ${parentClasses.selectDivChild}`} noValidate>
+		<form className={`${classes.container}`} noValidate>
 			
 			<TextField
 				id = {name}

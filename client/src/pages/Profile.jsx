@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState ,useContext } from "react";
 import { makeStyles } from '@material-ui/core/styles';
 import Terminal from "../components/displays/Terminal";
 import { Button, Paper, Grid } from "@material-ui/core";
+import UserProvider from "../contexts/UserProvider";
 const http = require("../utils/http");
 
 
@@ -26,10 +27,11 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const Profile = ({userData}) => {
+const Profile = () => {
     const classes = useStyles();
     const [orderResponseData, setOrderResponseData] = useState({});
-
+    const { equitiesAccountKey, userProfile } = useContext(UserProvider.context);
+   
     const handleClickUpdate= (e) => {
         e.preventDefault();
         const payload = {
@@ -55,8 +57,7 @@ const Profile = ({userData}) => {
     
     const handleClickGetOrders= (e) => {
         e.preventDefault();
-        const account = userData.user_data.filter(item => item.Type === 'M')[0];
-        const url = `/v2/accounts/${account.Key}/orders`;
+        const url = `/v2/accounts/${equitiesAccountKey}/orders`;
         const payload = {
             method: 'GET',
             url: url 
@@ -66,8 +67,7 @@ const Profile = ({userData}) => {
     
     const handleClickGetPositions= (e) => {
         e.preventDefault();
-        const account = userData.user_data.filter(item => item.Type === 'M')[0];
-        const url = `/v2/accounts/${account.Key}/positions`;
+        const url = `/v2/accounts/${equitiesAccountKey}/positions`;
         const payload = {
             method: 'GET',
             url: url 
@@ -77,8 +77,7 @@ const Profile = ({userData}) => {
     
     const handleClickGetBalances= (e) => {
         e.preventDefault();
-        const account = userData.user_data.filter(item => item.Type === 'M')[0];
-        const url = `/v2/accounts/${account.Key}/balances`;
+        const url = `/v2/accounts/${equitiesAccountKey}/balances`;
         const payload = {
             method: 'GET',
             url: url 
@@ -100,13 +99,13 @@ const Profile = ({userData}) => {
             <Grid container>
                 <Grid item xs={6}> 
                     <Terminal
-                        userData={userData}
+                        jsonData={userProfile}
                         title="Profile Data"
                     />
                 </Grid>
                 <Grid item xs={6}> 
                     <Terminal
-                        userData={orderResponseData}
+                        jsonData={orderResponseData}
                         title="Profile Data"
                     />
                 </Grid>

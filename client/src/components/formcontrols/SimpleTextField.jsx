@@ -14,12 +14,11 @@ const useStyles = makeStyles((theme) => ({
 	}
 }));
 
-export default function SimpleTextFields({id, label, name, onChange, defaultValue, parentStyles, type}) {
+export default function SimpleTextFields({id, label, name, onChange, defaultValue, type}) {
   	const classes = useStyles();
-	const parentClasses = parentStyles ? parentStyles() : classes;
 	
 	return (
-		<form className={`${classes.root} ${parentClasses.selectDivChild}`} noValidate autoComplete="off">
+		<form className={classes.root} noValidate autoComplete="off">
 			<TextField 
 				id = {id} 
 				label = {label} 

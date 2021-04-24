@@ -77,14 +77,6 @@ module.exports = {
         // db.updateProviderUserInfo(sessionData);
         res.send(sessionData);
     },
-    
-    getUserAccountInfo: function(req, res){
-        const user_data = this.get(req, res,`/v2/users/${ts.session_data.userid}/accounts`);
-        if(user_data){
-            return user_data
-        }
-        return null;
-    },
 
     get: async function(req, res, url) {
         return await this.send(req, res, 'GET', url);

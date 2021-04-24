@@ -15,15 +15,14 @@ const useStyles = makeStyles((theme) => ({
 	},
 }));
 
-export default function SimpleSelect({menuItems, name, onSelectChange, title, parentStyles, defaultValue}) {
+export default function SimpleSelect({menuItems, name, onSelectChange, title, defaultValue}) {
 	const classes = useStyles();
-	const parentClasses = parentStyles ? parentStyles() : classes;
 	const [api, setApi] = React.useState(defaultValue);
 	const handleClick = (id) => {
 		setApi(id);
 	}
 	return (
-		<div className={parentClasses.selectDivChild}>
+		<div >
 			<FormControl className={classes.formControl}>
 				<InputLabel id="simple-select-label">{title}</InputLabel>
 				<Select
