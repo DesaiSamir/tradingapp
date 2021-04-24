@@ -8,7 +8,7 @@ import {
 import OrderDialog from '../formcontrols/OrderDialog';
 import FormDialog from '../formcontrols/FormDialog';
 import WatchlistGrid from '../cards/WatchlistGrid';
-import TerminalDialog from '../displays/TerminalDialog';
+import TerminalDialog from '../formcontrols/TerminalDialog';
 import http from '../../utils/http';
 import helper from '../../utils/helper';
 

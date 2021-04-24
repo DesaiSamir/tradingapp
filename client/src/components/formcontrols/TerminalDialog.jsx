@@ -3,12 +3,11 @@ import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import Terminal from './Terminal';
+import Terminal from '../displays/Terminal';
+import { Paper } from '@material-ui/core';
 
 export default function AlertDialog({jsonData, showResponse, setShowResponse}) {
 	const [open, setOpen] = React.useState(false);
-	console.log({jsonData, showResponse});
 	const handleClickOpen = () => {
 		setOpen(true);
 	};
@@ -36,12 +35,12 @@ export default function AlertDialog({jsonData, showResponse, setShowResponse}) {
 			fullWidth={true}
 		>
 			<DialogContent>
-				<DialogContentText id="alert-dialog-description">
+				<Paper id="alert-dialog-description">
 					<Terminal
 						title="Order Response"
 						userData={jsonData} 
 					/>
-				</DialogContentText>
+				</Paper>
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={handleClose} color="primary" autoFocus>

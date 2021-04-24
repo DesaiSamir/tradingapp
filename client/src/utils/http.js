@@ -21,7 +21,7 @@ module.exports = {
         const sessionEndTime = new Date(new Date().toLocaleDateString() + " 4:00:00 PM");
         const currentTime = new Date();
         
-        if (currentTime > sessionStartTime && currentTime < sessionEndTime) {
+        if (currentTime > sessionStartTime && currentTime < sessionEndTime && currentTime.getDay() > 0 && currentTime.getDay() < 6) {
             return true;
         }
 
@@ -45,14 +45,12 @@ module.exports = {
         this.clearQuoteInterval();
         
         quoteTimer = setInterval(async () => {
-            const quoteData = await this.send('POST', 'api/marketdata', payload);
-            if(quoteData){
-                cb(quoteData);
-            }
-            
-            if(!this.isRegularSessionTime()){
-                console.log(payload, !this.isRegularSessionTime());
-                this.clearQuoteInterval();
+
+            if(this.isRegularSessionTime()){
+                const quoteData = await this.send('POST', 'api/marketdata', payload);
+                if(quoteData){
+                    cb(quoteData);
+                }
             }
         }, this.getRefreshInterval());
     },
@@ -76,22 +74,20 @@ module.exports = {
         this.clearBarChartInterval();
         
         barChartTimer = setInterval(async () => {
-            const barData = await this.send('POST', 'api/marketdata', payload);
-            if(barData){
-                var responseData = barData;
-                if(responseData.length > 0){
-                    responseData = patterns.detectPattern(this.formatTSData(responseData));
-                } else {
-                    responseData = {
-                        status: "Error fetching data.", 
-                        response: responseData,
-                    };
-                } 
-                cb(responseData);
-            }
-
-            if(!this.isRegularSessionTime() && payload.url.indexOf(`USEQPreAndPost`) < 0){
-                this.clearBarChartInterval();
+            if(this.isRegularSessionTime() || payload.url.indexOf(`USEQPreAndPost`) > 0){
+                const barData = await this.send('POST', 'api/marketdata', payload);            
+                if(barData){
+                    var responseData = barData;
+                    if(responseData.length > 0){
+                        responseData = patterns.detectPattern(this.formatTSData(responseData));
+                    } else {
+                        responseData = {
+                            status: "Error fetching data.", 
+                            response: responseData,
+                        };
+                    } 
+                    cb(responseData);
+                }
             }
         }, this.getRefreshInterval());
     },
@@ -107,14 +103,12 @@ module.exports = {
         this.clearQuoteInterval();
         
         quoteTimer = setInterval(async () => {
-            const watchlistData = await this.get("api/watchlist", cb);
-            
-            if(watchlistData){
-                cb(watchlistData);
-            }
-
-            if(!this.isRegularSessionTime()){
-                this.clearQuoteInterval();
+            if(this.isRegularSessionTime()){
+                const watchlistData = await this.get("api/watchlist", cb);
+                
+                if(watchlistData){
+                    cb(watchlistData);
+                }
             }
         }, this.getRefreshInterval());
     },
@@ -136,9 +130,9 @@ module.exports = {
             cb(purchaseOrder);
         }
     },
-    getAccountOrders: async function(payload, cb){
+    getAccountOrders: async function(key, cb){
         
-        const orders = await this.send('POST', 'api/marketdata', payload);
+        const orders = await this.get(`api/order/${key}`);
 
         if(orders){
             cb(orders);

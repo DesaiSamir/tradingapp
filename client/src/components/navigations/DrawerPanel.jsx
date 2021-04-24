@@ -19,6 +19,7 @@ import ReceiptIcon from '@material-ui/icons/Receipt';
 import Terminal from "../displays/Terminal";
 import Profile from "../../pages/Profile";
 import Market from "../../pages/Market";
+import Orders from '../../pages/Orders';
 
 const drawerWidth = 240;
 const contentWidthOpen = window.innerWidth - drawerWidth;
@@ -317,9 +318,8 @@ export default function DrawerPanel({url, userData, stockQuote, barChartData, sy
 				<div className={open ? classes.containerOpen : classes.containerClose}>
 					{
 						component === 'ChartData' ?
-							<Terminal 
-								title={url}
-								userData={null} 
+							<Orders
+								userData={userData}
 							/>
 						:
 						component === 'Profile' ?

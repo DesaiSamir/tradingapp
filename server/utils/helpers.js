@@ -198,13 +198,18 @@ module.exports = {
                         
                                 thisRes.on('end', () => {
                                     // console.log(data)
-                                    const lines = data.split(/\r?\n/);
-                                    var retRes = [];
-                                    lines.forEach((line) => {
-                                        if(line.length > 0 && line !== "END")
-                                            retRes.push(JSON.parse(line));
-                                    });
-                                    resolve(retRes);
+                                    try {
+                                        const lines = data.split(/\r?\n/);
+                                        var retRes = [];
+                                        lines.forEach((line) => {
+                                            if(line.length > 0 && line !== "END")
+                                                retRes.push(JSON.parse(line));
+                                        });
+                                        resolve(retRes);
+                                    } catch (error) {
+                                        console.log({error})
+                                    }
+                                    
                                 });
                             }
                         });
@@ -333,6 +338,19 @@ module.exports = {
             
             return res;
         }
+    },
+
+    getDate: function(date = new Date()) {
+        var retDate = new Date(date); // M-D-YYYY
+
+        var d = retDate.getDate();
+        var m = retDate.getMonth() + 1;
+        var y = retDate.getFullYear();
+
+        var dateString = (m <= 9 ? '0' + m : m) + '-' + (d <= 9 ? '0' + d : d) + '-' + y;
+
+        return dateString;
+
     }
 
 }

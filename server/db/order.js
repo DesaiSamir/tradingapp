@@ -71,6 +71,17 @@ Order.getOrderByProviderOrderId = async function (provider_order_id) {
     return null;
 };
 
+Order.getOrderByProviderListOfOrderIds = async function (provider_order_id) {
+    const query = `Select * from orders where provider_order_id IN (${provider_order_id})`;
+    
+    const result = await db.getData(query);
+
+    if(result){
+        return result;
+    }
+    return null;
+};
+
 Order.saveOrder = async function (payload){
     var newOrderPayload = new Order({
         account_id: payload.AccountKey,
@@ -115,32 +126,38 @@ Order.getOrderResponseData = function(orders, orderStr){
 Order.createStopOrder = async function (payload) {
     const orders = payload.response;
     var order = orders[0];
-    if(payload.OSOs.length > 0 && orders.length > 1){
-        var osoPayload = payload.OSOs[0].Orders[0];
-        var orderStr = `${osoPayload.TradeAction} ${osoPayload.Quantity} ${osoPayload.Symbol}`.toLocaleUpperCase();
+    try {
         
-        order = this.getOrderResponseData(orders, orderStr);
-
-        osoPayload.provider_order_id = order.OrderID;
-        osoPayload.order_status = order.OrderStatus;
-        osoPayload.message = order.Message;
-        const newOrder = await this.saveOrder(osoPayload);
-
-        if(newOrder){
-            orderStr = `${payload.TradeAction} ${payload.Quantity} ${payload.Symbol}`.toLocaleUpperCase();
+        if(payload.OSOs.length > 0 && orders.length > 1){
+            var osoPayload = payload.OSOs[0].Orders[0];
+            var orderStr = `${osoPayload.TradeAction} ${osoPayload.Quantity} ${osoPayload.Symbol}`.toLocaleUpperCase();
+            
             order = this.getOrderResponseData(orders, orderStr);
+
+            osoPayload.provider_order_id = order.OrderID;
+            osoPayload.order_status = order.OrderStatus;
+            osoPayload.message = order.Message;
+            const newOrder = await this.saveOrder(osoPayload);
+
+            if(newOrder){
+                orderStr = `${payload.TradeAction} ${payload.Quantity} ${payload.Symbol}`.toLocaleUpperCase();
+                order = this.getOrderResponseData(orders, orderStr);
+                payload.provider_order_id = order.OrderID;
+                payload.order_status = order.OrderStatus;
+                payload.message = order.Message;
+                payload.oso_app_order_id = newOrder.insertId;
+                this.saveOrder(payload);
+            }
+
+        } else {
             payload.provider_order_id = order.OrderID;
             payload.order_status = order.OrderStatus;
             payload.message = order.Message;
-            payload.oso_app_order_id = newOrder.insertId;
             this.saveOrder(payload);
         }
-
-    } else {
-        payload.provider_order_id = order.OrderID;
-        payload.order_status = order.OrderStatus;
-        payload.message = order.Message;
-        this.saveOrder(payload);
+        
+    } catch (error) {
+        console.log(error);
     }
 };
 

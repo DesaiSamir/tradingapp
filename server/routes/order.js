@@ -3,8 +3,20 @@ var router = express.Router();
 const helper = require('../utils/helpers');
 const order = require('../db/order');
 
-router.get('/', async function  (req, res, next)  {
+router.get('/:key', async function  (req, res, next)  {
     
+    const url = `/v2/accounts/${req.params.key}/orders?since=${helper.getDate()}`;
+    const accountOrders = await helper.send(req, res, 'GET', url);
+
+    if(accountOrders){
+        const orderIds =  Array.prototype.map.call(accountOrders, o => o.OrderID).toString();
+        const dbOrders = await order.getOrderByProviderListOfOrderIds(orderIds);
+        if(dbOrders){
+            const dbOrderIds = Array.prototype.map.call(dbOrders, o => o.provider_order_id);
+            const retOrders = accountOrders.filter(order => dbOrderIds.includes(order.OrderID.toString()));
+            res.send({retOrders, dbOrders});
+        }
+    }
 })
 
 router.post('/', async function  (req, res, next)  {
