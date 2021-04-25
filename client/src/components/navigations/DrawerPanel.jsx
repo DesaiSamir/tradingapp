@@ -21,7 +21,7 @@ import Terminal from "../displays/Terminal";
 import Profile from "../../pages/Profile";
 import Market from "../../pages/Market";
 import Orders from '../../pages/Orders';
-import { UserContexxt } from '../../contexts/UserProvider';
+import { UserContext } from '../../contexts/UserProvider';
 import Positions from '../../pages/Positions';
 import { ChartActionsContext } from '../../contexts/ChartActionsProvider';
 
@@ -99,15 +99,25 @@ const useStyles = makeStyles((theme) => ({
 	grow: {
 		flexGrow: 1,
 	},
+	buttonText: {
+		...theme.typography.button,
+		padding: theme.spacing(1),
+	},
+	loggedIn:{
+		display: 'flex',
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	spacer: {
+		padding: theme.spacing(1),
+	}
 }));
 
 export default function DrawerPanel() {
 	const classes = useStyles();
 	const theme = useTheme();
-	const { userId } =  useContext(UserContexxt);
-	const { 
-		url, stockQuote
-	} = useContext(ChartActionsContext);
+	const { userId } =  useContext(UserContext);
+	const { stockQuote } = useContext(ChartActionsContext);
 	const [open, setOpen] = React.useState(false);  
 	const [anchorEl, setAnchorEl] = React.useState(null);
 	const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
@@ -170,6 +180,9 @@ export default function DrawerPanel() {
 			{   
 				!_.isNull(userId) ?
 					<div>
+						<Typography className={classes.buttonText}>
+							Welcome, {userId}!
+						</Typography>
 						<MenuItem onClick={handleProfileMenuOpen}>
 							<IconButton
 								aria-label="account of current user"
@@ -231,13 +244,17 @@ export default function DrawerPanel() {
 						<MenuIcon />
 					</IconButton>
 					<Typography variant="h6" noWrap>
-						Trading-bot
+						Pattern Trading Bot
 					</Typography>
 					<div className={classes.grow} />
 					<div className={classes.sectionDesktop}>
 						{   
 							!_.isNull(userId) ?
-								<div>
+								<div className={classes.loggedIn}>
+									<Typography  variant="h6" noWrap className={classes.buttonText}>
+										Welcome, {userId}!
+									</Typography>
+									<div className={classes.spacer} />
 									<IconButton
 										edge="end"
 										aria-label="account of current user"
@@ -249,6 +266,7 @@ export default function DrawerPanel() {
 									>
 										<AccountCircleIcon />
 									</IconButton>
+									<div className={classes.spacer} />
 									<IconButton
 										aria-label="logout of current user"
 										href={"api/logout"}
@@ -340,7 +358,7 @@ export default function DrawerPanel() {
 						:
 						component === 'Quote' ?
 							<Terminal 
-								title={url}
+								title='Quote Data'
 								jsonData={stockQuote} 
 							/>
 						:

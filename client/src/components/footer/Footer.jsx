@@ -27,11 +27,13 @@ export default Footer;
 
 const useStyles = makeStyles((theme) => ({
 	footer: {
-        backgroundColor: '#3f51b5',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: theme.palette.primary.main,
         bottom:0,
         position: 'fixed',
-        textAlign: 'center',
-        color: 'white',
+        color: theme.palette.common.white,
         width: '100%',
         padding: '10px',
         zIndex: 2000,

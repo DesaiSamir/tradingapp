@@ -1,11 +1,11 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import helper from "../utils/helper";
 import http from "../utils/http";
-import { UserContexxt } from "./UserProvider";
+import { UserContext } from "./UserProvider";
 export const ChartActionsContext = createContext();
 
 const ChartActionsProvider = ({ children }) => {
-    const { userId } = useContext(UserContexxt);
+    const { userId } = useContext(UserContext);
     const [stockQuote, setStockQuote] = useState([]);
     const [barChartData, setBarChartData] = useState([]);
     const [symbol, setSymbol] = useState('SPY');

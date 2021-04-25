@@ -38,8 +38,8 @@ Order.createOrder = async function (newOrder) {
 
 Order.updateOrderStatus = async function (existingOrder) {
     const qp = existingOrder;
-    const limit_price = qp.limit_price ? `'${qp.limit_price}'` : null;
-    const stop_price = qp.stop_price ? `'${qp.stop_price}'` : null;
+    const limit_price = qp.limit_price ? `'${qp.limit_price}'` : 'limit_price';
+    const stop_price = qp.stop_price ? `'${qp.stop_price}'` : 'stop_price';
 
     const query = `UPDATE orders
             SET order_Status='${qp.order_status}', limit_price=${limit_price}, stop_price=${stop_price}, updated = current_timestamp()
@@ -72,7 +72,7 @@ Order.getOrderByProviderOrderId = async function (provider_order_id) {
 };
 
 Order.getOrderByProviderListOfOrderIds = async function (provider_order_id) {
-    const query = `Select * from orders where provider_order_id IN (${provider_order_id})`;
+    const query = `Select * from orders where provider_order_id IN (${provider_order_id}) ORDER BY provider_order_id DESC`;
     
     const result = await db.getData(query);
 
@@ -113,9 +113,9 @@ Order.saveOrder = async function (payload){
 }
 
 Order.getOrderResponseData = function(orders, orderStr){
-    var order = orders[0];
+    var order = orders;
     orders.forEach(row => {
-        const message = row.Message.toLocaleUpperCase();
+        const message = `${row.Message}`.toLocaleUpperCase().replace(/ /g, '');
         if(message.indexOf(orderStr) > 0){
             order = row;
         }
@@ -130,7 +130,7 @@ Order.createStopOrder = async function (payload) {
         
         if(payload.OSOs.length > 0 && orders.length > 1){
             var osoPayload = payload.OSOs[0].Orders[0];
-            var orderStr = `${osoPayload.TradeAction} ${osoPayload.Quantity} ${osoPayload.Symbol}`.toLocaleUpperCase();
+            var orderStr = `${osoPayload.TradeAction}${osoPayload.Quantity}${osoPayload.Symbol}`.toLocaleUpperCase().replace(' ', '');
             
             order = this.getOrderResponseData(orders, orderStr);
 
@@ -140,7 +140,7 @@ Order.createStopOrder = async function (payload) {
             const newOrder = await this.saveOrder(osoPayload);
 
             if(newOrder){
-                orderStr = `${payload.TradeAction} ${payload.Quantity} ${payload.Symbol}`.toLocaleUpperCase();
+                orderStr = `${payload.TradeAction}${payload.Quantity}${payload.Symbol}`.toLocaleUpperCase().replace(' ', '');
                 order = this.getOrderResponseData(orders, orderStr);
                 payload.provider_order_id = order.OrderID;
                 payload.order_status = order.OrderStatus;
@@ -163,10 +163,12 @@ Order.createStopOrder = async function (payload) {
 
 Order.updateStopOrder = async function (payload) {
     const order = payload.response;
-    payload.provider_order_id = order.OrderID;
-    payload.order_status = order.OrderStatus;
-    payload.message = order.Message;
-    this.saveOrder(payload);
+    if(order.OrderStatus === 'Ok'){
+        payload.provider_order_id = order.OrderID;
+        payload.order_status = order.OrderStatus;
+        payload.message = order.Message;
+        this.saveOrder(payload);
+    }
 }
 
 module.exports= Order;

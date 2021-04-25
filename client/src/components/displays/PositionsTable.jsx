@@ -7,7 +7,7 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
-import UserProvider from '../../contexts/UserProvider';
+import { UserContext } from '../../contexts/UserProvider';
 
 const StyledTableCell = withStyles((theme) => ({
   head: {
@@ -42,7 +42,7 @@ const useStyles = makeStyles({
 
 export default function PositionsTable() {
     const classes = useStyles();
-    const { positions } = useContext(UserProvider.context);
+    const { positions } = useContext(UserContext);
     
     return (
         <TableContainer component={Paper} className={classes.container}>

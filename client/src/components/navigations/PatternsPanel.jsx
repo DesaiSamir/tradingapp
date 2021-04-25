@@ -11,7 +11,7 @@ import WatchlistGrid from '../cards/WatchlistGrid';
 import TerminalDialog from '../formcontrols/TerminalDialog';
 import http from '../../utils/http';
 import helper from '../../utils/helper';
-import { UserContexxt } from "../../contexts/UserProvider";
+import { UserContext } from "../../contexts/UserProvider";
 import { ChartActionsContext } from "../../contexts/ChartActionsProvider";
 
 function TabPanel(props) {
@@ -66,7 +66,7 @@ export default function PatternsPanel() {
 	} = useContext(ChartActionsContext);
     const [orderResponseData, setOrderResponseData] = useState({});
 	const [showResponse, setShowResponse] = useState(false);
-	const { equitiesAccountKey } = useContext(UserContexxt);
+	const { equitiesAccountKey } = useContext(UserContext);
     const [currentWatchlist, setCurrentWatchlist] = useState([]);
     var patternCandles = helper.getPatternCandleList(_.clone(barChartData), symbol);
     

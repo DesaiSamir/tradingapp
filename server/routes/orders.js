@@ -46,13 +46,12 @@ router.put('/', async function  (req, res, next)  {
     }
 })
 
-router.delete('/', async function  (req, res, next)  {
-    const order_id = req.body.order_id;
+router.delete('/:orderid', async function  (req, res, next)  {
+    const order_id = req.params.orderid;
     const url = `/v2/orders/${order_id}`;
     const orderData = await helper.send(req, res, 'DELETE', url);
 
     if(orderData){
-        order.updateStopOrder(orderData);
         res.send(orderData);
     }
 })

@@ -39,7 +39,7 @@ const useStyles = makeStyles((theme) => ({
         borderBottomLeftRadius: '6px',
         borderBottomRightRadius: '6px',
         overflowY: 'auto',
-        height: window.innerHeight - 245,
+        height: window.innerHeight - 165,
     },
     titleBar: {
         backgroundColor: 'rgb(109, 106, 106)',

@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { makeStyles } from '@material-ui/core/styles';
 import _ from "lodash";
 import DrawerPanel from '../components/navigations/DrawerPanel'
-import { UserContexxt } from "../contexts/UserProvider";
+import { UserContext } from "../contexts/UserProvider";
 import Login from "./Login";
 import ChartActionsProvider from "../contexts/ChartActionsProvider";
 
@@ -14,7 +14,7 @@ const useStyles = makeStyles((theme) => ({
 
 const Home = () => {
     const classes = useStyles();
-    const { userId } = useContext(UserContexxt);
+    const { userId } = useContext(UserContext);
 
     return (
         <div className={classes.root}>

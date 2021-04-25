@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
-export const UserContexxt = createContext(null);
+export const UserContext = createContext(null);
 const http = require("../utils/http");
 
 const UserProvider = ({ children }) => {
@@ -34,10 +34,22 @@ const UserProvider = ({ children }) => {
         http.getProfileData(userProfileData);
     }, []);
     
+    const reloadOrders = () => {
+        http.getAccountOrders(equitiesAccountKey, setOrders);
+    }
+
     return (
-        <UserContexxt.Provider value={{userProfile, userId, accounts, equitiesAccountKey, balances, positions, orders}}>
+        <UserContext.Provider value={{
+            userProfile, 
+            userId, 
+            accounts, 
+            equitiesAccountKey, 
+            balances, 
+            positions, 
+            orders, reloadOrders}}
+        >
             {children}
-        </UserContexxt.Provider>
+        </UserContext.Provider>
     );
 };
 

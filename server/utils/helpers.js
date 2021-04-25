@@ -309,7 +309,7 @@ module.exports = {
 
                 case 'DELETE':
                     payload = JSON.stringify(payload);
-                    console.log({method:'DELETE', url, payload});
+                    // console.log({method:'DELETE', url, payload});
                     res = await fetch(`${ts.base_url}${url}`, {
                         method: "DELETE",
                         headers: {

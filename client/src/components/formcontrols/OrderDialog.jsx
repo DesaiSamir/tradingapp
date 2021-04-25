@@ -15,7 +15,7 @@ import TrendingUpIcon from '@material-ui/icons/TrendingUp';
 import { green, red } from '@material-ui/core/colors';
 import greenCandle from '../../res/green.png';
 import redCandle from '../../res/red.png';
-import { UserContexxt } from '../../contexts/UserProvider';
+import { UserContext } from '../../contexts/UserProvider';
 
 function NumberFormatCustom(props) {
     const { inputRef, onChange, prefix, ...other } = props;
@@ -48,7 +48,7 @@ NumberFormatCustom.propTypes = {
 
 export default function OrderDialog({patternCandles, setOrderResponseData, setShowResponse}) {
 	const classes = useStyles();
-	const { equitiesAccountKey } = useContext(UserContexxt);
+	const { equitiesAccountKey, reloadOrders } = useContext(UserContext);
 	const [open, setOpen] = useState(false);
 	const [candleInAction, setCandleInAction] = useState({
 		date: new Date(),
@@ -190,6 +190,7 @@ export default function OrderDialog({patternCandles, setOrderResponseData, setSh
 
     const orderResponse = (data) => {
         setOrderResponseData(data);
+		reloadOrders();
 		setShowResponse(true);
     }
 	const lastClosePriceDiv = (

@@ -117,20 +117,21 @@ module.exports = {
         }, this.getRefreshInterval());
     },
     postPurchaseOrder: async function(payload, cb) {
-        const purchaseOrder = await this.send('POST','api/order', payload);
+        const purchaseOrder = await this.send('POST','api/orders', payload);
         if(purchaseOrder){
             cb({purchaseOrder, payload});
         }
     },
     updatePurchaseOrder: async function(payload, cb){
-        const purchaseOrder = await this.send('PUT','api/order', payload);
+        const purchaseOrder = await this.send('PUT','api/orders', payload);
         if(purchaseOrder){
             cb(purchaseOrder);
         }
     },
-    deletePurchaseOrder: async function(payload, cb){
-        const purchaseOrder = await this.send('DELETE','api/order', payload);
-        if(purchaseOrder){
+    deletePurchaseOrder: async function(orderid, cb = null){
+
+        const purchaseOrder = await this.send('DELETE', `api/orders/${orderid}`);
+        if(purchaseOrder && cb){
             cb(purchaseOrder);
         }
     },
@@ -224,7 +225,7 @@ module.exports = {
             body: payload && JSON.stringify(payload)
         };
         
-        // console.log(options)
+        // console.log({options, url})
 
         const data = await fetch(url, options)
             .then(res => res.json())
