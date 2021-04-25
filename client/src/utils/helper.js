@@ -2,7 +2,6 @@
 module.exports = {
     formatDate: function(date, format) {
         var newDate = new Date(date);
-        // console.log({date, newDate});
         var dd = newDate.getDate();
         var mm = newDate.getMonth()+1; 
         var yyyy = newDate.getFullYear();
@@ -35,7 +34,7 @@ module.exports = {
         var newDate = new Date(date.setDate(date.getDate() + 1));
         return this.formatDate(newDate);
     },
-    getPatternCandleList: function(chartData, symbol){
+    getPatternCandleList: function(chartData = [], symbol){
         var patternCandles = [];
         if(chartData.length > 0){
             chartData.reverse();
@@ -50,14 +49,18 @@ module.exports = {
             patternCandles.push(lastCandles);
 
             const lastBullishIndex = chartData.findIndex(candle=> candle.isBullishEngulfing);
-            lastBullCandles.push({...chartData[lastBullishIndex + 1], title: '', symbol});
-            lastBullCandles.push({...chartData[lastBullishIndex], title: 'Last Bullish Candle', symbol});
-            patternCandles.push(lastBullCandles);
+            if(lastBullishIndex > 0){
+                lastBullCandles.push({...chartData[lastBullishIndex + 1], title: '', symbol});
+                lastBullCandles.push({...chartData[lastBullishIndex], title: 'Last Bullish Candle', symbol});
+                patternCandles.push(lastBullCandles);
+            }
 
             const lastBearishIndex = chartData.findIndex(candle=> candle.isBearishEngulfing);
-            lastBearCandles.push({...chartData[lastBearishIndex + 1], title: '', symbol});
-            lastBearCandles.push({...chartData[lastBearishIndex], title: 'Last Bearish Candle', symbol});
-            patternCandles.push(lastBearCandles);
+            if(lastBearishIndex > 0){
+                lastBearCandles.push({...chartData[lastBearishIndex + 1], title: '', symbol});
+                lastBearCandles.push({...chartData[lastBearishIndex], title: 'Last Bearish Candle', symbol});
+                patternCandles.push(lastBearCandles);
+            }
         }
         return patternCandles;
     },

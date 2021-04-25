@@ -1,18 +1,18 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import helper from "../utils/helper";
 import http from "../utils/http";
-import UserProvider from "./UserProvider";
-const context = createContext(null);
+import { UserContexxt } from "./UserProvider";
+export const ChartActionsContext = createContext();
 
 const ChartActionsProvider = ({ children }) => {
-    const { userId } = useContext(UserProvider.context);
-    const [stockQuote, setStockQuote] = useState();
+    const { userId } = useContext(UserContexxt);
+    const [stockQuote, setStockQuote] = useState([]);
     const [barChartData, setBarChartData] = useState([]);
     const [symbol, setSymbol] = useState('SPY');
     const [unit, setUnit] = useState('Minute');
     const [interval, setInterval] = useState(15);
 	const [chartText, setChartText] = useState(`${symbol}, ${interval} ${unit}`);
-    const [url, setUrl] = useState();
+    const [url, setUrl] = useState('');
     const [isPreMarket, setIsPreMarket] = useState(false);
     
     useEffect(() => {
@@ -28,7 +28,7 @@ const ChartActionsProvider = ({ children }) => {
             method: 'STREAM',
             url: resolvedUrl 
         };
-        
+    
         if(userId){
             http.getQuoteData(symbol, setStockQuote);
             http.getBarChartData(payload, setBarChartData);
@@ -43,8 +43,14 @@ const ChartActionsProvider = ({ children }) => {
 
     var timer;
     const onTextChanged = (e, name) => {
+        var target = e.target.value;
+        
+        if(target === '')
+            target = 'SPY';
+
+
         if (e.key === 'Enter') {
-            setSymbol(e.target.value);
+            setSymbol(target);
             return;
         }
 
@@ -53,7 +59,7 @@ const ChartActionsProvider = ({ children }) => {
         timer = setTimeout(() => {
             switch (name) {
                 case 'symbol':
-                    setSymbol(e.target.value);
+                    setSymbol(target);
                     break;
                 default:
                     break;
@@ -62,12 +68,12 @@ const ChartActionsProvider = ({ children }) => {
     }
 
     return (
-        <context.Provider value={{
-            stockQuote, setStockQuote,
+        <ChartActionsContext.Provider value={{
+            stockQuote, 
             barChartData, 
             symbol, setSymbol,
-            unit, setUnit,
-            interval, setInterval,
+            unit, 
+            interval, 
             chartText, 
             url,
             isPreMarket, setIsPreMarket,
@@ -75,10 +81,8 @@ const ChartActionsProvider = ({ children }) => {
             onTextChanged,
         }}>
             {children}
-        </context.Provider>
+        </ChartActionsContext.Provider>
     );
 };
-
-ChartActionsProvider.context = context;
 
 export default ChartActionsProvider;

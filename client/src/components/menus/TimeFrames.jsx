@@ -7,13 +7,13 @@ import SearchIcon from '@material-ui/icons/Search';
 import StopDataIcon from '@material-ui/icons/StopScreenShare';
 import PreMarketIcon from '@material-ui/icons/WatchLater';
 import http from "../../utils/http";
-import ChartActionsProvider from '../../contexts/ChartActionsProvider';
+import { ChartActionsContext } from '../../contexts/ChartActionsProvider';
 
 const TimeFrames = () => {
     const classes = useStyles();
 	const { 
 		onUnitClicked, setIsPreMarket, onTextChanged,
-	} = useContext(ChartActionsProvider.context);
+	} = useContext(ChartActionsContext);
     
 	const unitIntervalList = [
 		{

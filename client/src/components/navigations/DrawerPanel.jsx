@@ -21,9 +21,9 @@ import Terminal from "../displays/Terminal";
 import Profile from "../../pages/Profile";
 import Market from "../../pages/Market";
 import Orders from '../../pages/Orders';
-import UserProvider from '../../contexts/UserProvider';
+import { UserContexxt } from '../../contexts/UserProvider';
 import Positions from '../../pages/Positions';
-import ChartActionsProvider from '../../contexts/ChartActionsProvider';
+import { ChartActionsContext } from '../../contexts/ChartActionsProvider';
 
 const drawerWidth = 240;
 const contentWidthOpen = window.innerWidth - drawerWidth;
@@ -104,10 +104,10 @@ const useStyles = makeStyles((theme) => ({
 export default function DrawerPanel() {
 	const classes = useStyles();
 	const theme = useTheme();
-	const { userId } =  useContext(UserProvider.context);
+	const { userId } =  useContext(UserContexxt);
 	const { 
 		url, stockQuote
-	} = useContext(ChartActionsProvider.context);
+	} = useContext(ChartActionsContext);
 	const [open, setOpen] = React.useState(false);  
 	const [anchorEl, setAnchorEl] = React.useState(null);
 	const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);

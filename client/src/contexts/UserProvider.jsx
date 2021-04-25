@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
-const context = createContext(null);
+export const UserContexxt = createContext(null);
 const http = require("../utils/http");
 
 const UserProvider = ({ children }) => {
@@ -35,12 +35,10 @@ const UserProvider = ({ children }) => {
     }, []);
     
     return (
-        <context.Provider value={{userProfile, userId, accounts, equitiesAccountKey, balances, positions, orders}}>
+        <UserContexxt.Provider value={{userProfile, userId, accounts, equitiesAccountKey, balances, positions, orders}}>
             {children}
-        </context.Provider>
+        </UserContexxt.Provider>
     );
 };
-
-UserProvider.context = context;
 
 export default UserProvider;

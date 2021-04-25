@@ -6,14 +6,14 @@ import {
     Grid, 
 } from "@material-ui/core";
 import PatternsPanel from "../components/navigations/PatternsPanel";
-import ChartActionsProvider from '../contexts/ChartActionsProvider';
+import { ChartActionsContext } from '../contexts/ChartActionsProvider';
 import loading from '../res/loading.gif';
 
 const Market = () => {
     const classes = useStyles();
 	const { 
 		url, barChartData, chartText
-	} = useContext(ChartActionsProvider.context);
+	} = useContext(ChartActionsContext);
 	const dateTimeFormat= url && url.indexOf('Minute') > 0 ? "%d %b %H:%M %p" : "%d %b";
 
     return (
