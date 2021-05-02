@@ -1,13 +1,12 @@
 import { useContext } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import {
-	Button, ButtonBase, Dialog, DialogActions, DialogTitle, Grid, Paper, TextField, Typography 
+	Button, ButtonBase, Dialog, DialogActions, DialogTitle, Grid, Paper, TextField, Typography,
+	RadioGroup, Radio, FormControlLabel, FormLabel, FormControl, Divider
 } from '@material-ui/core';
 import CandleGrid from '../cards/CandleGrid';
 import { OrderContext } from '../../contexts/OrderProvider';
 import TerminalDialog from '../formcontrols/TerminalDialog';
-import PropTypes from 'prop-types';
-import NumberFormat from 'react-number-format';
 import { green, red } from '@material-ui/core/colors';
 import TrendingDownIcon from '@material-ui/icons/TrendingDown';
 import TrendingUpIcon from '@material-ui/icons/TrendingUp';
@@ -18,9 +17,9 @@ export default function OrderDialog({patternCandles}) {
 	const classes = useStyles();
 	const { 
 		orderResponseData, showResponse, setShowResponse, 
-		open, orderSymbol, isBullish, stopLimitAction, stopLossAction, stopPrice, limitPrice,stopLossPrice, riskOffset, 
-		trailingStopPrice, quantity, orderConfirmId, stopPriceOffset, limitPriceOffset, stopLossPriceOffset, title, pattern,
-		highPrice, lowPrice, openPrice, closePrice, handleSendOrderClick, handleTextChange, handleClose,
+		orderOpen, orderSymbol, isBullish, stopLimitAction, stopLossAction, stopPrice, limitPrice,stopLossPrice, riskOffset, 
+		trailingStopPrice, quantity, orderConfirmId, title, pattern, highPrice, lowPrice, openPrice, closePrice, 
+		handleSendOrderClick, handleTextChange, handleClose, orderTypeValue, handleRadioChange, target1Price, target2Price, 
 	} = useContext(OrderContext);
 
 	const lastClosePriceDiv = (
@@ -45,6 +44,121 @@ export default function OrderDialog({patternCandles}) {
 		</>
 	); 
 
+	const trailingStopOrder = (
+		<>
+			<Grid item xs={12}>
+				<TextField
+					id="TRAILINGSTOP"
+					name="TRAILINGSTOP"
+					label="TrailingStop / 1R"
+					defaultValue={trailingStopPrice}
+					value={trailingStopPrice}
+					onChange={handleTextChange}
+				/>
+			</Grid>
+		</>
+	)
+
+	const bracket1Target1TSOrder = (
+		<>
+			<Grid item xs={6}>
+				<TextField
+					id="TRAILINGSTOP"
+					name="TRAILINGSTOP"
+					label="TrailingStop / 1R"
+					defaultValue={trailingStopPrice}
+					value={trailingStopPrice}
+					onChange={handleTextChange}
+				/>
+			</Grid>
+			<Grid item xs={6}>
+				<TextField
+					id="TARGET1"
+					name="TARGET1"
+					label="TARGET 1 PRICE 1/2R"
+					defaultValue={target1Price}
+					value={target1Price}
+					onChange={handleTextChange}
+				/>
+			</Grid>
+		</>
+	)
+
+	const bracket2Target2TSOrder = (
+		<>
+			<Grid item xs={4}>
+				<TextField
+					id="TRAILINGSTOP"
+					name="TRAILINGSTOP"
+					label="TrailingStops / 1R Each"
+					defaultValue={trailingStopPrice}
+					value={trailingStopPrice}
+					onChange={handleTextChange}
+				/>
+			</Grid>
+			<Grid item xs={4}>
+				<TextField
+					id="TARGET1"
+					name="TARGET1"
+					label="TARGET 1 PRICE 1/2R"
+					defaultValue={target1Price}
+					value={target1Price}
+					onChange={handleTextChange}
+				/>
+			</Grid>
+			<Grid item xs={4}>
+				<TextField
+					id="TARGET2"
+					name="TARGET2"
+					label="TARGET 2 PRICE 1R"
+					defaultValue={target2Price}
+					value={target2Price}
+					onChange={handleTextChange}
+				/>
+			</Grid>
+		</>
+	)
+
+	const bracket1Target1LossOrder = (
+		<>
+			<Grid item xs={12}>
+				<TextField
+					id="TARGET1"
+					name="TARGET1"
+					label="TARGET 1 PRICE 1/2R"
+					defaultValue={target1Price}
+					value={target1Price}
+					onChange={handleTextChange}
+				/>
+			</Grid>
+		</>
+	)
+
+	const bracket2Target2LossOrder = (
+		<>
+			<Grid item xs={6}>
+				<TextField
+					id="TARGET1"
+					name="TARGET1"
+					label="TARGET 1 PRICE 1/2R"
+					defaultValue={target1Price}
+					value={target1Price}
+					onChange={handleTextChange}
+				/>
+			</Grid>
+			<Grid item xs={6}>
+				<TextField
+					id="TARGET2"
+					name="TARGET2"
+					label="TARGET 2 PRICE 1R"
+					defaultValue={target2Price}
+					value={target2Price}
+					onChange={handleTextChange}
+				/>
+			</Grid>
+		</>
+	)
+
 	return (
 		<div>
 			<Paper className={classes.orderContainer} >
@@ -64,7 +178,7 @@ export default function OrderDialog({patternCandles}) {
 				/>
 				: ''
 			}
-			<Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" maxWidth='md'>
+			<Dialog open={orderOpen} onClose={handleClose} aria-labelledby="form-dialog-title" maxWidth='md'>
 				<DialogTitle id="form-dialog-title" className={classes.header} >
 					{title} {pattern !== "" ? pattern + ' ' : ` - No Pattern `} 
 					<ButtonBase>
@@ -77,6 +191,18 @@ export default function OrderDialog({patternCandles}) {
 				</DialogTitle>
 				<Paper className={classes.paper}>
 					<Grid container spacing={2}>
+						<FormControl component="fieldset" className={classes.formControl}>
+							<FormLabel component="legend">Order Type Selection (TS = Trailing Stop)</FormLabel>
+							<RadioGroup className={classes.radioControl} name="orderType" defaultValue='trailingStop' value={orderTypeValue} onChange={handleRadioChange}>
+								<FormControlLabel value="trailingStop" control={<Radio />} label="Trailing Stop" />
+								<FormControlLabel value="bracket1Target1TS" control={<Radio />} label="1 Target / 1 TS" />
+								<FormControlLabel value="bracket2Target2TS" control={<Radio />} label="2 Target / 2 TS" />
+								<FormControlLabel value="bracket1Target1Loss" control={<Radio />} label="1 Target / 1 Loss" />
+								<FormControlLabel value="bracket2Target2Loss" control={<Radio />} label="2 Target / 2 Loss" />
+							</RadioGroup>
+						</FormControl>
+					</Grid>
+					<Grid container spacing={2}>
 						<Grid item container xs={3} >
 							<Grid item >
 								<ButtonBase className={classes.orderSymbol} >
@@ -87,34 +213,58 @@ export default function OrderDialog({patternCandles}) {
 							</Grid>
 						</Grid>
 						<Grid item xs={9} sm container spacing={2}>
-							<Grid item xs={4}>
-								<TextField
-									id="QUANTITY"
-									name="QUANTITY"
-									label="QUANTITY"
-									defaultValue={quantity}
-									onChange={handleTextChange}
-								/>
+							<Grid item container xs={3}>
+								<Grid item xs={6}>
+									High:
+								</Grid>
+								<Grid item xs={6}>
+									{highPrice}
+								</Grid>
+
+								{isBullish ? lastClosePriceDiv : lastOpenPriceDiv}
+								{isBullish ? lastOpenPriceDiv : lastClosePriceDiv}
+								
+								<Grid item xs={6}>
+									Low:
+								</Grid>
+								<Grid item xs={6}>
+									{lowPrice}
+								</Grid>
+							</Grid>	
+							<Grid item container xs={1}>
+								<img src={isBullish ? greenCandle : redCandle} className={classes.image} alt="" />
+							</Grid>	
+							
+							<Grid item container xs={8}>
+								<Grid item xs={6}>
+									<TextField
+										id="QUANTITY"
+										name="QUANTITY"
+										label="QUANTITY"
+										defaultValue={quantity}
+										onChange={handleTextChange}
+									/>
+								</Grid>
+								<Grid item xs={6}>
+									<TextField
+										id="CONFIRMID"
+										label="CONFIRM ID"
+										InputProps={{ readOnly: true, }}
+										defaultValue={orderConfirmId}
+									/>
+								</Grid>
+								<Grid item xs={6}>
+									<TextField
+										id='RISKOFFSET'
+										name='RISKOFFSET'
+										label='RISK OFFSET (R)'
+										defaultValue={riskOffset}
+										onChange={handleTextChange}
+										prefix='%'
+									/>
+								</Grid>
 							</Grid>
-							<Grid item xs={4}>
-								<TextField
-									id='RISKOFFSET'
-									name='RISKOFFSET'
-									label='RISK OFFSET (R)'
-									defaultValue={riskOffset}
-									onChange={handleTextChange}
-									prefix='%'
-								/>
-							</Grid>
-							<Grid item xs={4}>
-								<TextField
-									id="CONFIRMID"
-									label="CONFIRM ID"
-									InputProps={{ readOnly: true, }}
-									defaultValue={orderConfirmId}
-								/>
-							</Grid>
-							<Grid item xs={4}>
+							{/* <Grid item xs={4}>
 								<TextField
 									id="STOPOFFSET"
 									name="STOPOFFSET"
@@ -140,34 +290,15 @@ export default function OrderDialog({patternCandles}) {
 									defaultValue={stopLossPriceOffset}
 									onChange={handleTextChange}
 								/>
-							</Grid>
+							</Grid> */}
 							
 						</Grid>
 					</Grid>
+					<Divider className={classes.divider} />
 					<Grid container spacing={2} >
-						<Grid item container xs={2}>
-							<Grid item xs={6}>
-								High:
-							</Grid>
-							<Grid item xs={6}>
-								{highPrice}
-							</Grid>
-
-							{isBullish ? lastClosePriceDiv : lastOpenPriceDiv}
-							{isBullish ? lastOpenPriceDiv : lastClosePriceDiv}
-							
-							<Grid item xs={6}>
-								Low:
-							</Grid>
-							<Grid item xs={6}>
-								{lowPrice}
-							</Grid>
-						</Grid>					
-						<Grid item container xs={1}>
-							<img src={isBullish ? greenCandle : redCandle} className={classes.image} alt="" />
-						</Grid>
+						<Grid item container xs={3}></Grid>	
 						<Grid item xs={9} sm container spacing={2}>
-							<Grid item xs={6}>
+							<Grid item xs={4}>
 								<TextField
 									id={stopLimitAction}
 									name="STOPPRICE"
@@ -176,7 +307,7 @@ export default function OrderDialog({patternCandles}) {
 									onChange={handleTextChange}
 								/>
 							</Grid>
-							<Grid item xs={6}>
+							<Grid item xs={4}>
 								<TextField
 									id={`LIMITPRICE`}
 									name="LIMITPRICE"
@@ -185,24 +316,30 @@ export default function OrderDialog({patternCandles}) {
 									onChange={handleTextChange}
 								/>
 							</Grid>
-							<Grid item xs={6}>
+							<Grid item xs={4}>
 								<TextField
 									id={stopLossAction}
 									name="STOPLOSSPRICE"
-									label={stopLossAction}
+									label="STOP LOSS / 1R"
 									defaultValue={stopLossPrice}
 									onChange={handleTextChange}
 								/>
 							</Grid>
-							<Grid item xs={6}>
-								<TextField
-									id="TRAILINGSTOP"
-									name="TRAILINGSTOP"
-									label="TrailingStop / 1R"
-									defaultValue={trailingStopPrice}
-									onChange={handleTextChange}
-								/>
-							</Grid>
+							{
+								orderTypeValue === 'bracket1Target1TS' ?
+									bracket1Target1TSOrder
+								:
+								orderTypeValue === 'bracket2Target2TS' ?
+									bracket2Target2TSOrder
+								:
+								orderTypeValue === 'bracket1Target1Loss' ?
+									bracket1Target1LossOrder
+								:
+								orderTypeValue === 'bracket2Target2Loss' ?
+									bracket2Target2LossOrder
+								:
+									trailingStopOrder
+							}
 						</Grid>
 					</Grid>
 				</Paper>
@@ -262,33 +399,18 @@ const useStyles = makeStyles((theme) => ({
     font: {
         fontWeight: 'bold',
     },
+	formControl: {
+	  margin: theme.spacing(1),
+	  width: '100%',
+	},
+	radioControl: {
+	  margin: theme.spacing(1),
+	  width: '100%',
+	  display: 'flex',
+	  justifyContent: 'space-between',
+	  flexDirection: 'row',
+	},
+	divider: {
+	  margin: theme.spacing(2),
+	},
 }));
-
-function NumberFormatCustom(props) {
-    const { inputRef, onChange, prefix, ...other } = props;
-  
-    return (
-      <NumberFormat
-        {...other}
-        getInputRef={inputRef}
-        onValueChange={(values) => {
-          onChange({
-            target: {
-              name: props.name,
-              value: values.value,
-            },
-          });
-        }}
-        thousandSeparator
-        isNumericString
-        prefix={prefix}
-      />
-    );
-}
-  
-NumberFormatCustom.propTypes = {
-	inputRef: PropTypes.func.isRequired,
-	name: PropTypes.string.isRequired,
-	onChange: PropTypes.func.isRequired,
-	prefix: PropTypes.string,
-};
