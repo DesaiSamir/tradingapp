@@ -8,6 +8,7 @@ import {
 import PatternsPanel from "../components/navigations/PatternsPanel";
 import { ChartActionsContext } from '../contexts/ChartActionsProvider';
 import loading from '../res/loading.gif';
+import OrdersPanel from '../components/navigations/OrdersPanel';
 
 const Market = () => {
     const classes = useStyles();
@@ -27,19 +28,24 @@ const Market = () => {
                         <Grid item xs={12} id="timeframes" className={classes.head}>
                             <TimeFrames />
                         </Grid>
-                        <Grid item xs={12}>
-                            {
-                                (barChartData && barChartData.length > 0) ? 
-                                    <StockChart 
-                                        width="100%"
-                                        dateTimeFormat={dateTimeFormat}
-                                        data={barChartData}
-                                        chartText={chartText} 
-                                    />
-                                :   <div className={classes.loading}>
-                                        <img src={loading} alt="Loading" />
-                                    </div>
-                            }
+                        <Grid item xs={12} container>
+                            <Grid item xs={12}>
+                                {
+                                    (barChartData && barChartData.length > 0) ? 
+                                        <StockChart 
+                                            width="100%"
+                                            dateTimeFormat={dateTimeFormat}
+                                            data={barChartData}
+                                            chartText={chartText} 
+                                        />
+                                    :   <div className={classes.loading}>
+                                            <img src={loading} alt="Loading" />
+                                        </div>
+                                }
+                            </Grid>
+                            <Grid item xs={12} className={classes.ordersPanel}>
+                                <OrdersPanel />
+                            </Grid>
                         </Grid>
                     </Grid>
                 </Grid>
@@ -68,6 +74,9 @@ const useStyles = makeStyles((theme) => ({
         height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    ordersPanel: {
+        height: 320,
     }
 }));
 

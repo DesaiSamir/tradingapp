@@ -106,6 +106,29 @@ CREATE TABLE `watchlist` (
   UNIQUE KEY `watchlist_UN` (`watchlist_name`,`symbol`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- tradingapp.intraday_patterns definition
+CREATE TABLE `intraday_patterns` (
+  `intraday_pattern_id` int(11) NOT NULL AUTO_INCREMENT,
+  `symbol` varchar(100) NOT NULL,
+  `pattern_id` int(11) NOT NULL,
+  `timeframe` enum('5M','15M','60M','Daily') DEFAULT NULL,
+  `c_open` varchar(10) NOT NULL,
+  `c_high` varchar(10) NOT NULL,
+  `c_low` varchar(10) NOT NULL,
+  `c_close` varchar(10) NOT NULL,
+  `c_date` varchar(100) NOT NULL,
+  `p_open` varchar(10) NOT NULL,
+  `p_high` varchar(10) NOT NULL,
+  `p_low` varchar(10) NOT NULL,
+  `p_close` varchar(10) NOT NULL,
+  `p_Date` varchar(100) NOT NULL,
+  `candles` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`candles`)),
+  `created` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`intraday_pattern_id`),
+  KEY `intraday_patterns_FK` (`pattern_id`),
+  CONSTRAINT `intraday_patterns_FK` FOREIGN KEY (`pattern_id`) REFERENCES `patterns` (`pattern_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=183 DEFAULT CHARSET=utf8mb4;
+
 -- data setup for a single user
 INSERT INTO users (`username`, `fname`, `lname`, `password`) VALUES ('user', 'firstname', 'lastname', password('trader'));
 

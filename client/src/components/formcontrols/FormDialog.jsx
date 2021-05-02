@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import { useState, useContext } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
@@ -6,6 +6,7 @@ import {
 	Fab, Dialog, DialogActions, DialogContent, DialogTitle 
 } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
+import { ChartActionsContext } from '../../contexts/ChartActionsProvider';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -15,9 +16,10 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export default function FormDialog({handleClick}) {
+export default function FormDialog() {
 	const [open, setOpen] = useState(false);
 	const classes = useStyles();
+	const { handleAddWatchlist } = useContext(ChartActionsContext);
 
 	const handleClickOpen = () => {
 		setOpen(true);
@@ -41,12 +43,12 @@ export default function FormDialog({handleClick}) {
 						id="addStockSymbol"
 						label="Stock Symbol"
 						type="text"
-						onKeyDown={(e) => handleClick(e, setOpen)} 
+						onKeyDown={(e) => handleAddWatchlist(e, setOpen)} 
 						fullWidth
 					/>
 				</DialogContent>
 				<DialogActions>
-					<Button onClick={(e) => handleClick(e, setOpen)}  color="primary">
+					<Button onClick={(e) => handleAddWatchlist(e, setOpen)}  color="primary">
 						Add To Watchlist
 					</Button>
 				</DialogActions>

@@ -1,23 +1,15 @@
 var express = require('express');
 var router = express.Router();
 const helper = require('../utils/helpers');
-const order = require('../db/order');
 
 router.get('/:key', async function  (req, res, next)  {
     
     const url = `/v2/accounts/${req.params.key}/orders?since=${helper.getDate()}`;
     const accountOrders = await helper.send(req, res, 'GET', url);
 
-    if(accountOrders){
-        if(accountOrders.length > 0){
-            const orderIds =  Array.prototype.map.call(accountOrders, o => o.OrderID).toString();
-            const dbOrders = await order.getOrderByProviderListOfOrderIds(orderIds);
-            if(dbOrders){
-                const dbOrderIds = Array.prototype.map.call(dbOrders, o => o.provider_order_id);
-                const retOrders = accountOrders.filter(order => dbOrderIds.includes(order.OrderID.toString()));
-                res.send({retOrders, dbOrders});
-            }
-        }
+    if(accountOrders && accountOrders.length > 0){
+        const retOrders = accountOrders.filter(order => order.StatusDescription === 'Queued' || order.StatusDescription === 'Received');
+        res.send(retOrders);
     }
 })
 
@@ -28,7 +20,6 @@ router.post('/', async function  (req, res, next)  {
 
     if(orderData){
         payload.response = orderData;
-        order.createStopOrder(payload);
         res.send(orderData);
     }
 })
@@ -41,7 +32,6 @@ router.put('/', async function  (req, res, next)  {
 
     if(orderData){
         payload.response = orderData;
-        order.updateStopOrder(payload);
         res.send(orderData);
     }
 })

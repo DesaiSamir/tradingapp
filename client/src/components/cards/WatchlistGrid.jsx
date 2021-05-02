@@ -1,8 +1,10 @@
+import { useContext } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { 
     Grid, Paper, Typography, ButtonBase, Button
 } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
+import { ChartActionsContext } from '../../contexts/ChartActionsProvider';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -31,22 +33,25 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-export default function WatchlistGrid({stock, onListItemClick, handleDeleteWatchlist}) {
+export default function WatchlistGrid({stock}) {
     const classes = useStyles();
+    const { 
+        setSymbolText, handleDeleteWatchlist 
+    } = useContext(ChartActionsContext);
     
     return (
         <div className={classes.root}>
             <Paper className={classes.paper}>
                 <Grid container spacing={1}>
                     <Grid item >
-                        <ButtonBase className={classes.image} >
+                        <ButtonBase className={classes.image}  onClick={() => setSymbolText(stock.Symbol)}>
                             <Typography variant="h4" component="h2">
                                 {stock.Symbol}
                             </Typography>
                         </ButtonBase>
                     </Grid>
                     <Grid item xs={12} sm container style={{marginTop:"10px"}}>
-                        <Grid item xs container spacing={1} onClick={(e) => onListItemClick(e, stock)}>
+                        <Grid item xs container spacing={1} onClick={() => setSymbolText(stock.Symbol)}>
                             <Grid item xs={3} container>
                                 <Grid item xs={6}>
                                     <Typography variant="button" display="block" gutterBottom className={classes.font}>

@@ -5,6 +5,8 @@ import DrawerPanel from '../components/navigations/DrawerPanel'
 import { UserContext } from "../contexts/UserProvider";
 import Login from "./Login";
 import ChartActionsProvider from "../contexts/ChartActionsProvider";
+import OrderProvider from '../contexts/OrderProvider';
+import BalanceProvider from "../contexts/BalanceProvider";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -21,9 +23,13 @@ const Home = () => {
             {   _.isNull(userId) ?
                     <Login />
                 :
-                    <ChartActionsProvider>
-                        <DrawerPanel />
-                    </ChartActionsProvider>
+                    <BalanceProvider>
+                        <ChartActionsProvider>
+                            <OrderProvider>
+                                <DrawerPanel />
+                            </OrderProvider>
+                        </ChartActionsProvider>
+                    </BalanceProvider>
             }
         </div>
     );

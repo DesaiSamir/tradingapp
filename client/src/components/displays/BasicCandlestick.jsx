@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import { format } from "d3-format";
 import { timeFormat } from "d3-time-format";
-import { useState } from "react";
+import { useState, useContext } from "react";
 import {
     elderRay, ema, discontinuousTimeScaleProviderBuilder, 
     Chart, ChartCanvas, BarSeries, CandlestickSeries, LineSeries,
@@ -9,10 +9,12 @@ import {
     MovingAverageTooltip, OHLCTooltip, SingleValueTooltip, HoverTooltip,
     lastVisibleItemBasedZoomAnchor, XAxis, YAxis, CrossHairCursor,
     EdgeIndicator, MouseCoordinateX, MouseCoordinateY,
-    ZoomButtons, withDeviceRatio, withSize, Label, Annotate, LabelAnnotation,
+    ZoomButtons, withDeviceRatio, withSize, Label, Annotate, BarAnnotation
 } from "react-financial-charts";
+import { OrderContext } from "../../contexts/OrderProvider";
+import { ChartActionsContext } from "../../contexts/ChartActionsProvider";
 
-var stockChartHeight = 40;
+var stockChartHeight = 360;
 
 const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio, width, chartText, ...rest }) => {
     const margin = { left: 50, right: 50, top: 0, bottom: 24 };
@@ -20,7 +22,12 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
     if(document.getElementById('timeframes').clientHeight)
         stockChartHeight = document.getElementById('timeframes').clientHeight;
     
-    // const [minimumBars, setMinimumBars] = useState(100);
+    const { handleClickOpenTradeDialog, orders} = useContext(OrderContext);
+    const { symbol } = useContext(ChartActionsContext);
+
+    const orderReceived = orders && orders.filter(o => o.StatusDescription === 'Received' && o.Symbol === symbol)[0];
+    const orderQueued = orders && orders.filter(o => o.StatusDescription === 'Queued' && o.Symbol === symbol)[0];
+    // console.log(orderQueued)
     const pricesDisplayFormat = format(".2f");
     const numberDisplayFormat = format(",");
     const [lastClose, setLastClose] = useState(0);
@@ -44,16 +51,23 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
         })
         .accessor((d) => d.ema26);
 
+        const ema200 = ema()
+            .id(2)
+            .options({ windowSize: 200 })
+            .merge((d, c) => {
+                d.ema200 = c;
+            })
+            .accessor((d) => d.ema200);
+
     const elder = elderRay();
 
-    const calculatedData = elder(ema26(ema12(initialData)));
+    const calculatedData = elder(ema200(ema26(ema12(initialData))));
 
     const { data, xScale, xAccessor, displayXAccessor } = xScaleProvider(calculatedData);
 
     const max = xAccessor(data[data.length - 1]);
     const min = xAccessor(data[Math.max(0, data.length - 100)]);
     const xExtents = [min, max + 5];
-        // console.log(lastVisibleItemBasedZoomAnchor)
     const gridHeight = height - margin.top - margin.bottom;
 
     const elderRayHeight = 100;
@@ -111,16 +125,32 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
         return { open: data.open, high: data.high, low: data.low, close: data.close, pattern: data.pattern};
     }
     
-    const annotBullish = {
-        text: "Bullish",
-        tooltip: "Go Long",
-        y: ({ yScale, datum }) => yScale(datum.low),
-    };
+
+    const onCandleClicked = (e, data) => {
+        e.preventDefault();
+        handleClickOpenTradeDialog(data.datum);
+    }
     
+    const annotBullish = {
+        tooltip: "Go Long",
+        textIcon: '\u25B2',
+        textIconFill: 'green',
+        textIconFontSize: 20,
+        className: 'bullish',
+        y: ({ yScale, datum }) => yScale(datum.low- 0.10), // > 1000 ? datum.low - 4 : datum.low > 500 ? datum.low - 1.5 : datum.low > 100 ? datum.low - .35 : datum.low > 10 ? datum.low - .17 : datum.low - .03),
+        x: ({ xScale, xAccessor, datum }) => xScale(xAccessor(datum)),
+        onClick: (e, datum) => onCandleClicked(e, datum, xAccessor, xScale) - 0.35,
+    };
+
     const annotBerish = {
-        text: "Berish",
         tooltip: "Go Short",
-        y: ({ yScale, datum }) => yScale(datum.high),
+        textIcon: '\u25BC',
+        textIconFill: 'red',
+        textIconFontSize: 20,
+        className: 'bearish',
+        y: ({ yScale, datum }) => yScale(datum.high + 0.01),// > 1000 ? datum.high + 4 : datum.high > 500 ? datum.high + 1.5 : datum.high > 100 ? datum.high + .35 : datum.high > 10 ? datum.high + .17 : datum.high + .03),
+        x: ({ xScale, xAccessor, datum }) => xScale(xAccessor(datum)) - 0.35,
+        onClick: onCandleClicked,
     };
     
     const averageVolume = (data) => {
@@ -128,7 +158,7 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
         return data.reduce((acc, val) => {
            return acc + (val.volume/length);
         }, 0);
-     };
+    };
 
     return (
         <ChartCanvas
@@ -144,6 +174,13 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
             xExtents={xExtents}
             zoomAnchor={lastVisibleItemBasedZoomAnchor}
         >
+            <Chart id={1} height={chartHeight} yExtents={candleChartExtents}>
+                
+                <EdgeIndicator  orient="right" at="left" rectWidth={margin.right} fill="#26a69a" 
+                                displayFormat={pricesDisplayFormat} yAccessor={() => orderReceived && orderReceived.StopPrice} arrowWidth={10} />
+                <EdgeIndicator  orient="right" at="left" rectWidth={margin.right} fill="#ef5350" 
+                                displayFormat={pricesDisplayFormat} yAccessor={() => orderQueued && orderQueued.StopPrice} arrowWidth={10} />
+            </Chart>
             <Chart id={2} height={barChartHeight} origin={barChartOrigin} yExtents={barChartExtents}>
                 
                 <YAxis axisAt="left" orient="left" ticks={5} tickFormat={format(".2s")}/>
@@ -159,6 +196,8 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                 <XAxis showGridLines showTickLabel={false} />
                 <YAxis showGridLines tickFormat={pricesDisplayFormat} />
                 <CandlestickSeries fill={candelFillColor} yAccessor={candlestickYAccessor} />
+                <LineSeries yAccessor={ema200.accessor()} strokeStyle={ema200.stroke()} />
+                <CurrentCoordinate yAccessor={ema200.accessor()} fillStyle={ema200.stroke()} />
                 <LineSeries yAccessor={ema26.accessor()} strokeStyle={ema26.stroke()} />
                 <CurrentCoordinate yAccessor={ema26.accessor()} fillStyle={ema26.stroke()} />
                 <LineSeries yAccessor={ema12.accessor()} strokeStyle={ema12.stroke()} />
@@ -169,6 +208,12 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                 <MovingAverageTooltip
                     origin={[8, 24]}
                     options={[
+                        {
+                            yAccessor: ema200.accessor(),
+                            type: "EMA",
+                            stroke: ema200.stroke(),
+                            windowSize: ema200.options().windowSize,
+                        },
                         {
                             yAccessor: ema26.accessor(),
                             type: "EMA",
@@ -191,8 +236,8 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                     x={(width - margin.left - margin.right) / 2}
                     y={(height - margin.top - margin.bottom) / 2}
                 />
-                <Annotate with={LabelAnnotation} usingProps={annotBullish} when={(data) => data.isBullishEngulfing} />
-                <Annotate with={LabelAnnotation} usingProps={annotBerish} when={(data) => data.isBearishEngulfing} />
+                <Annotate with={BarAnnotation} usingProps={annotBullish} when={(data) => data.isBullishEngulfing} />
+                <Annotate with={BarAnnotation} usingProps={annotBerish} when={(data) => data.isBearishEngulfing} />
                 <OHLCTooltip origin={[8, 16]} textFill={(d) => (d.close > d.open ? "#26a69a" : "#ef5350")} />
                 <HoverTooltip
                     yAccessor={ema12.accessor()}

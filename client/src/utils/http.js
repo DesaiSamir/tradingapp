@@ -2,6 +2,7 @@ var patterns = require('./patterns');
 const alpha = require('alphavantage')({ key: '' });
 
 var barChartTimer, watchlistTimer, quoteTimer, ordersInterval, positionsInterval, balancesInterval;
+var currentSymbol, currentUrl;
 module.exports = {
     clearBarChartInterval: function () {
         clearInterval(barChartTimer);
@@ -12,6 +13,13 @@ module.exports = {
     getRefreshInterval: function () {
         if(this.isRegularSessionTime()){
             return 2000;
+        }
+
+        return 10000;
+    },
+    getGeneralRefreshInterval: function () {
+        if(this.isRegularSessionTime()){
+            return 5000;
         }
 
         return 10000;
@@ -36,6 +44,7 @@ module.exports = {
     },
     getQuoteData: async function (symbol, cb) {
         const quoteData = await this.get(`api/watchlist/${symbol}`, cb);
+        currentSymbol = symbol;
         if(quoteData){
             console.log({quoteData});
             cb(quoteData);
@@ -55,8 +64,9 @@ module.exports = {
             }
         }, this.getRefreshInterval());
     },
-    getBarChartData: async function (payload, cb) {
+    getBarChartData: async function (payload, cb, symbol) {
         const barData = await this.send('POST', 'api/marketdata', payload);
+        currentUrl = payload.url;
         if(barData){
             var responseData = barData;
             if(responseData.length > 0){
@@ -70,16 +80,16 @@ module.exports = {
             console.log({barChartData: responseData});
             cb(responseData);
         }
-        this.getBarChartDataRecursive(payload, cb);
+        this.getBarChartDataRecursive(payload, cb, symbol);
     },
-    getBarChartDataRecursive: function (payload, cb) {
+    getBarChartDataRecursive: function (payload, cb, symbol) {
         
         clearInterval(barChartTimer);
         
         barChartTimer = setInterval(async () => {
             if(this.isRegularSessionTime() || payload.url.indexOf(`USEQPreAndPost`) > 0){
                 const barData = await this.send('POST', 'api/marketdata', payload);            
-                if(barData){
+                if(barData && currentSymbol === symbol && currentUrl === payload.url){
                     var responseData = barData;
                     if(responseData.length > 0){
                         responseData = patterns.detectPattern(this.formatTSData(responseData));
@@ -101,6 +111,7 @@ module.exports = {
             console.log({watchlistData});
             cb(watchlistData);
         }
+        this.getWatchlistRecursive(cb);
     },
     getWatchlistRecursive: function(cb){
         
@@ -115,6 +126,33 @@ module.exports = {
                 }
             }
         }, this.getRefreshInterval());
+    },
+    getPatterns: async function(cb){
+        const patternData = await this.get("api/pattern", cb);
+        
+        if(patternData){
+            console.log(patternData);
+            cb(patternData);
+        }
+        // this.getWatchlistRecursive(cb);
+    },
+    getPatternTimeframes: async function(cb){
+        const timeframes = await this.get("api/pattern/timeframes", cb);
+        
+        if(timeframes){
+            console.log(timeframes);
+            cb(timeframes);
+        }
+        // this.getWatchlistRecursive(cb);
+    },
+    getPatternTypes: async function(cb){
+        const patternTypes = await this.get("api/pattern/types", cb);
+        
+        if(patternTypes){
+            console.log(patternTypes);
+            cb(patternTypes);
+        }
+        // this.getWatchlistRecursive(cb);
     },
     postPurchaseOrder: async function(payload, cb) {
         const purchaseOrder = await this.send('POST','api/orders', payload);
@@ -148,6 +186,7 @@ module.exports = {
         const orders = await this.get(`api/orders/${key}`);
 
         if(orders){
+            console.log({orders});
             cb(orders);
         }
         this.getAccountOrdersRecursive(key, cb);
@@ -165,13 +204,14 @@ module.exports = {
                     cb(orders);
                 }
             }
-        }, this.getRefreshInterval());
+        }, this.getGeneralRefreshInterval());
     },
     getAccountPositions: async function(key, cb){
 
         const positions = await this.get(`api/accounts/positions/${key}`);
 
         if(positions){
+            console.log({positions});
             cb(positions);
         }
 
@@ -189,13 +229,14 @@ module.exports = {
                     cb(positions);
                 }
             }
-        }, this.getRefreshInterval());
+        }, this.getGeneralRefreshInterval());
     },
     getAccountBalances: async function(key, cb){
 
         const balances = await this.get(`api/accounts/balances/${key}`);
 
         if(balances){
+            console.log({balances});
             cb(balances);
         }
 
@@ -213,7 +254,7 @@ module.exports = {
                     cb(balances);
                 }
             }
-        }, this.getRefreshInterval());
+        }, this.getGeneralRefreshInterval());
     },
     send: async function (method, url, payload = null) {
         // console.log({method, url, payload});

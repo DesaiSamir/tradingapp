@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import _ from "lodash";
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
@@ -8,11 +8,10 @@ import {
 import OrderDialog from '../formcontrols/OrderDialog';
 import FormDialog from '../formcontrols/FormDialog';
 import WatchlistGrid from '../cards/WatchlistGrid';
-import TerminalDialog from '../formcontrols/TerminalDialog';
-import http from '../../utils/http';
 import helper from '../../utils/helper';
-import { UserContext } from "../../contexts/UserProvider";
 import { ChartActionsContext } from "../../contexts/ChartActionsProvider";
+import SimpleSelect from "../formcontrols/SimpleSelect";
+import DatePickers from "../formcontrols/DatePicker";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -62,67 +61,45 @@ function LinkTab(props) {
 export default function PatternsPanel() {
 	const classes = useStyles();
 	const { 
-		barChartData, chartText, setSymbol, symbol
+		barChartData, chartText, symbol, currentWatchlist, currentPatterns, patternTypes, timeframes,
 	} = useContext(ChartActionsContext);
-    const [orderResponseData, setOrderResponseData] = useState({});
-	const [showResponse, setShowResponse] = useState(false);
-	const { equitiesAccountKey } = useContext(UserContext);
-    const [currentWatchlist, setCurrentWatchlist] = useState([]);
     var patternCandles = helper.getPatternCandleList(_.clone(barChartData), symbol);
-    
-    useEffect(() => {
-        
-        if(equitiesAccountKey){
-            http.getWatchlist(setCurrentWatchlist);
-        }
-    }, [equitiesAccountKey]);
+	const [value, setValue] = useState(0);
+	const [displayPatterns, setDisplayPatterns] = useState([]);
+	const [displayTimeframes, setDisplayTimeframes] = useState([]);
 
-	const [value, setValue] = React.useState(0);
+	useEffect(() => {
+		setDisplayPatterns(currentPatterns);
+		setDisplayTimeframes(timeframes);
+	}, [currentPatterns, timeframes]);
+
 	const handleChange = (event, newValue) => {
 		setValue(newValue);
 	};
-
-	const handleAddWatchlist = async (e, setOpen) => {
-		if (e.type === 'keydown' && e.key !== 'Enter') return;
-		e.preventDefault();
-		var stockSymbol = document.getElementById('addStockSymbol');
-		
-		const payload = { 
-			Symbol: stockSymbol.value,
-		};
 	
-		const addedSymbol = await http.send('POST','api/watchlist', payload);
-	
-		if(addedSymbol){
-			console.log(addedSymbol);
-			const newSymbol = {
-				Symbol: addedSymbol.symbol
-			};
-			setCurrentWatchlist([...currentWatchlist,  newSymbol]);
-			http.getWatchlist(setCurrentWatchlist);
+	const onSelectChange = (e, name, items) => {
+		const id = e.target.value;
+		const item = items.filter(item => item.id === id)[0];
+		switch (name) {
+			case 'types':
+				// console.log({currentPatterns, filtered: currentPatterns.filter(items => items[1].title === item.title)})
+				setDisplayPatterns(currentPatterns.filter(items => items[1].title === item.title));
+				break;
+			
+			case 'timeframes':
+				// console.log({timeframes, filtered: item})
+				setDisplayPatterns(currentPatterns.filter(items => items[1].timeframe === item.title));
+				break;
+				
+			default:
+				break;
 		}
-		setOpen(false);
 	}
-	
-	const handleDeleteWatchlist = async (e, stock) => {
-		e.preventDefault();
-		
-		setCurrentWatchlist(currentWatchlist.filter(list => list.Symbol !== stock.Symbol));
-		
-		const payload = { 
-			Symbol: stock.Symbol,
-		};
 
-		http.send('DELETE',`api/watchlist/${stock.Symbol}`, payload);
+	const onDateChange = (e, name) => {
+		console.log({e, name})
 	}
-	
-	const onListItemClick = (e, data) => {
-		e.preventDefault();
-		var symbolText = document.getElementById('symbol');
-		symbolText.value = data.Symbol;
-		setSymbol(data.Symbol);
-	}
-	
+
 	return (
         <div className={classes.root}>
             <AppBar position="static">
@@ -134,6 +111,7 @@ export default function PatternsPanel() {
                     >
                     <LinkTab label="Patterns" {...a11yProps(0)} />
                     <LinkTab label="Watchlist" {...a11yProps(1)} />
+                    <LinkTab label="Pattern List" {...a11yProps(3)} />
                 </Tabs>
             </AppBar>
 			<TabPanel value={value} index={0}>
@@ -146,17 +124,7 @@ export default function PatternsPanel() {
 						</Paper>
 						<OrderDialog
 							patternCandles={patternCandles}
-							setOrderResponseData={setOrderResponseData}
-							setShowResponse={setShowResponse}
 						/>
-						{showResponse ?
-							<TerminalDialog 
-								jsonData={orderResponseData}
-								showResponse={showResponse}
-								setShowResponse={setShowResponse}
-							/>
-							: ''
-						}
 					</Grid>
 				</Grid>
             </TabPanel>
@@ -167,15 +135,13 @@ export default function PatternsPanel() {
 							<Typography variant="h5" component="h2" className={classes.title}>
 								Watchlist
 							</Typography>
-							<FormDialog handleClick={handleAddWatchlist}/>
+							<FormDialog />
 						</Paper>
 						<Paper className={classes.watchlistContainer} >
 							{currentWatchlist && currentWatchlist.length > 0 && currentWatchlist.map((stock) => (
 								<Paper className={classes.watchlistItem}  key={stock.Symbol} >
 									<WatchlistGrid 
 										stock={stock}
-										onListItemClick={onListItemClick}
-										handleDeleteWatchlist={handleDeleteWatchlist}
 									/>
 								</Paper >
 							))}
@@ -183,6 +149,36 @@ export default function PatternsPanel() {
 					</Grid>
 				</Grid>
 				
+            </TabPanel>
+			<TabPanel value={value} index={2}>
+				<Grid container>
+					<Grid item xs={12} > 
+						<Paper className={`${classes.watchlistBar}`}>
+							<SimpleSelect 
+								onSelectChange={onSelectChange}
+								name="timeframes"
+								menuItems={displayTimeframes.timeframes}
+								defaultValue={4}
+								title="Timeframes"
+							/>
+							<SimpleSelect 
+								onSelectChange={onSelectChange}
+								name="types"
+								menuItems={patternTypes.pattern_types}
+								defaultValue={1}
+								title="Pattern Types"
+							/>
+							<DatePickers 
+								title="Select Date"
+								name="patternDate"
+								onDateChange={onDateChange}
+							/>
+						</Paper>
+						<OrderDialog
+							patternCandles={displayPatterns}
+						/>
+					</Grid>
+				</Grid>
             </TabPanel>
         </div>
     );
@@ -213,6 +209,6 @@ const useStyles = makeStyles((theme) => ({
 	watchlistContainer: {
 		overflowY: 'auto',
         height: (window.innerHeight - 227),
-	}
+	},
 }));
 

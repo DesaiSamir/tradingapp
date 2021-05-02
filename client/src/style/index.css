@@ -28,6 +28,13 @@ pre {
     word-wrap: break-word;       /* Internet Explorer 5.5+ */
 }
 
+.bullish {
+    cursor: pointer;
+}
+
+.bearish {
+    cursor: pointer;
+}
 /* @media (max-width: 860px) {
     .page {
         width: 65%;

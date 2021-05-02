@@ -7,79 +7,117 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
-import { UserContext } from '../../contexts/UserProvider';
+import { ChartActionsContext } from '../../contexts/ChartActionsProvider';
+import { OrderContext } from '../../contexts/OrderProvider';
 
 const StyledTableCell = withStyles((theme) => ({
   head: {
     backgroundColor: theme.palette.common.black,
     color: theme.palette.common.white,
+	padding: 5,
   },
   body: {
     fontSize: 14,
+    color: theme.palette.common.white,
   },
 }))(TableCell);
 
 const StyledTableRow = withStyles((theme) => ({
   root: {
     '&:nth-of-type(odd)': {
-      backgroundColor: theme.palette.action.hover,
+		
     },
   },
 }))(TableRow);
 
-const useStyles = makeStyles({
-  table: {
-    minWidth: 700,
-  },
-  rows: {
-      overflowY: 'auto',
-      height: (window.innerHeight - 227),
-  },
-  container: {
-    maxHeight: window.innerHeight - 115,
-  },
-});
+const useStyles = makeStyles((theme) => ({
+	table: {
+		minWidth: 700,
+	},
+	rows: {
+		overflowY: 'auto',
+		height: (300),
+	},
+	row: {
+		cursor: 'pointer',
+	},
+	container: {
+		maxHeight: 270,
+	},
+	up: {
+		backgroundColor: theme.palette.success.light,
+	},
+	up50: {
+		backgroundColor: theme.palette.success.main,
+	},
+	up200: {
+		backgroundColor: theme.palette.success.dark,
+	},
+	down: {
+		backgroundColor: theme.palette.error.light,
+	},
+	down50: {
+		backgroundColor: theme.palette.error.main,
+	},
+	down200: {
+		backgroundColor: theme.palette.error.dark,
+	},
+	is0: {
+		backgroundColor: theme.palette.warning.light,
+	},
+}));
 
 export default function PositionsTable() {
     const classes = useStyles();
-    const { positions } = useContext(UserContext);
-    
+    const { positions } = useContext(OrderContext);
+	const { setSymbolText } = useContext(ChartActionsContext);
+    // console.log(positions)
     return (
         <TableContainer component={Paper} className={classes.container}>
-        <Table className={classes.table} stickyHeader aria-label="sticky table">
-            <TableHead>
-                <TableRow>
-                    <StyledTableCell>Symbol</StyledTableCell>
-                    <StyledTableCell>Order#</StyledTableCell>
-                    <StyledTableCell>OrderStatus</StyledTableCell>
-                    <StyledTableCell>Type</StyledTableCell>
-                    <StyledTableCell>Entered</StyledTableCell>
-                    <StyledTableCell>Quantity</StyledTableCell>
-                    <StyledTableCell>StopPrice</StyledTableCell>
-                    <StyledTableCell>LimitPrice</StyledTableCell>
-                    <StyledTableCell>FilledPrice</StyledTableCell>
-                    <StyledTableCell>Duration</StyledTableCell>
-                    <StyledTableCell>RejectReason</StyledTableCell>
-                </TableRow>
-            </TableHead>
-            <TableBody>
-            {positions.map((order) => (
-                <StyledTableRow key={order.OrderID}>
-                <StyledTableCell>{order.Symbol}</StyledTableCell>
-                <StyledTableCell>{order.OrderID}</StyledTableCell>
-                <StyledTableCell>{order.StatusDescription}</StyledTableCell>
-                <StyledTableCell>{order.Type}</StyledTableCell>
-                <StyledTableCell>{order.TimeStamp}</StyledTableCell>
-                <StyledTableCell>{order.Quantity}</StyledTableCell>
-                <StyledTableCell>{order.StopPriceText}</StyledTableCell>
-                <StyledTableCell>{order.LimitPriceText}</StyledTableCell>
-                <StyledTableCell>{order.FilledPriceText}</StyledTableCell>
-                <StyledTableCell>{order.Duration}</StyledTableCell>
-                <StyledTableCell>{order.RejectReason}</StyledTableCell>
-                </StyledTableRow>
-            ))}
-            </TableBody>
-        </Table>
+			<Table className={classes.table} stickyHeader aria-label="sticky table">
+				<TableHead>
+					<TableRow>
+						<StyledTableCell>Symbol</StyledTableCell>
+						<StyledTableCell>Description</StyledTableCell>
+						<StyledTableCell>Position</StyledTableCell>
+						<StyledTableCell>Open P/L</StyledTableCell>
+						<StyledTableCell>Avg Price</StyledTableCell>
+						<StyledTableCell>Last</StyledTableCell>
+						<StyledTableCell>Today's Open P/L</StyledTableCell>
+						<StyledTableCell>Open P/L / Qty</StyledTableCell>
+						<StyledTableCell>Open P/L %</StyledTableCell>
+						<StyledTableCell>Total Cost</StyledTableCell>
+						<StyledTableCell>Market Value</StyledTableCell>
+					</TableRow>
+				</TableHead>
+				<TableBody>
+					{positions.map((order) => (
+						<StyledTableRow 
+							key={order.TimeStamp} 
+							onClick={() => setSymbolText(order.Symbol)}
+							className={
+								`${order.OpenProfitLoss === 0 
+								? classes.is0 
+								: order.OpenProfitLoss > 0
+									? order.OpenProfitLoss > 200 ? classes.up200 : order.OpenProfitLoss > 50 ? classes.up50 : classes.up 
+									: order.OpenProfitLoss < -200 ? classes.down200 : order.OpenProfitLoss < -50 ? classes.down50 : classes.down}
+								${classes.row}`} 
+						>
+							<StyledTableCell>{order.Symbol}</StyledTableCell>
+							<StyledTableCell>{order.Description}</StyledTableCell>
+							<StyledTableCell>{order.Quantity}</StyledTableCell>
+							<StyledTableCell>{parseFloat(order.OpenProfitLoss).toFixed(2)}</StyledTableCell>
+							<StyledTableCell>{parseFloat(order.AveragePriceDisplay).toFixed(2)}</StyledTableCell>
+							<StyledTableCell>{parseFloat(order.LastPriceDisplay).toFixed(2)}</StyledTableCell>
+							<StyledTableCell>{parseFloat(order.TodaysProfitLoss).toFixed(2)}</StyledTableCell>
+							<StyledTableCell>{parseFloat(order.OpenProfitLossQty).toFixed(2)}</StyledTableCell>
+							<StyledTableCell>{parseFloat(order.OpenProfitLossPercent).toFixed(2)} %</StyledTableCell>
+							<StyledTableCell>{parseFloat(order.TotalCost).toFixed(2)}</StyledTableCell>
+							<StyledTableCell>{parseFloat(order.MarketValue).toFixed(2)}</StyledTableCell>
+						</StyledTableRow>
+					))}
+				</TableBody>
+			</Table>
         </TableContainer>
     );
 }

@@ -1,50 +1,21 @@
 import { useContext, useState } from 'react';
 import { withStyles, makeStyles } from '@material-ui/core/styles';
-import PropTypes from 'prop-types';
 import { 
 	Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
 	Paper, Grid, Button, IconButton, Dialog, DialogActions, DialogTitle, 
-	ButtonBase, Typography, TextField,
+	ButtonBase, Typography, TextField, DialogContent, DialogContentText,
 } from '@material-ui/core';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import UpdateIcon from '@material-ui/icons/Update';
-import { UserContext } from '../../contexts/UserProvider';
 import http from '../../utils/http';
-import NumberFormat from 'react-number-format';
-
-function NumberFormatCustom(props) {
-    const { inputRef, onChange, prefix, ...other } = props;
-  
-    return (
-      <NumberFormat
-        {...other}
-        getInputRef={inputRef}
-        onValueChange={(values) => {
-          onChange({
-            target: {
-              name: props.name,
-              value: values.value,
-            },
-          });
-        }}
-        thousandSeparator
-        isNumericString
-        prefix={prefix}
-      />
-    );
-}
-  
-NumberFormatCustom.propTypes = {
-	inputRef: PropTypes.func.isRequired,
-	name: PropTypes.string.isRequired,
-	onChange: PropTypes.func.isRequired,
-	prefix: PropTypes.string,
-};
+import { OrderContext } from '../../contexts/OrderProvider';
+import { ChartActionsContext } from '../../contexts/ChartActionsProvider';
 
 const StyledTableCell = withStyles((theme) => ({
 	head: {
 		backgroundColor: theme.palette.common.black,
 		color: theme.palette.common.white,
+		padding: 5
 	},
 	body: {
 		fontSize: 14,
@@ -61,14 +32,22 @@ const StyledTableRow = withStyles((theme) => ({
 
 export default function OrdersTable() {
     const classes = useStyles();
-    const { orders, reloadOrders } = useContext(UserContext);
-	const [open, setOpen] = useState(false);
+    const { orders, reloadOrders } = useContext(OrderContext);
+	const { setSymbolText } = useContext(ChartActionsContext);
+	const [updateOpen, setUpdateOpen] = useState(false);
 	const [orderInfo, setOrderInfo] = useState({});
 	const [stopPrice, setStopPrice] = useState();
 	const [limitPrice, setLimitPrice] = useState();
+	const [orderType, setOrderType] = useState();
+	const [confirmOpen, setConfirmOpen] = useState(false);
+	const [limitError, setLimitError] = useState(false);
+	const [limitErrorText, setLimitErrorText] = useState();
+	const [stopError, setStopError] = useState(false);
+	const [stopErrorText, setStopErrorText] = useState();
     
-    const handleClickCancle = (orderId) => {
-        http.deletePurchaseOrder(orderId, orderCancled);
+    const handleClickCancle = () => {
+		setConfirmOpen(false);
+        http.deletePurchaseOrder(orderInfo.OrderID, orderCancled);
     };
 
 	const orderCancled = () => {
@@ -76,24 +55,30 @@ export default function OrdersTable() {
 	}
     
 	const handleClickUpdate = (order) => {
-		const dbOrder = orders.dbOrders.filter(o => o.provider_order_id === order.OrderID.toString());
-		setOrderInfo(dbOrder[0]);
-		setOpen(true);
+		const type = order.Type.toUpperCase();
+		setOrderType((type === 'BUY' || type === 'SELLSHORT') ? 'StopLimit' : 'StopMarket');
+		setStopPrice(order.StopPrice);
+		setLimitPrice(order.LimitPrice);
+		setOrderInfo(order);
+		setUpdateOpen(true);
     };
 
 	const handleSendOrderClick = () => {
-		setOpen(false);
+		setUpdateOpen(false);
 		const payload = {
-			order_id: orderInfo.provider_order_id,
+			order_id: orderInfo.OrderID,
 			payload:{
-				Symbol: orderInfo.symbol,
-				OrderType: orderInfo.order_type,
+				Symbol: orderInfo.Symbol,
+				OrderType: orderType,
 				StopPrice: stopPrice,
 				LimitPrice: limitPrice,
-				Quantity: orderInfo.quantity,
+				Quantity: orderInfo.Quantity,
 			}
 		};
-		http.updatePurchaseOrder(payload, orderUpdated);
+		
+		if((stopPrice !== orderInfo.StopPrice || limitPrice !== orderInfo.LimitPrice) && (!stopError || !limitError)) {
+			http.updatePurchaseOrder(payload, orderUpdated);
+		} 
 	};
 
 	const orderUpdated = () => {
@@ -101,17 +86,41 @@ export default function OrdersTable() {
 	}
 
 	const handleClose = () => {
-		setOpen(false);
+		setUpdateOpen(false);
+	};
+
+	const handleConfirmDialog = (order) => {
+		setConfirmOpen(true);
+		setOrderInfo(order)
+	}
+
+	const handleConfirmClose = () => {
+		setConfirmOpen(false);
 	};
 
 	const handleTextChange = (e) => {
+		const price = e.target.value;
 		switch (e.target.name) {
 			case 'STOPPRICE':
-				setStopPrice(e.target.value);
+				if(price > limitPrice){
+					setStopError(true);
+					setStopErrorText(`Stop price cannot be greater than ${limitPrice}.`);
+				} else {
+					setStopError(false);
+					setStopErrorText('');
+					setStopPrice(price);
+				}
 				break;
 
 			case 'LIMITPRICE':
-				setLimitPrice(e.target.value);
+				if(price < stopPrice){
+					setLimitError(true);
+					setLimitErrorText(`Limit price cannot be less than ${stopPrice}.`);
+				} else {
+					setLimitError(false);
+					setLimitErrorText('');
+					setLimitPrice(price);
+				}
 				break;
 
 			default:
@@ -142,25 +151,28 @@ export default function OrdersTable() {
 							</TableRow>
 						</TableHead>
 						<TableBody>
-							{orders && orders.retOrders.map((order) => (
-								<StyledTableRow key={order.OrderID}>
-									<StyledTableCell>{order.Symbol}</StyledTableCell>
-									<StyledTableCell>{order.OrderID}</StyledTableCell>
-									<StyledTableCell>{order.StatusDescription}</StyledTableCell>
-									<StyledTableCell>{order.Type}</StyledTableCell>
-									<StyledTableCell>{order.TimeStamp}</StyledTableCell>
-									<StyledTableCell>{order.Quantity}</StyledTableCell>
-									<StyledTableCell>{order.StopPriceText}</StyledTableCell>
-									<StyledTableCell>{order.LimitPriceText}</StyledTableCell>
-									<StyledTableCell>{order.FilledPriceText}</StyledTableCell>
-									<StyledTableCell>{order.Duration}</StyledTableCell>
-									<StyledTableCell>{order.RejectReason}</StyledTableCell>
+							{orders && orders.map((order) => (
+								<StyledTableRow 
+									key={order.OrderID}
+									className={classes.row}
+								>
+									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.Symbol}</StyledTableCell>
+									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.OrderID}</StyledTableCell>
+									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.StatusDescription}</StyledTableCell>
+									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.Type}</StyledTableCell>
+									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.TimeStamp}</StyledTableCell>
+									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.Quantity}</StyledTableCell>
+									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.StopPriceText}</StyledTableCell>
+									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.LimitPriceText}</StyledTableCell>
+									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.FilledPriceText}</StyledTableCell>
+									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.Duration}</StyledTableCell>
+									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.RejectReason}</StyledTableCell>
 									<StyledTableCell>
 										<IconButton
 											className={classes.iconButton}
 											edge='end'
 											color='primary'
-											disabled={order.StatusDescription !== 'Queued'}
+											disabled={order.StatusDescription !== 'Queued' && order.StatusDescription !== 'Received'}
 											onClick={() => handleClickUpdate(order)}
 										>
 											<UpdateIcon />
@@ -171,8 +183,8 @@ export default function OrdersTable() {
 											className={classes.iconButton}
 											edge='end'
 											color='secondary'
-											disabled={order.StatusDescription !== 'Queued'}
-											onClick={() => handleClickCancle(order.OrderID)}
+											disabled={order.StatusDescription !== 'Queued' && order.StatusDescription !== 'Received'}
+											onClick={() => handleConfirmDialog(order)}
 										>
 											<DeleteForeverIcon />
 										</IconButton>
@@ -182,7 +194,7 @@ export default function OrdersTable() {
 						</TableBody>
 					</Table>
 				</TableContainer>
-				<Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" maxWidth='sm'>
+				<Dialog open={updateOpen} onClose={handleClose} aria-labelledby="form-dialog-title" maxWidth='sm'>
 					<DialogTitle id="form-dialog-title" className={classes.header} >
 						Update Order
 					</DialogTitle>
@@ -192,7 +204,7 @@ export default function OrdersTable() {
 								<Grid item  >
 									<ButtonBase className={classes.symbol} >
 										<Typography variant="h4" component="h2">
-											{orderInfo.symbol}
+											{orderInfo.Symbol}
 										</Typography>
 									</ButtonBase>
 								</Grid>
@@ -204,47 +216,45 @@ export default function OrdersTable() {
 										name="QUANTITY"
 										label="QUANTITY"
 										InputProps={{ readOnly: true, }}
-										defaultValue={orderInfo.quantity}
-										// value={quantity}
-										// onChange={handleTextChange}
+										defaultValue={orderInfo.Quantity}
 									/>
 								</Grid>
 								<Grid item xs={6}>
 									<TextField
-										id="CONFIRMID"
-										label="CONFIRM ID"
+										id="ORDERID"
+										label="ORDER ID"
 										InputProps={{ readOnly: true, }}
-										defaultValue={orderInfo.order_confirm_id}
+										defaultValue={orderInfo.OrderID}
 									/>
 								</Grid>
 								<Grid item xs={4}>
 									<TextField
-										id={orderInfo.order_type}
-										label={orderInfo.order_type}
+										id={orderType}
+										label={orderType}
 										InputProps={{ readOnly: true, }}
-										defaultValue={orderInfo.order_type}
+										defaultValue={orderType}
 									/>
 								</Grid>
 								<Grid item xs={4}>
 									<TextField
+										error={limitError}
 										id={`LIMITPRICE`}
 										name="LIMITPRICE"
 										label={`LIMIT PRICE`}
-										// InputProps={{ inputComponent: NumberFormatCustom, }}
-										defaultValue={orderInfo.limit_price}
-										// value={orderInfo.limit_price}
+										defaultValue={orderInfo.LimitPrice}
 										onChange={handleTextChange}
+										helperText={limitErrorText}
 									/>
 								</Grid>
 								<Grid item xs={4}>
 									<TextField
+										error={stopError}
 										id="STOPPRICE"
 										name="STOPPRICE"
 										label="STOP PRICE"
-										// InputProps={{ inputComponent: NumberFormatCustom, }}
-										defaultValue={orderInfo.stop_price}
-										// value={orderInfo.stop_price}
+										defaultValue={orderInfo.StopPrice}
 										onChange={handleTextChange}
+										helperText={stopErrorText}
 									/>
 								</Grid>
 							</Grid>
@@ -256,46 +266,27 @@ export default function OrdersTable() {
 						</Button>
 					</DialogActions>
 				</Dialog>
-			</Grid>
-			<Grid item xs={12} >
-				<TableContainer component={Paper} className={classes.container}>
-					<Table className={classes.table} stickyHeader aria-label="sticky table">
-						<TableHead>
-							<TableRow>
-								<StyledTableCell>Symbol</StyledTableCell>
-								<StyledTableCell>Order#</StyledTableCell>
-								<StyledTableCell>OrderStatus</StyledTableCell>
-								<StyledTableCell>Type</StyledTableCell>
-								<StyledTableCell>TradeAction</StyledTableCell>
-								<StyledTableCell>Entered</StyledTableCell>
-								<StyledTableCell>Quantity</StyledTableCell>
-								<StyledTableCell>StopPrice</StyledTableCell>
-								<StyledTableCell>LimitPrice</StyledTableCell>
-								<StyledTableCell>Duration</StyledTableCell>
-								<StyledTableCell>OrderConfirmId</StyledTableCell>
-								<StyledTableCell>Message</StyledTableCell>
-							</TableRow>
-						</TableHead>
-						<TableBody>
-							{orders && orders.dbOrders.map((order) => (
-								<StyledTableRow key={order.provider_order_id}>
-									<StyledTableCell>{order.symbol}</StyledTableCell>
-									<StyledTableCell>{order.provider_order_id}</StyledTableCell>
-									<StyledTableCell>{order.order_status}</StyledTableCell>
-									<StyledTableCell>{order.order_type}</StyledTableCell>
-									<StyledTableCell>{order.trade_action}</StyledTableCell>
-									<StyledTableCell>{order.created}</StyledTableCell>
-									<StyledTableCell>{order.quantity}</StyledTableCell>
-									<StyledTableCell>{order.stop_price}</StyledTableCell>
-									<StyledTableCell>{order.limit_price}</StyledTableCell>
-									<StyledTableCell>{order.duration}</StyledTableCell>
-									<StyledTableCell>{order.order_confirm_id}</StyledTableCell>
-									<StyledTableCell>{order.message}</StyledTableCell>
-								</StyledTableRow>
-							))}
-						</TableBody>
-					</Table>
-				</TableContainer>
+				<Dialog
+					open={confirmOpen}
+					onClose={handleConfirmClose}
+					aria-labelledby="alert-dialog-title"
+					aria-describedby="alert-dialog-description"
+				>
+					<DialogTitle id="alert-dialog-title">Deleting {orderInfo.Symbol} {orderInfo.Type} Order</DialogTitle>
+					<DialogContent>
+						<DialogContentText id="alert-dialog-description">
+							Are you sure you want to delete this orderid {orderInfo.OrderID}?
+						</DialogContentText>
+					</DialogContent>
+					<DialogActions>
+						<Button onClick={handleConfirmClose} color="primary">
+							Disagree
+						</Button>
+						<Button onClick={handleClickCancle} color="primary" autoFocus>
+							Agree
+						</Button>
+					</DialogActions>
+				</Dialog>
 			</Grid>
 		</Grid>
     );
@@ -305,8 +296,16 @@ const useStyles = makeStyles((theme) => ({
 	table: {
 		minWidth: 700,
 	},
+	row: {
+		cursor: 'pointer',
+		top: 0,
+		bottom: 0,
+	},
 	container: {
-		height: (window.innerHeight - 112) / 2,
+		height: 270,
+		top: 0,
+		bottom: 0,
+		position: 'relative',
 	},
 	iconButton: {
 		padding: 0,
@@ -319,6 +318,7 @@ const useStyles = makeStyles((theme) => ({
 		color: theme.palette.common.white,
 		backgroundColor: theme.palette.common.black,
 		textAlign: 'center',
+		height: 50,
 	},
 	buttonStyle: {
 		color: theme.palette.common.white,

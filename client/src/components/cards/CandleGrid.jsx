@@ -1,9 +1,12 @@
+import { useContext } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { 
     Grid, Paper, Typography, ButtonBase 
 } from '@material-ui/core';
 import MiniCandlestick from '../displays/MiniCandlestick';
 import helper from '../../utils/helper';
+import { ChartActionsContext } from '../../contexts/ChartActionsProvider';
+import { OrderContext } from '../../contexts/OrderProvider';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -33,18 +36,20 @@ const useStyles = makeStyles((theme) => ({
 
 export default function CandleGrid({candles}) {
     const classes = useStyles();
+    const { setSymbolText } = useContext(ChartActionsContext);
+    const { handleClickOpenTradeDialog } = useContext(OrderContext);
     return (
         <div className={classes.root}>
             <Paper className={classes.paper}>
                 <Grid container spacing={1}>
                     <Grid item >
-                        <ButtonBase className={classes.symbol} >
+                        <ButtonBase className={classes.symbol} onClick={() => setSymbolText(candles[1].symbol)}>
                             <Typography variant="h4" component="h2">
                                 {candles[1].symbol}
                             </Typography>
                         </ButtonBase>
                     </Grid>
-                    <Grid item xs={12} sm container>
+                    <Grid item xs={12} sm container onClick={() => handleClickOpenTradeDialog(candles[1])}>
                         <Grid item xs container spacing={1}>
                             <Grid item xs={12} container spacing={1}>
                                 <Grid item xs={5}>

@@ -1,198 +1,28 @@
-import { useState, useEffect, useContext } from 'react';
+import { useContext } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import PropTypes from 'prop-types';
-import NumberFormat from 'react-number-format';
 import {
-	Paper, Dialog, DialogActions, DialogTitle, Grid, 
-	ButtonBase, Typography, 
+	Button, ButtonBase, Dialog, DialogActions, DialogTitle, Grid, Paper, TextField, Typography 
 } from '@material-ui/core';
 import CandleGrid from '../cards/CandleGrid';
-import http from '../../utils/http';
+import { OrderContext } from '../../contexts/OrderProvider';
+import TerminalDialog from '../formcontrols/TerminalDialog';
+import PropTypes from 'prop-types';
+import NumberFormat from 'react-number-format';
+import { green, red } from '@material-ui/core/colors';
 import TrendingDownIcon from '@material-ui/icons/TrendingDown';
 import TrendingUpIcon from '@material-ui/icons/TrendingUp';
-import { green, red } from '@material-ui/core/colors';
 import greenCandle from '../../res/green.png';
 import redCandle from '../../res/red.png';
-import { UserContext } from '../../contexts/UserProvider';
 
-function NumberFormatCustom(props) {
-    const { inputRef, onChange, prefix, ...other } = props;
-  
-    return (
-      <NumberFormat
-        {...other}
-        getInputRef={inputRef}
-        onValueChange={(values) => {
-          onChange({
-            target: {
-              name: props.name,
-              value: values.value,
-            },
-          });
-        }}
-        thousandSeparator
-        isNumericString
-        prefix={prefix}
-      />
-    );
-}
-  
-NumberFormatCustom.propTypes = {
-	inputRef: PropTypes.func.isRequired,
-	name: PropTypes.string.isRequired,
-	onChange: PropTypes.func.isRequired,
-	prefix: PropTypes.string,
-};
-
-export default function OrderDialog({patternCandles, setOrderResponseData, setShowResponse}) {
+export default function OrderDialog({patternCandles}) {
 	const classes = useStyles();
-	const { equitiesAccountKey, reloadOrders } = useContext(UserContext);
-	const [open, setOpen] = useState(false);
-	const [candleInAction, setCandleInAction] = useState({
-		date: new Date(),
-		open: 0.00,
-		high: 0.00,
-		low: 0.00,
-		close: 0.00,
-		volume: 0,
-		pattern: '',
-		title: '',
-		symbol: '',
-		isBullishEngulfing: true,
-		isBearishEngulfing: false,
-	});
-	const [symbol, setSymbol] = useState();
-	const [isBullish, setIsBullish] = useState();
-	const [stopLimitAction, setStopLimitAction] = useState();
-	const [stopLossAction, setStopLossAction] = useState();
-	const [stopPrice, setStopPrice] = useState();
-	const [limitPrice, setLimitPrice] = useState();
-	const [stopLossPrice, setStopLossPrice] = useState();
-	const [riskOffset, setRiskOffset] = useState();
-	const [trailingStopPrice, setTrailingStopPrice] = useState();
-	const [quantity, setQuantity] = useState();
-	const [orderConfirmId, setOrderConfirmId] = useState();
-	const [stopPriceOffset, setStopPriceOffset] = useState();
-	const [limitPriceOffset, setLimitPriceOffset] = useState();
-	const [stopLossPriceOffset, setStopLossPriceOffset] = useState();
-	const [title, setTitle] = useState();
-	const [pattern, setPattern] = useState();
-	const [highPrice, setHighPrice] = useState();
-	const [lowPrice, setLowPrice] = useState();
-	const [openPrice, setOpenPrice] = useState();
-	const [closePrice, setClosePrice] = useState();
+	const { 
+		orderResponseData, showResponse, setShowResponse, 
+		open, orderSymbol, isBullish, stopLimitAction, stopLossAction, stopPrice, limitPrice,stopLossPrice, riskOffset, 
+		trailingStopPrice, quantity, orderConfirmId, stopPriceOffset, limitPriceOffset, stopLossPriceOffset, title, pattern,
+		highPrice, lowPrice, openPrice, closePrice, handleSendOrderClick, handleTextChange, handleClose,
+	} = useContext(OrderContext);
 
-	var lastClosePrice = 0;
-	if(patternCandles.length > 0){
-		lastClosePrice = patternCandles.find(candles => candles.find(candle => candle.title === 'Current Candle'))
-										.find(candle => candle.title === 'Current Candle').close;
-	}
-	useEffect(() => {
-		const c = candleInAction;
-		const isBullish = c.close > c.open;
-		const stopLimitAction = isBullish ? 'BUY' : 'SELLSHORT';
-		const stopLossAction = isBullish ? 'SELL' : 'BUYTOCOVER';
-		const spo = 0.01;
-		const lpo = 0.03;
-		const slpo = 0.01;
-		const stopPrice = isBullish ? c.high + spo : c.low - spo;
-		const limitPrice = isBullish ? c.high + lpo : c.low - lpo;
-		var stopLossPrice = isBullish ? c.low - slpo : c.high + slpo;
-		const trailingStopPrice = isBullish ? stopPrice - stopLossPrice : stopLossPrice - stopPrice;
-		// stopLossPrice = isBullish ? stopPrice - (trailingStopPrice/2) : stopPrice + (trailingStopPrice/2);
-
-		var currentTime = new Date();
-		const orderConfirmId = `${stopLimitAction + c.symbol + currentTime.getHours() + currentTime.getMinutes() + currentTime.getSeconds()}`;
-		
-		setHighPrice(parseFloat(c.high).toFixed(2));
-		setLowPrice(parseFloat(c.low).toFixed(2));
-		setOpenPrice(parseFloat(c.open).toFixed(2));
-		setClosePrice(parseFloat(c.close).toFixed(2));
-		setTitle(c.title);
-		setPattern(c.pattern);
-		setSymbol(c.symbol);
-		setIsBullish(isBullish);
-		setStopPriceOffset(spo);
-		setLimitPriceOffset(lpo);
-		setStopLossPriceOffset(slpo);
-		setStopLimitAction(stopLimitAction);
-		setStopLossAction(stopLossAction);
-		setStopPrice(parseFloat(stopPrice).toFixed(2));
-		setLimitPrice(parseFloat(limitPrice).toFixed(2));
-		setStopLossPrice(parseFloat(stopLossPrice).toFixed(2));
-		setTrailingStopPrice(parseFloat(trailingStopPrice).toFixed(2));
-		setRiskOffset(parseFloat(1).toFixed(2));
-		setQuantity(100);
-		setOrderConfirmId(orderConfirmId);
-
-	}, [candleInAction]);
-
-	const handleClickOpen = (candles) => {
-		setOpen(true);
-		setCandleInAction(candles[1]);
-	};
-
-	const handleClose = () => {
-		setOpen(false);
-	};
-
-	const handleSendOrderClick = () => {
-		setOpen(false);
-		
-		const payload = {
-			Symbol: symbol,
-			AccountKey: equitiesAccountKey,
-			AssetType: 'EQ',
-			Duration: 'GTC',
-			OrderType: 'StopLimit',
-			StopPrice: stopPrice,
-			LimitPrice: limitPrice,
-			Quantity: quantity,
-			TradeAction: stopLimitAction,
-			OrderConfirmId: orderConfirmId,
-			OSOs:  [
-				{
-					Type: 'NORMAL',
-					Orders: [
-						{
-							Symbol: symbol,
-							AccountKey: equitiesAccountKey,
-							AssetType: 'EQ',
-							Duration: 'GTC',
-							OrderType: 'StopMarket',
-							StopPrice: riskOffset,
-							Quantity: quantity,
-							TradeAction: stopLossAction,
-							OrderConfirmId: orderConfirmId + 'TS',
-							AdvancedOptions: {
-								TrailingStop: {
-									Amount: trailingStopPrice,
-								}
-							},
-							Legs: [
-								{
-									Symbol: symbol,
-									Quantity: quantity,
-									TradeAction: stopLossAction,
-								}
-							]
-						}
-					]
-				}
-			],
-		};
-		// setOrderResponseData(payload);
-		// setShowResponse(true);
-		http.postPurchaseOrder(payload, orderResponse);
-	};
-
-    const orderResponse = (data) => {
-        setOrderResponseData(data);
-		reloadOrders();
-		setShowResponse(true);
-    }
 	const lastClosePriceDiv = (
 		<>
 			<Grid item xs={6}>
@@ -203,6 +33,7 @@ export default function OrderDialog({patternCandles, setOrderResponseData, setSh
 			</Grid>
 		</>
 	); 
+
 	const lastOpenPriceDiv = (
 		<>
 			<Grid item xs={6}>
@@ -213,48 +44,26 @@ export default function OrderDialog({patternCandles, setOrderResponseData, setSh
 			</Grid>
 		</>
 	); 
-	const handleTextChange = (e) => {
-		switch (e.target.name) {
-			case 'RISKOFFSET':
-				setRiskOffset(e.target.value);
-				break;
-
-			case 'QUANTITY':
-				setQuantity(e.target.value);
-				break;
-			
-			case 'STOPOFFSET':
-				setStopPriceOffset(e.target.value);
-				break;
-
-			case 'LIMITOFFSET':
-				setLimitPriceOffset(e.target.value);
-				break;
-			
-			case 'LOSSOFFSET':
-				setStopLossPrice(e.target.value);
-				break;
-
-			case 'TRAILINGSTOP':
-				setTrailingStopPrice(e.target.value);
-				break;
-
-			default:
-				break;
-		}
-	}
 
 	return (
 		<div>
 			<Paper className={classes.orderContainer} >
 				{patternCandles && patternCandles.length > 0 && patternCandles.map((candles) => (
-					<Paper key={candles[1].title} className={classes.orderItem} onClick={() => handleClickOpen(candles)}>
+					<Paper key={candles[1].title + candles[1].symbol} className={classes.orderItem} >
 						<CandleGrid 
 							candles={candles}
 						/>
 					</Paper>
-				))}
+				))}				
 			</Paper>
+			{showResponse ?
+				<TerminalDialog  
+					jsonData={orderResponseData}
+					showResponse={showResponse}
+					setShowResponse={setShowResponse}
+				/>
+				: ''
+			}
 			<Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" maxWidth='md'>
 				<DialogTitle id="form-dialog-title" className={classes.header} >
 					{title} {pattern !== "" ? pattern + ' ' : ` - No Pattern `} 
@@ -264,15 +73,15 @@ export default function OrderDialog({patternCandles, setOrderResponseData, setSh
 							: <TrendingDownIcon style={{ color: red[500] }} />
 						}
 					</ButtonBase>
-					{` Last Price:`} {lastClosePrice}
+					{` Last Price:`} {closePrice}
 				</DialogTitle>
 				<Paper className={classes.paper}>
 					<Grid container spacing={2}>
 						<Grid item container xs={3} >
 							<Grid item >
-								<ButtonBase className={classes.symbol} >
+								<ButtonBase className={classes.orderSymbol} >
 									<Typography variant="h4" component="h2">
-										{symbol}
+										{orderSymbol}
 									</Typography>
 								</ButtonBase>
 							</Grid>
@@ -283,9 +92,7 @@ export default function OrderDialog({patternCandles, setOrderResponseData, setSh
 									id="QUANTITY"
 									name="QUANTITY"
 									label="QUANTITY"
-									InputProps={{ inputComponent: NumberFormatCustom, }}
 									defaultValue={quantity}
-									value={quantity}
 									onChange={handleTextChange}
 								/>
 							</Grid>
@@ -294,9 +101,7 @@ export default function OrderDialog({patternCandles, setOrderResponseData, setSh
 									id='RISKOFFSET'
 									name='RISKOFFSET'
 									label='RISK OFFSET (R)'
-									InputProps={{ inputComponent: NumberFormatCustom,}}
 									defaultValue={riskOffset}
-									value={riskOffset}
 									onChange={handleTextChange}
 									prefix='%'
 								/>
@@ -314,9 +119,7 @@ export default function OrderDialog({patternCandles, setOrderResponseData, setSh
 									id="STOPOFFSET"
 									name="STOPOFFSET"
 									label="STOP OFFSET"
-									InputProps={{ inputComponent: NumberFormatCustom, }}
 									defaultValue={stopPriceOffset}
-									value={stopPriceOffset}
 									onChange={handleTextChange}
 								/>
 							</Grid>
@@ -325,9 +128,7 @@ export default function OrderDialog({patternCandles, setOrderResponseData, setSh
 									id='LIMITOFFSET'
 									name='LIMITOFFSET'
 									label='LIMIT OFFSET'
-									InputProps={{ inputComponent: NumberFormatCustom, }}
 									defaultValue={limitPriceOffset}
-									value={limitPriceOffset}
 									onChange={handleTextChange}
 								/>
 							</Grid>
@@ -336,9 +137,7 @@ export default function OrderDialog({patternCandles, setOrderResponseData, setSh
 									id='LOSSOFFSET'
 									name='LOSSOFFSET'
 									label='LOSS OFFSET'
-									InputProps={{ inputComponent: NumberFormatCustom, }}
 									defaultValue={stopLossPriceOffset}
-									value={stopLossPriceOffset}
 									onChange={handleTextChange}
 								/>
 							</Grid>
@@ -371,25 +170,28 @@ export default function OrderDialog({patternCandles, setOrderResponseData, setSh
 							<Grid item xs={6}>
 								<TextField
 									id={stopLimitAction}
+									name="STOPPRICE"
 									label={stopLimitAction}
-									InputProps={{ readOnly: true, }}
 									defaultValue={stopPrice}
+									onChange={handleTextChange}
 								/>
 							</Grid>
 							<Grid item xs={6}>
 								<TextField
-									id={`STOPLIMIT`}
-									label={`STOPLIMIT`}
-									InputProps={{ readOnly: true, }}
+									id={`LIMITPRICE`}
+									name="LIMITPRICE"
+									label={`LIMITPRICE`}
 									defaultValue={limitPrice}
+									onChange={handleTextChange}
 								/>
 							</Grid>
 							<Grid item xs={6}>
 								<TextField
 									id={stopLossAction}
+									name="STOPLOSSPRICE"
 									label={stopLossAction}
-									InputProps={{ readOnly: true, }}
 									defaultValue={stopLossPrice}
+									onChange={handleTextChange}
 								/>
 							</Grid>
 							<Grid item xs={6}>
@@ -397,9 +199,7 @@ export default function OrderDialog({patternCandles, setOrderResponseData, setSh
 									id="TRAILINGSTOP"
 									name="TRAILINGSTOP"
 									label="TrailingStop / 1R"
-									InputProps={{ inputComponent: NumberFormatCustom, }}
 									defaultValue={trailingStopPrice}
-									value={trailingStopPrice}
 									onChange={handleTextChange}
 								/>
 							</Grid>
@@ -444,7 +244,7 @@ const useStyles = makeStyles((theme) => ({
         padding: theme.spacing(2),
         margin: 'auto',
     },
-    symbol: {
+    orderSymbol: {
         width: 100,
         height: 80,
     },
@@ -464,3 +264,31 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+function NumberFormatCustom(props) {
+    const { inputRef, onChange, prefix, ...other } = props;
+  
+    return (
+      <NumberFormat
+        {...other}
+        getInputRef={inputRef}
+        onValueChange={(values) => {
+          onChange({
+            target: {
+              name: props.name,
+              value: values.value,
+            },
+          });
+        }}
+        thousandSeparator
+        isNumericString
+        prefix={prefix}
+      />
+    );
+}
+  
+NumberFormatCustom.propTypes = {
+	inputRef: PropTypes.func.isRequired,
+	name: PropTypes.string.isRequired,
+	onChange: PropTypes.func.isRequired,
+	prefix: PropTypes.string,
+};

@@ -7,9 +7,6 @@ const UserProvider = ({ children }) => {
     const [userId, setUserId] = useState(null);
     const [accounts, setAccounts] = useState(null);
     const [equitiesAccountKey, setEquitiesAccountKey] = useState(null);
-    const [balances, setBalances] = useState(null);
-    const [positions, setPositions] = useState(null);
-    const [orders, setOrders] = useState(null);
     
     useEffect(() => {
         const userProfileData = (data) => {
@@ -26,17 +23,10 @@ const UserProvider = ({ children }) => {
 
             const key = data.filter(item => item.Type === 'M')[0].Key;
             setEquitiesAccountKey(key);
-            http.getAccountBalances(key, setBalances);
-            http.getAccountPositions(key, setPositions);
-            http.getAccountOrders(key, setOrders);
         }
 
         http.getProfileData(userProfileData);
     }, []);
-    
-    const reloadOrders = () => {
-        http.getAccountOrders(equitiesAccountKey, setOrders);
-    }
 
     return (
         <UserContext.Provider value={{
@@ -44,10 +34,7 @@ const UserProvider = ({ children }) => {
             userId, 
             accounts, 
             equitiesAccountKey, 
-            balances, 
-            positions, 
-            orders, reloadOrders}}
-        >
+        }}>
             {children}
         </UserContext.Provider>
     );

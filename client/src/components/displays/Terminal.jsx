@@ -31,7 +31,7 @@ const useStyles = makeStyles((theme) => ({
         background: 'white',
         borderRadius: '6px',
         fontSize: '20px',
-        margin: theme.spacing(1),
+        // margin: theme.spacing(1),
     },
     content: {
         backgroundColor: '#EEEEEE',
@@ -39,7 +39,7 @@ const useStyles = makeStyles((theme) => ({
         borderBottomLeftRadius: '6px',
         borderBottomRightRadius: '6px',
         overflowY: 'auto',
-        height: window.innerHeight - 165,
+        height: window.innerHeight - 200,
     },
     titleBar: {
         backgroundColor: 'rgb(109, 106, 106)',

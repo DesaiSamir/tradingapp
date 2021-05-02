@@ -15,6 +15,7 @@ const marketdataRouter = require('./routes/marketdata');
 //DB Routers
 const watchlistRouter = require('./routes/watchlist');
 const ordersRouter = require('./routes/orders');
+const patternRouter = require('./routes/pattern');
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use('/api/marketdata', marketdataRouter);
 //DB Endpoints
 app.use('/api/watchlist', watchlistRouter);
 app.use('/api/orders', ordersRouter);
+app.use('/api/pattern', patternRouter);
 
 // error handler
 app.use(function(err, req, res, next) {

@@ -5,7 +5,7 @@ import { UserContext } from "./UserProvider";
 export const ChartActionsContext = createContext();
 
 const ChartActionsProvider = ({ children }) => {
-    const { userId } = useContext(UserContext);
+    const { userId,  } = useContext(UserContext);
     const [stockQuote, setStockQuote] = useState([]);
     const [barChartData, setBarChartData] = useState([]);
     const [symbol, setSymbol] = useState('SPY');
@@ -14,6 +14,10 @@ const ChartActionsProvider = ({ children }) => {
 	const [chartText, setChartText] = useState(`${symbol}, ${interval} ${unit}`);
     const [url, setUrl] = useState('');
     const [isPreMarket, setIsPreMarket] = useState(false);
+    const [currentWatchlist, setCurrentWatchlist] = useState([]);
+    const [currentPatterns, setCurrentPatterns] = useState([]);
+    const [timeframes, setTimeframes] = useState([]);
+    const [patternTypes, setPatternTypes] = useState([]);
     
     useEffect(() => {
         const sessionTemplate = isPreMarket ? "&SessionTemplate=USEQPreAndPost" : '';
@@ -24,14 +28,26 @@ const ChartActionsProvider = ({ children }) => {
         setUrl(resolvedUrl);
         setChartText(`${symbol},${unit === 'Minute' ? interval : ''} ${unit}`);
         
-        const payload = {
-            method: 'STREAM',
-            url: resolvedUrl 
+        const loadPatterns = (data) => {
+            var patternList = [];
+            data.patterns.forEach(pattern => {
+                pattern.candles[0].date = new Date(new Date(pattern.candles[0].date).toJSON());
+                pattern.candles[1].date = new Date(new Date(pattern.candles[1].date).toJSON());
+                pattern.candles[1].timeframe = pattern.timeframe;
+                patternList.push(pattern.candles);
+            });
+            setCurrentPatterns(patternList);
         };
-    
+        
+        
         if(userId){
             http.getQuoteData(symbol, setStockQuote);
-            http.getBarChartData(payload, setBarChartData);
+            const payload = { method: 'STREAM', url: resolvedUrl };
+            http.getBarChartData(payload, setBarChartData, symbol);
+            http.getWatchlist(setCurrentWatchlist);
+            http.getPatterns(loadPatterns);
+            http.getPatternTimeframes(setTimeframes);
+            http.getPatternTypes(setPatternTypes);
         }
     }, [unit, interval, symbol, isPreMarket, userId]);
     
@@ -47,7 +63,6 @@ const ChartActionsProvider = ({ children }) => {
         
         if(target === '')
             target = 'SPY';
-
 
         if (e.key === 'Enter') {
             setSymbol(target);
@@ -67,6 +82,46 @@ const ChartActionsProvider = ({ children }) => {
         }, 1000);
     }
 
+    const setSymbolText = (symbol) => {
+		var symbolText = document.getElementById('symbol');
+		symbolText.value = symbol;
+		setSymbol(symbol);
+	}
+
+	const handleAddWatchlist = async (e, setOpen) => {
+		if (e.type === 'keydown' && e.key !== 'Enter') return;
+		e.preventDefault();
+		var stockSymbol = document.getElementById('addStockSymbol');
+		
+		const payload = { 
+			Symbol: stockSymbol.value,
+		};
+	
+		const addedSymbol = await http.send('POST','api/watchlist', payload);
+	
+		if(addedSymbol){
+			console.log(addedSymbol);
+			const newSymbol = {
+				Symbol: addedSymbol.symbol
+			};
+			setCurrentWatchlist([...currentWatchlist,  newSymbol]);
+			http.getWatchlist(setCurrentWatchlist);
+		}
+		setOpen(false);
+	}
+	
+	const handleDeleteWatchlist = async (e, stock) => {
+		e.preventDefault();
+		
+		setCurrentWatchlist(currentWatchlist.filter(list => list.Symbol !== stock.Symbol));
+		
+		const payload = { 
+			Symbol: stock.Symbol,
+		};
+
+		http.send('DELETE',`api/watchlist/${stock.Symbol}`, payload);
+	}
+
     return (
         <ChartActionsContext.Provider value={{
             stockQuote, 
@@ -79,6 +134,9 @@ const ChartActionsProvider = ({ children }) => {
             isPreMarket, setIsPreMarket,
             onUnitClicked, 
             onTextChanged,
+            setSymbolText,
+            currentWatchlist, handleAddWatchlist, handleDeleteWatchlist,
+            currentPatterns, patternTypes, timeframes,
         }}>
             {children}
         </ChartActionsContext.Provider>

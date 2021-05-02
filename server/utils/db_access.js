@@ -5,7 +5,11 @@ function updateProviderUserInfo(session) {
     const params = session;
     User.getUserByUsername(params.userid)
         .then((user) => {
-            UserProfile.updateUserProfile(user.user_id, params);
+            if(user && user.user_id) {
+                UserProfile.updateUserProfile(user.user_id, params);
+            } else {
+                console.log({error: user})
+            }
         });
 }
 

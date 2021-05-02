@@ -12,7 +12,7 @@ const Orders = () => {
 
     return (
         <div className={classes.root}>
-            <OrdersTable />
+                <OrdersTable />
         </div>
     )
 }

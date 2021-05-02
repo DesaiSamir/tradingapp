@@ -62,7 +62,7 @@ module.exports = {
                 patternCandles.push(lastBearCandles);
             }
         }
-        return patternCandles;
+        return (patternCandles);
     },
     getMiniChartCandles: function(candles){
         var newCandles = [];
