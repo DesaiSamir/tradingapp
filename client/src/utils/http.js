@@ -43,7 +43,7 @@ module.exports = {
         }
     },
     getQuoteData: async function (symbol, cb) {
-        const quoteData = await this.get(`api/watchlist/${symbol}`, cb);
+        const quoteData = await this.get(`api/watchlist/${symbol}`);
         currentSymbol = symbol;
         if(quoteData){
             console.log({quoteData});
@@ -134,7 +134,22 @@ module.exports = {
             console.log(patternData);
             cb(patternData);
         }
-        // this.getWatchlistRecursive(cb);
+        this.getPatternsRecursive(cb);
+    },
+    getPatternsRecursive: function(cb){
+        
+        clearInterval(watchlistTimer);
+        
+        watchlistTimer = setInterval(async () => {
+            if(this.isRegularSessionTime()){
+                const patternData = await this.get("api/pattern", cb);
+                
+                if(patternData){
+                    console.log(patternData);
+                    cb(patternData);
+                }
+            }
+        }, this.getRefreshInterval());
     },
     getPatternTimeframes: async function(cb){
         const timeframes = await this.get("api/pattern/timeframes", cb);
@@ -143,7 +158,6 @@ module.exports = {
             console.log(timeframes);
             cb(timeframes);
         }
-        // this.getWatchlistRecursive(cb);
     },
     getPatternTypes: async function(cb){
         const patternTypes = await this.get("api/pattern/types", cb);

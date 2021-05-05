@@ -34,7 +34,11 @@ UserProfile.updateUserProfileById = async function (userProfile) {
 }
 
 UserProfile.getUserProfileByUserId = async function (user_id, provider_id) {
-    const query = `Select * from user_profile where user_id = ${user_id} AND provider_id = ${provider_id}`;
+    const query = `SELECT u.username userid, refreshed_at, expires_in, access_token, refresh_token, p.provider_name, CONCAT(u.fname, ' ', u.lname) name
+                    FROM user_profile up 
+                    JOIN users u ON u.user_id = up.user_id 
+                    JOIN provider p ON p.provider_id = up.provider_id 
+                    WHERE up.user_id = ${user_id} AND up.provider_id = ${provider_id}`;
     
     const result = await db.getData(query);
 

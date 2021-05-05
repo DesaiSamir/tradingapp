@@ -2,6 +2,7 @@ const request = require('request');
 const fetch = require('node-fetch');
 const { ts, aa } = require('../config');
 const db = require('./db_access');
+const profile = require('../db/user_profile');
 
 module.exports = {
     getAccessToken: async function (req, res, code, refresh_token){
@@ -88,19 +89,25 @@ module.exports = {
 
     send: async function(req, res, method, url, payload = null) {
         var tokenActive = false;
-        if(req.session && req.session.expires_in) {
-            const currentDT = new Date();
-            if(new Date(req.session.expires_in) < currentDT){
-                const sessionInfo = await this.refreshToken(req, res);
-                if(sessionInfo){
-                    tokenActive = true;
+        const user_profile = await profile.getUserProfileByUserId(1, 1);
+        if(user_profile){
+            if(req.session.isNew){
+                req.session = user_profile;
+            } 
+            if(req.session && req.session.expires_in) {
+                const currentDT = new Date();
+                if(new Date(req.session.expires_in) < currentDT){
+                    const sessionInfo = await this.refreshToken(req, res);
+                    if(sessionInfo){
+                        tokenActive = true;
+                    }
                 }
-            }
-            tokenActive = true;
-        } else {
-            return {"Error": "Login expired, please login."};
-        };
-
+                tokenActive = true;
+            } else {
+                
+                return {"Error": "Login expired, please login."};
+            };
+        }
         if(tokenActive){
             var res;
             switch (method) {

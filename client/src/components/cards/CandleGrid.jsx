@@ -43,7 +43,7 @@ export default function CandleGrid({candles}) {
             <Paper className={classes.paper}>
                 <Grid container spacing={1}>
                     <Grid item >
-                        <ButtonBase className={classes.symbol} onClick={() => setSymbolText(candles[1].symbol)}>
+                        <ButtonBase className={classes.symbol} onClick={() => setSymbolText(candles[1])}>
                             <Typography variant="h4" component="h2">
                                 {candles[1].symbol}
                             </Typography>

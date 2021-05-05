@@ -19,7 +19,8 @@ const OrderProvider = ({ children }) => {
 	const [stopLossPrice, setStopLossPrice] = useState();
 	const [target1Price, setTarget1Price] = useState();
 	const [target2Price, setTarget2Price] = useState();
-	const [riskOffset, setRiskOffset] = useState();
+	const [riskOffset, setRiskOffset] = useState(1);
+    const [oneRPrice, setOneRPrice] = useState();
 	const [trailingStopPrice, setTrailingStopPrice] = useState();
 	const [quantity, setQuantity] = useState();
 	const [quantityT1, setQuantityT1] = useState();
@@ -37,14 +38,39 @@ const OrderProvider = ({ children }) => {
     const [orderResponseData, setOrderResponseData] = useState();
     const [showResponse, setShowResponse] = useState(false);
 	const [orderTypeValue, setOrderTypeValue] = useState('');
+	const [symbolPosition, setSymbolPosition] = useState([]);
+	const [symbolOrders, setSymbolOrders] = useState([]);
+	const [symbolAvgPrice, setSymbolAvgPrice] = useState();
+	const [orderUpdated, setOrderUpdated] = useState(false);
     
     useEffect(() => {
-        http.getAccountOrders(equitiesAccountKey, setOrders);
-        http.getAccountPositions(equitiesAccountKey, setPositions);
-    }, [equitiesAccountKey]);
+		const ordersData = (data) => {
+			const symbolOrders = data.filter(order => order.Symbol === symbol);
+			if(symbolOrders){
+				setSymbolOrders(symbolOrders);
+			}
+			
+			setOrders(data);
+		}
+		const positionsData = (data) => {
+			const symbolPosition = data && data.length && data.filter(pos => pos.Symbol === symbol)[0];
+			
+			if(symbolPosition){
+				setSymbolAvgPrice(symbolPosition.AveragePrice);
+				setSymbolPosition(symbolPosition);
+			}
+			else {
+				setSymbolAvgPrice(null);
+				setSymbolPosition(null);
+			}
+			setPositions(data);
+		}
+        http.getAccountOrders(equitiesAccountKey, ordersData);
+        http.getAccountPositions(equitiesAccountKey, positionsData);
+    }, [equitiesAccountKey, symbol, orderUpdated]);
     
     const reloadOrders = () => {
-        http.getAccountOrders(equitiesAccountKey, setOrders);
+		setOrderUpdated(!orderUpdated);
     }
 
 	const handleClickOpenTradeDialog = (candle) => {
@@ -57,15 +83,16 @@ const OrderProvider = ({ children }) => {
 		const spo = 0.01;
 		const lpo = 0.03;
 		const slpo = 0.01;
-		const cStopPrice = cIsBullish ? c.high + spo : c.low - spo;
-		const cLimitPrice = cIsBullish ? c.high + lpo : c.low - lpo;
-		var cStopLossPrice = cIsBullish ? c.low - slpo : c.high + slpo;
-		const cTrailingStopPrice = cIsBullish ? cStopPrice - cStopLossPrice : cStopLossPrice - cStopPrice;
-		const cQuantity = Math.floor(100000/ cStopPrice);
+		const cStopPrice = cIsBullish ? parseFloat(c.high) + spo : parseFloat(c.low) - spo;
+		const cLimitPrice = cIsBullish ? parseFloat(c.high) + lpo : parseFloat(c.low) - lpo;
+		const cOneRPrice = cIsBullish ? parseFloat(cStopPrice) - parseFloat(c.low) - slpo : parseFloat(c.high) + slpo - parseFloat(cStopPrice);
+        const cTrailingStopPrice = parseFloat(cOneRPrice) * parseFloat(riskOffset);
+		var cStopLossPrice = cIsBullish ? parseFloat(cStopPrice) - parseFloat(cTrailingStopPrice) : parseFloat(cStopPrice) + parseFloat(cTrailingStopPrice);
+		const cQuantity = Math.floor(100000/ parseFloat(cStopPrice));
         const cQuantityT1 = Math.floor(cQuantity/2);
         const cQuantityT2 = cQuantity - cQuantityT1;
-        const cTarget1Price = cStopPrice + (cTrailingStopPrice / 2);
-        const cTarget2Price = cStopPrice + cTrailingStopPrice;
+        const cTarget1Price = cIsBullish ? parseFloat(cStopPrice) + ((parseFloat(cTrailingStopPrice) / 2) * parseFloat(riskOffset)) : parseFloat(cStopPrice) - ((parseFloat(cTrailingStopPrice) / 2) * parseFloat(riskOffset));
+        const cTarget2Price = cIsBullish ? parseFloat(cStopPrice) + (parseFloat(cTrailingStopPrice) * parseFloat(riskOffset)) : parseFloat(cStopPrice) - (parseFloat(cTrailingStopPrice) * parseFloat(riskOffset));
 
 		var currentTime = new Date();
 		const cOrderConfirmId = `${cStopLimitAction + cSymbol + currentTime.getHours() + currentTime.getMinutes() + currentTime.getSeconds()}`;
@@ -86,10 +113,10 @@ const OrderProvider = ({ children }) => {
 		setStopPrice(parseFloat(cStopPrice).toFixed(2));
 		setLimitPrice(parseFloat(cLimitPrice).toFixed(2));
 		setStopLossPrice(parseFloat(cStopLossPrice).toFixed(2));
+        setOneRPrice(parseFloat(cOneRPrice).toFixed(2));
 		setTrailingStopPrice(parseFloat(cTrailingStopPrice).toFixed(2));
         setTarget1Price(parseFloat(cTarget1Price).toFixed(2));
         setTarget2Price(parseFloat(cTarget2Price).toFixed(2));
-		setRiskOffset(parseFloat(1).toFixed(2));
 		setQuantity(cQuantity);
         setQuantityT1(cQuantityT1);
         setQuantityT2(cQuantityT2);
@@ -458,50 +485,64 @@ const OrderProvider = ({ children }) => {
     }
 
 	const handleTextChange = (e) => {
-        const price = e.target.value;
+        const price = parseFloat(e.target.value).toFixed(2);
 		switch (e.target.name) {
 			case 'RISKOFFSET':
-				setRiskOffset(price);
+                const cIsBullish = closePrice > openPrice;
+                const cTrailingStopPrice = parseFloat(oneRPrice) * parseFloat(price);
+                var cStopLossPrice = cIsBullish ? parseFloat(stopPrice) - cTrailingStopPrice : parseFloat(stopPrice) + cTrailingStopPrice;
+                const cTarget1Price = cIsBullish ? parseFloat(stopPrice) + ((cTrailingStopPrice / 2) * parseFloat(price)) : parseFloat(stopPrice) - ((cTrailingStopPrice / 2) * parseFloat(price));
+                const cTarget2Price = cIsBullish ? parseFloat(stopPrice) + (cTrailingStopPrice * parseFloat(price)) : parseFloat(stopPrice) - (cTrailingStopPrice * parseFloat(price));
+
+                setStopLossPrice(parseFloat(cStopLossPrice).toFixed(2));
+                setTrailingStopPrice(parseFloat(cTrailingStopPrice).toFixed(2));
+                setTarget1Price(parseFloat(cTarget1Price).toFixed(2));
+                setTarget2Price(parseFloat(cTarget2Price).toFixed(2));
+				setRiskOffset(parseFloat(price));
 				break;
 
 			case 'QUANTITY':
-				setQuantity(price);
+                const cQuantityT1 = Math.floor(parseInt(price)/2);
+                const cQuantityT2 = parseInt(price) - cQuantityT1;                
+                setQuantityT1(cQuantityT1);
+                setQuantityT2(cQuantityT2);
+				setQuantity(parseInt(price));
 				break;
 			
 			case 'STOPOFFSET':
-				setStopPriceOffset(price);
+				setStopPriceOffset(parseFloat(price));
 				break;
 
 			case 'LIMITOFFSET':
-				setLimitPriceOffset(price);
+				setLimitPriceOffset(parseFloat(price));
 				break;
 			
 			case 'LOSSOFFSET':
-				setStopLossPriceOffset(price);
+				setStopLossPriceOffset(parseFloat(price));
 				break;
 			
             case 'STOPLOSSPRICE':
-                setStopLossPrice(price);
+                setStopLossPrice(parseFloat(price));
                 break;
 			
             case 'STOPPRICE':
-                setStopPrice(price);
+                setStopPrice(parseFloat(price));
                 break;
         
             case 'LIMITPRICE':
-                setLimitPrice(price);
+                setLimitPrice(parseFloat(price));
                 break;
 
 			case 'TRAILINGSTOP':
-				setTrailingStopPrice(price);
+				setTrailingStopPrice(parseFloat(price));
 				break;
 
             case 'TARGET1':
-                setTarget1Price(price);
+                setTarget1Price(parseFloat(price));
                 break;
 
             case 'TARGET2':
-                setTarget2Price(price);
+                setTarget2Price(parseFloat(price));
                 break;
 
 			default:
@@ -512,7 +553,6 @@ const OrderProvider = ({ children }) => {
     const handleRadioChange = (event) => {
         const orderType = event.target.value;
         setOrderTypeValue(orderType);
-        console.log(orderType);
     };
 
     return (
@@ -521,7 +561,7 @@ const OrderProvider = ({ children }) => {
             orderOpen, orderSymbol, isBullish, stopLimitAction, stopLossAction, stopPrice, limitPrice,stopLossPrice, riskOffset, 
             trailingStopPrice, quantity, orderConfirmId, stopPriceOffset, limitPriceOffset, stopLossPriceOffset, title, pattern,
             highPrice, lowPrice, openPrice, closePrice, handleSendOrderClick, handleTextChange, handleClose, handleRadioChange,
-            orderTypeValue, target1Price, target2Price, 
+            orderTypeValue, target1Price, target2Price, oneRPrice, symbolAvgPrice, symbolOrders, symbolPosition
         }}>
             {children}
         </OrderContext.Provider>

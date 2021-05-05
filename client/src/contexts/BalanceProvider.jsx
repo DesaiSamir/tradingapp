@@ -14,6 +14,7 @@ const BalanceProvider = ({ children }) => {
     const [positionCost, setPositionCost] = useState(null);
     const [overnightBuyPower, setOvernightBuyPower] = useState(null);
     const [dayBuyPower, setDayBuyPower] = useState(null);
+    const [closedPositions, setClosedPositions] = useState(null);
     
     useEffect(() => {
         const callback = (data) => {
@@ -28,6 +29,7 @@ const BalanceProvider = ({ children }) => {
                 setPositionCost(bInfo.RealTimeCostOfPositions);
                 setOvernightBuyPower(bInfo.RealTimeOvernightBuyingPower);
                 setDayBuyPower(bInfo.RealTimeBuyingPower);
+                setClosedPositions(bInfo.ClosedPositions);
             }
         }
 
@@ -38,8 +40,8 @@ const BalanceProvider = ({ children }) => {
     
     return (
         <BalanceContext.Provider value={{
-            balanceInfo, balAccountName, 
-            accountBalance, realizedPnL, unRealizedPnL,
+            balanceInfo, balAccountName, accountBalance, 
+            realizedPnL, unRealizedPnL, closedPositions,
             netWorth, positionCost, overnightBuyPower, dayBuyPower,
         }}>
             {children}

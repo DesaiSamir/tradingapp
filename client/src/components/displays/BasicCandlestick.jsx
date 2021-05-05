@@ -8,30 +8,27 @@ import {
     CurrentCoordinate, ElderRaySeries,
     MovingAverageTooltip, OHLCTooltip, SingleValueTooltip, HoverTooltip,
     lastVisibleItemBasedZoomAnchor, XAxis, YAxis, CrossHairCursor,
-    EdgeIndicator, MouseCoordinateX, MouseCoordinateY,
+    EdgeIndicator, MouseCoordinateX, MouseCoordinateY, PriceCoordinate,
     ZoomButtons, withDeviceRatio, withSize, Label, Annotate, BarAnnotation
 } from "react-financial-charts";
 import { OrderContext } from "../../contexts/OrderProvider";
-import { ChartActionsContext } from "../../contexts/ChartActionsProvider";
+// import { ChartActionsContext } from "../../contexts/ChartActionsProvider";
 
 var stockChartHeight = 360;
 
 const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio, width, chartText, ...rest }) => {
     const margin = { left: 50, right: 50, top: 0, bottom: 24 };
-
-    if(document.getElementById('timeframes').clientHeight)
-        stockChartHeight = document.getElementById('timeframes').clientHeight;
-    
-    const { handleClickOpenTradeDialog, orders} = useContext(OrderContext);
-    const { symbol } = useContext(ChartActionsContext);
-
-    const orderReceived = orders && orders.filter(o => o.StatusDescription === 'Received' && o.Symbol === symbol)[0];
-    const orderQueued = orders && orders.filter(o => o.StatusDescription === 'Queued' && o.Symbol === symbol)[0];
-    // console.log(orderQueued)
     const pricesDisplayFormat = format(".2f");
     const numberDisplayFormat = format(",");
     const [lastClose, setLastClose] = useState(0);
     const [lastColor, setLastColor] = useState("#26a69a");
+
+    if(document.getElementById('timeframes').clientHeight)
+        stockChartHeight = document.getElementById('timeframes').clientHeight;
+    
+    const { handleClickOpenTradeDialog, symbolOrders, symbolAvgPrice } = useContext(OrderContext);
+    // const { lastPrice } = useContext(ChartActionsContext);
+
     const xScaleProvider = discontinuousTimeScaleProviderBuilder().inputDateAccessor(
         (d => d.date),
     );
@@ -123,14 +120,25 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
 
     const candlestickYAccessor = (data) => {
         return { open: data.open, high: data.high, low: data.low, close: data.close, pattern: data.pattern};
-    }
-    
+    }   
 
     const onCandleClicked = (e, data) => {
         e.preventDefault();
         handleClickOpenTradeDialog(data.datum);
     }
-    
+
+    const orderDisplay = symbolOrders.map(order => {
+        const lmPrice = order.LimitPrice;
+        const stPrice = order.StopPrice;
+        const displayPrice = lmPrice !== 0 ? lmPrice : stPrice; 
+        const displayColor = displayPrice > symbolAvgPrice ? "#26a69a" : "#ef5350";
+
+        return(<PriceCoordinate key={order.OrderID} orient="left" at="right" rectWidth={margin.right} 
+            fill={displayColor} lineStroke={displayColor} strokeDasharray="ShortDot"
+        displayFormat={pricesDisplayFormat} price={displayPrice} />);
+
+    });
+
     const annotBullish = {
         tooltip: "Go Long",
         textIcon: '\u25B2',
@@ -175,11 +183,10 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
             zoomAnchor={lastVisibleItemBasedZoomAnchor}
         >
             <Chart id={1} height={chartHeight} yExtents={candleChartExtents}>
-                
-                <EdgeIndicator  orient="right" at="left" rectWidth={margin.right} fill="#26a69a" 
-                                displayFormat={pricesDisplayFormat} yAccessor={() => orderReceived && orderReceived.StopPrice} arrowWidth={10} />
-                <EdgeIndicator  orient="right" at="left" rectWidth={margin.right} fill="#ef5350" 
-                                displayFormat={pricesDisplayFormat} yAccessor={() => orderQueued && orderQueued.StopPrice} arrowWidth={10} />
+                {orderDisplay}
+                <PriceCoordinate  orient="left" at="right" rectWidth={margin.right} displayFormat={pricesDisplayFormat}  
+                    fill={symbolAvgPrice > lastClose ? "#ef5350" : "#26a69a"} lineStroke={symbolAvgPrice > lastClose ? "#ef5350" : "#26a69a"}
+                    price={symbolAvgPrice} strokeDasharray="ShortDot" />
             </Chart>
             <Chart id={2} height={barChartHeight} origin={barChartOrigin} yExtents={barChartExtents}>
                 
@@ -189,7 +196,8 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                 <MouseCoordinateY at="left" orient="left" displayFormat={format(".4s")} arrowWidth={10} />
                 <BarSeries fillStyle={volumeColor} yAccessor={volumeSeries}  />
                 <CurrentCoordinate yAccessor={d => d.volume} fill="#9B0A47" />
-                <EdgeIndicator orient="right" at="left" rectWidth={margin.right} fill="#9B0A47" displayFormat={format(".4s")} yAccessor={() => averageVolume(data)} arrowWidth={10} />
+                <EdgeIndicator orient="right" at="left" rectWidth={margin.right} fill="#9B0A47" 
+                        displayFormat={format(".4s")} yAccessor={() => averageVolume(data)} arrowWidth={10} />
 
             </Chart>
             <Chart id={3} height={chartHeight} yExtents={candleChartExtents}>
@@ -204,7 +212,8 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                 <CurrentCoordinate yAccessor={ema12.accessor()} fillStyle={ema12.stroke()} />
                 <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat} arrowWidth={10} />
                 <LineSeries yAccessor={() => lastClose} strokeStyle={lastColor}  />
-                <EdgeIndicator itemType="last" rectWidth={margin.right} fill={openCloseColor} lineStroke={openCloseColor} displayFormat={pricesDisplayFormat} yAccessor={yEdgeIndicator} arrowWidth={10} />
+                <EdgeIndicator itemType="last" rectWidth={margin.right} fill={openCloseColor} lineStroke={openCloseColor} 
+                    displayFormat={pricesDisplayFormat} yAccessor={yEdgeIndicator} arrowWidth={10} strokeDasharray="Solid" />
                 <MovingAverageTooltip
                     origin={[8, 24]}
                     options={[

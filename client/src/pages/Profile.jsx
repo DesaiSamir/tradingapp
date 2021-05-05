@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Terminal from "../components/displays/Terminal";
 import { Paper, Grid } from "@material-ui/core";
 import { UserContext } from "../contexts/UserProvider";
+import { BalanceContext } from "../contexts/BalanceProvider";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -29,14 +30,21 @@ const useStyles = makeStyles((theme) => ({
 const Profile = () => {
     const classes = useStyles();
     const { userProfile } = useContext(UserContext);
+    const { balanceInfo } = useContext(BalanceContext);
     
     return (
         <Paper className={classes.root}>
             <Grid container>
-                <Grid item xs={12}> 
+                <Grid item xs={6}> 
                     <Terminal
                         jsonData={userProfile}
                         title="Profile Data"
+                    />
+                </Grid>
+                <Grid item xs={6}> 
+                    <Terminal
+                        jsonData={balanceInfo}
+                        title="Balance Data"
                     />
                 </Grid>
             </Grid>

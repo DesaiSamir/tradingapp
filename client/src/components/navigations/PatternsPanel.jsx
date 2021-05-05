@@ -61,17 +61,26 @@ function LinkTab(props) {
 export default function PatternsPanel() {
 	const classes = useStyles();
 	const { 
-		barChartData, chartText, symbol, currentWatchlist, currentPatterns, patternTypes, timeframes,
+		barChartData, chartText, symbol, currentWatchlist, currentPatterns, patternTypes, timeframes, currentTimeframe, 
 	} = useContext(ChartActionsContext);
-    var patternCandles = helper.getPatternCandleList(_.clone(barChartData), symbol);
+    var patternCandles = helper.getPatternCandleList(_.clone(barChartData), symbol, currentTimeframe);
 	const [value, setValue] = useState(0);
 	const [displayPatterns, setDisplayPatterns] = useState([]);
-	const [displayTimeframes, setDisplayTimeframes] = useState([]);
+	const [selectedPatternType, setSelectedPatternType] = useState("All");
+	const [selectedPatternTimeframe, setSelectedPatternTimeframe] = useState("All");
+	const [lastTimeframe, setLastTimeframe] = useState(1);
+	const [lastPatternType, setLastPatternType] = useState(3);
 
 	useEffect(() => {
-		setDisplayPatterns(currentPatterns);
-		setDisplayTimeframes(timeframes);
-	}, [currentPatterns, timeframes]);
+		if(selectedPatternTimeframe === "All" && selectedPatternType === "All"){
+			setDisplayPatterns(currentPatterns);
+		} else {
+			setDisplayPatterns(currentPatterns
+				.filter(items => (selectedPatternType !== "All" ? items[1].title === selectedPatternType : items[1].title === items[1].title) )
+				.filter(items => (selectedPatternTimeframe !== "All" ? items[1].timeframe === selectedPatternTimeframe : items[1].timeframe === items[1].timeframe)));
+		}
+
+	}, [currentPatterns, timeframes, selectedPatternType, selectedPatternTimeframe]);
 
 	const handleChange = (event, newValue) => {
 		setValue(newValue);
@@ -80,15 +89,16 @@ export default function PatternsPanel() {
 	const onSelectChange = (e, name, items) => {
 		const id = e.target.value;
 		const item = items.filter(item => item.id === id)[0];
+		
 		switch (name) {
 			case 'types':
-				// console.log({currentPatterns, filtered: currentPatterns.filter(items => items[1].title === item.title)})
-				setDisplayPatterns(currentPatterns.filter(items => items[1].title === item.title));
+				setSelectedPatternType(item.title);
+				setLastPatternType(id);
 				break;
 			
 			case 'timeframes':
-				// console.log({timeframes, filtered: item})
-				setDisplayPatterns(currentPatterns.filter(items => items[1].timeframe === item.title));
+				setSelectedPatternTimeframe(item.title)
+				setLastTimeframe(id);
 				break;
 				
 			default:
@@ -157,15 +167,15 @@ export default function PatternsPanel() {
 							<SimpleSelect 
 								onSelectChange={onSelectChange}
 								name="timeframes"
-								menuItems={displayTimeframes.timeframes}
-								defaultValue={4}
+								menuItems={timeframes.timeframes}
+								defaultValue={lastTimeframe}
 								title="Timeframes"
 							/>
 							<SimpleSelect 
 								onSelectChange={onSelectChange}
 								name="types"
 								menuItems={patternTypes.pattern_types}
-								defaultValue={1}
+								defaultValue={lastPatternType}
 								title="Pattern Types"
 							/>
 							<DatePickers 

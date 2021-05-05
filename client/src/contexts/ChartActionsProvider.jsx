@@ -18,6 +18,8 @@ const ChartActionsProvider = ({ children }) => {
     const [currentPatterns, setCurrentPatterns] = useState([]);
     const [timeframes, setTimeframes] = useState([]);
     const [patternTypes, setPatternTypes] = useState([]);
+    const [lastPrice, setLastPrice] = useState();
+    const [currentTimeframe, setCurrentTimeframe] = useState();
     
     useEffect(() => {
         const sessionTemplate = isPreMarket ? "&SessionTemplate=USEQPreAndPost" : '';
@@ -25,6 +27,7 @@ const ChartActionsProvider = ({ children }) => {
         const resolvedUrl = url.replace('$symbol', symbol).replace('$unit', unit).replace('$interval', unit !== 'Minute' ? 1 : interval)
                     .replace('$lastDate', helper.newDate(new Date())).replace('$daysBack', unit !== 'Minute' ? 1000 : isPreMarket || interval < 15 ? 30 : 300);
 
+        setCurrentTimeframe(unit !== 'Minute' ? unit : `${interval}M`);
         setUrl(resolvedUrl);
         setChartText(`${symbol},${unit === 'Minute' ? interval : ''} ${unit}`);
         
@@ -33,17 +36,24 @@ const ChartActionsProvider = ({ children }) => {
             data.patterns.forEach(pattern => {
                 pattern.candles[0].date = new Date(new Date(pattern.candles[0].date).toJSON());
                 pattern.candles[1].date = new Date(new Date(pattern.candles[1].date).toJSON());
+                pattern.candles[0].timeframe = pattern.timeframe;
                 pattern.candles[1].timeframe = pattern.timeframe;
                 patternList.push(pattern.candles);
             });
             setCurrentPatterns(patternList);
         };
         
+        const loadBarchartData = (data) => {
+            const lastBar = data[data.length - 1];
+            setLastPrice(lastBar.close);
+            // console.log(data)
+            setBarChartData(data);
+        }
         
         if(userId){
             http.getQuoteData(symbol, setStockQuote);
             const payload = { method: 'STREAM', url: resolvedUrl };
-            http.getBarChartData(payload, setBarChartData, symbol);
+            http.getBarChartData(payload, loadBarchartData, symbol);
             http.getWatchlist(setCurrentWatchlist);
             http.getPatterns(loadPatterns);
             http.getPatternTimeframes(setTimeframes);
@@ -82,7 +92,18 @@ const ChartActionsProvider = ({ children }) => {
         }, 1000);
     }
 
-    const setSymbolText = (symbol) => {
+    const setSymbolText = (candle) => {
+        const symbol = candle.symbol;
+        const tsRegX = /\d+/g;
+        const timeframe = parseInt(candle.timeframe.match(tsRegX));
+
+        if(timeframe){
+            setUnit('Minute')
+            setInterval(timeframe)
+        } else {          
+            setUnit(candle.timeframe)
+            setInterval(1)
+        }
 		var symbolText = document.getElementById('symbol');
 		symbolText.value = symbol;
 		setSymbol(symbol);
@@ -136,7 +157,7 @@ const ChartActionsProvider = ({ children }) => {
             onTextChanged,
             setSymbolText,
             currentWatchlist, handleAddWatchlist, handleDeleteWatchlist,
-            currentPatterns, patternTypes, timeframes,
+            currentPatterns, patternTypes, timeframes, lastPrice, currentTimeframe,
         }}>
             {children}
         </ChartActionsContext.Provider>

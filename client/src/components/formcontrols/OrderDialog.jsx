@@ -18,7 +18,7 @@ export default function OrderDialog({patternCandles}) {
 	const { 
 		orderResponseData, showResponse, setShowResponse, 
 		orderOpen, orderSymbol, isBullish, stopLimitAction, stopLossAction, stopPrice, limitPrice,stopLossPrice, riskOffset, 
-		trailingStopPrice, quantity, orderConfirmId, title, pattern, highPrice, lowPrice, openPrice, closePrice, 
+		trailingStopPrice, quantity, orderConfirmId, title, pattern, highPrice, lowPrice, openPrice, closePrice, oneRPrice,
 		handleSendOrderClick, handleTextChange, handleClose, orderTypeValue, handleRadioChange, target1Price, target2Price, 
 	} = useContext(OrderContext);
 
@@ -50,8 +50,7 @@ export default function OrderDialog({patternCandles}) {
 				<TextField
 					id="TRAILINGSTOP"
 					name="TRAILINGSTOP"
-					label="TrailingStop / 1R"
-					defaultValue={trailingStopPrice}
+					label="TRAILINGSTOP / 1R"
 					value={trailingStopPrice}
 					onChange={handleTextChange}
 				/>
@@ -65,8 +64,7 @@ export default function OrderDialog({patternCandles}) {
 				<TextField
 					id="TRAILINGSTOP"
 					name="TRAILINGSTOP"
-					label="TrailingStop / 1R"
-					defaultValue={trailingStopPrice}
+					label="TRAILINGSTOP / 1R"
 					value={trailingStopPrice}
 					onChange={handleTextChange}
 				/>
@@ -76,7 +74,6 @@ export default function OrderDialog({patternCandles}) {
 					id="TARGET1"
 					name="TARGET1"
 					label="TARGET 1 PRICE 1/2R"
-					defaultValue={target1Price}
 					value={target1Price}
 					onChange={handleTextChange}
 				/>
@@ -90,8 +87,7 @@ export default function OrderDialog({patternCandles}) {
 				<TextField
 					id="TRAILINGSTOP"
 					name="TRAILINGSTOP"
-					label="TrailingStops / 1R Each"
-					defaultValue={trailingStopPrice}
+					label="TRAILINGSTOP / 1R EACH"
 					value={trailingStopPrice}
 					onChange={handleTextChange}
 				/>
@@ -101,7 +97,6 @@ export default function OrderDialog({patternCandles}) {
 					id="TARGET1"
 					name="TARGET1"
 					label="TARGET 1 PRICE 1/2R"
-					defaultValue={target1Price}
 					value={target1Price}
 					onChange={handleTextChange}
 				/>
@@ -111,7 +106,6 @@ export default function OrderDialog({patternCandles}) {
 					id="TARGET2"
 					name="TARGET2"
 					label="TARGET 2 PRICE 1R"
-					defaultValue={target2Price}
 					value={target2Price}
 					onChange={handleTextChange}
 				/>
@@ -126,7 +120,6 @@ export default function OrderDialog({patternCandles}) {
 					id="TARGET1"
 					name="TARGET1"
 					label="TARGET 1 PRICE 1/2R"
-					defaultValue={target1Price}
 					value={target1Price}
 					onChange={handleTextChange}
 				/>
@@ -141,7 +134,6 @@ export default function OrderDialog({patternCandles}) {
 					id="TARGET1"
 					name="TARGET1"
 					label="TARGET 1 PRICE 1/2R"
-					defaultValue={target1Price}
 					value={target1Price}
 					onChange={handleTextChange}
 				/>
@@ -151,7 +143,6 @@ export default function OrderDialog({patternCandles}) {
 					id="TARGET2"
 					name="TARGET2"
 					label="TARGET 2 PRICE 1R"
-					defaultValue={target2Price}
 					value={target2Price}
 					onChange={handleTextChange}
 				/>
@@ -163,7 +154,7 @@ export default function OrderDialog({patternCandles}) {
 		<div>
 			<Paper className={classes.orderContainer} >
 				{patternCandles && patternCandles.length > 0 && patternCandles.map((candles) => (
-					<Paper key={candles[1].title + candles[1].symbol} className={classes.orderItem} >
+					<Paper key={candles[1].title + candles[1].symbol + candles[1].timeframe} className={classes.orderItem} >
 						<CandleGrid 
 							candles={candles}
 						/>
@@ -193,7 +184,7 @@ export default function OrderDialog({patternCandles}) {
 					<Grid container spacing={2}>
 						<FormControl component="fieldset" className={classes.formControl}>
 							<FormLabel component="legend">Order Type Selection (TS = Trailing Stop)</FormLabel>
-							<RadioGroup className={classes.radioControl} name="orderType" defaultValue='trailingStop' value={orderTypeValue} onChange={handleRadioChange}>
+							<RadioGroup className={classes.radioControl} name="orderType" defaultValue='bracket1Target1TS' value={orderTypeValue} onChange={handleRadioChange}>
 								<FormControlLabel value="trailingStop" control={<Radio />} label="Trailing Stop" />
 								<FormControlLabel value="bracket1Target1TS" control={<Radio />} label="1 Target / 1 TS" />
 								<FormControlLabel value="bracket2Target2TS" control={<Radio />} label="2 Target / 2 TS" />
@@ -257,40 +248,21 @@ export default function OrderDialog({patternCandles}) {
 									<TextField
 										id='RISKOFFSET'
 										name='RISKOFFSET'
-										label='RISK OFFSET (R)'
+										label='RISK/REWARD OFFSET'
 										defaultValue={riskOffset}
 										onChange={handleTextChange}
-										prefix='%'
+									/>
+								</Grid>
+								<Grid item xs={6}>
+									<TextField
+										id='ONERPRICE'
+										name='ONERPRICE'
+										label='ONE "R" PRICe'
+										defaultValue={oneRPrice}
+										InputProps={{ readOnly: true, }}
 									/>
 								</Grid>
 							</Grid>
-							{/* <Grid item xs={4}>
-								<TextField
-									id="STOPOFFSET"
-									name="STOPOFFSET"
-									label="STOP OFFSET"
-									defaultValue={stopPriceOffset}
-									onChange={handleTextChange}
-								/>
-							</Grid>
-							<Grid item xs={4}>
-								<TextField
-									id='LIMITOFFSET'
-									name='LIMITOFFSET'
-									label='LIMIT OFFSET'
-									defaultValue={limitPriceOffset}
-									onChange={handleTextChange}
-								/>
-							</Grid>
-							<Grid item xs={4}>
-								<TextField
-									id='LOSSOFFSET'
-									name='LOSSOFFSET'
-									label='LOSS OFFSET'
-									defaultValue={stopLossPriceOffset}
-									onChange={handleTextChange}
-								/>
-							</Grid> */}
 							
 						</Grid>
 					</Grid>
@@ -303,7 +275,7 @@ export default function OrderDialog({patternCandles}) {
 									id={stopLimitAction}
 									name="STOPPRICE"
 									label={stopLimitAction}
-									defaultValue={stopPrice}
+									value={stopPrice}
 									onChange={handleTextChange}
 								/>
 							</Grid>
@@ -312,7 +284,7 @@ export default function OrderDialog({patternCandles}) {
 									id={`LIMITPRICE`}
 									name="LIMITPRICE"
 									label={`LIMITPRICE`}
-									defaultValue={limitPrice}
+									value={limitPrice}
 									onChange={handleTextChange}
 								/>
 							</Grid>
@@ -321,7 +293,7 @@ export default function OrderDialog({patternCandles}) {
 									id={stopLossAction}
 									name="STOPLOSSPRICE"
 									label="STOP LOSS / 1R"
-									defaultValue={stopLossPrice}
+									value={stopLossPrice}
 									onChange={handleTextChange}
 								/>
 							</Grid>

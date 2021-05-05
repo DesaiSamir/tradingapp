@@ -36,18 +36,22 @@ Pattern.getTimeframes = async function(){
     const timeframes = [
         {
             id: 1,
-            title: '5M',
+            title: 'All',
         },
         {
             id: 2,
-            title: '15M',
+            title: '5M',
         },
         {
             id: 3,
-            title: '60M',
+            title: '15M',
         },
         {
             id: 4,
+            title: '60M',
+        },
+        {
+            id: 5,
             title: 'Daily',
         },
     ];
@@ -75,6 +79,9 @@ Pattern.getIntradayPatterns = async function (){
                     p_open, p_high, p_low, p_close, p_date, candles 
                     FROM intraday_patterns ip 
                     JOIN patterns p ON p.pattern_id = ip.pattern_id
+                    WHERE (CAST(c_date AS DATE) IN (SELECT MAX(CAST(c_date AS DATE)) FROM intraday_patterns ip2 ) AND timeframe <> 'Daily')
+                    OR (CAST(c_date AS DATE) IN (SELECT MAX(CAST(c_date AS DATE)) FROM intraday_patterns ip2 WHERE timeframe = 'Daily') AND timeframe = 'Daily')
+
                     ORDER BY c_date desc, symbol;`
     const result = await db.getData(query);
     

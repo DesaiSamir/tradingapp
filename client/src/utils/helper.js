@@ -34,31 +34,31 @@ module.exports = {
         var newDate = new Date(date.setDate(date.getDate() + 1));
         return this.formatDate(newDate);
     },
-    getPatternCandleList: function(chartData = [], symbol){
+    getPatternCandleList: function(chartData = [], symbol, currentTimeframe){
         var patternCandles = [];
         if(chartData.length > 0){
             chartData.reverse();
             var currentCandles = [], lastCandles = [], lastBullCandles = [], lastBearCandles = [];
 
-            currentCandles.push({...chartData[1], title: '', symbol});
-            currentCandles.push({...chartData[0], title: 'Current Candle', symbol});
+            currentCandles.push({...chartData[1], title: '', symbol, timeframe: currentTimeframe});
+            currentCandles.push({...chartData[0], title: 'Current Candle', symbol, timeframe: currentTimeframe});
             patternCandles.push(currentCandles);
             
-            lastCandles.push({...chartData[2], title: '', symbol});
-            lastCandles.push({...chartData[1], title: 'Last Closed Candle', symbol});
+            lastCandles.push({...chartData[2], title: '', symbol, timeframe: currentTimeframe});
+            lastCandles.push({...chartData[1], title: 'Last Closed Candle', symbol, timeframe: currentTimeframe});
             patternCandles.push(lastCandles);
 
             const lastBullishIndex = chartData.findIndex(candle=> candle.isBullishEngulfing);
             if(lastBullishIndex > 0){
-                lastBullCandles.push({...chartData[lastBullishIndex + 1], title: '', symbol});
-                lastBullCandles.push({...chartData[lastBullishIndex], title: 'Last Bullish Candle', symbol});
+                lastBullCandles.push({...chartData[lastBullishIndex + 1], title: '', symbol, timeframe: currentTimeframe});
+                lastBullCandles.push({...chartData[lastBullishIndex], title: 'Last Bullish Candle', symbol, timeframe: currentTimeframe});
                 patternCandles.push(lastBullCandles);
             }
 
             const lastBearishIndex = chartData.findIndex(candle=> candle.isBearishEngulfing);
             if(lastBearishIndex > 0){
-                lastBearCandles.push({...chartData[lastBearishIndex + 1], title: '', symbol});
-                lastBearCandles.push({...chartData[lastBearishIndex], title: 'Last Bearish Candle', symbol});
+                lastBearCandles.push({...chartData[lastBearishIndex + 1], title: '', symbol, timeframe: currentTimeframe});
+                lastBearCandles.push({...chartData[lastBearishIndex], title: 'Last Bearish Candle', symbol, timeframe: currentTimeframe});
                 patternCandles.push(lastBearCandles);
             }
         }
@@ -99,4 +99,5 @@ module.exports = {
 
         return newCandles;
     },
+    
 }
