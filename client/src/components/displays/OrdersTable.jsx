@@ -99,10 +99,11 @@ export default function OrdersTable() {
 	};
 
 	const handleTextChange = (e) => {
-		const price = e.target.value;
+		const price = parseFloat(e.target.value).toFixed(2);
+		
 		switch (e.target.name) {
 			case 'STOPPRICE':
-				if(price > limitPrice){
+				if(limitPrice !== 0 && price > limitPrice){
 					setStopError(true);
 					setStopErrorText(`Stop price cannot be greater than ${limitPrice}.`);
 				} else {
@@ -113,7 +114,7 @@ export default function OrdersTable() {
 				break;
 
 			case 'LIMITPRICE':
-				if(price < stopPrice){
+				if(stopPrice !== 0 && price < stopPrice){
 					setLimitError(true);
 					setLimitErrorText(`Limit price cannot be less than ${stopPrice}.`);
 				} else {

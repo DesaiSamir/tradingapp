@@ -74,15 +74,7 @@ Pattern.insertPattern = async function(newPattern){
 }
 
 Pattern.getIntradayPatterns = async function (){
-    const query = `SELECT intraday_pattern_id, ip.created, symbol, p.pattern_name, p.pattern_type, timeframe, 
-                    c_open, c_high, c_low, c_close, c_date, 
-                    p_open, p_high, p_low, p_close, p_date, candles 
-                    FROM intraday_patterns ip 
-                    JOIN patterns p ON p.pattern_id = ip.pattern_id
-                    WHERE (CAST(c_date AS DATE) IN (SELECT MAX(CAST(c_date AS DATE)) FROM intraday_patterns ip2 ) AND timeframe <> 'Daily')
-                    OR (CAST(c_date AS DATE) IN (SELECT MAX(CAST(c_date AS DATE)) FROM intraday_patterns ip2 WHERE timeframe = 'Daily') AND timeframe = 'Daily')
-
-                    ORDER BY c_date desc, symbol;`
+    const query = `SELECT * FROM vw_intraday_patterns;`
     const result = await db.getData(query);
     
     if(result){
@@ -137,7 +129,7 @@ Pattern.deleteIntradayPatterns = async function(){
 }
 
 Pattern.deleteIntradayPatternsBySymbol = async function(symbol){
-    const query = `DELETE FROM intraday_patterns WHERE symbol='${symbol} AND created > CURRENT_DATE() - 1';`
+    const query = `DELETE FROM intraday_patterns WHERE symbol='${symbol}';`
 
     const result = await db.crudData(query, {symbol:symbol});
     

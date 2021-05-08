@@ -42,6 +42,7 @@ const OrderProvider = ({ children }) => {
 	const [symbolOrders, setSymbolOrders] = useState([]);
 	const [symbolAvgPrice, setSymbolAvgPrice] = useState();
 	const [orderUpdated, setOrderUpdated] = useState(false);
+	const [lastSelTabOrdPos, setLastSelTabOrdPos] = useState(0);
     
     useEffect(() => {
 		const ordersData = (data) => {
@@ -561,7 +562,8 @@ const OrderProvider = ({ children }) => {
             orderOpen, orderSymbol, isBullish, stopLimitAction, stopLossAction, stopPrice, limitPrice,stopLossPrice, riskOffset, 
             trailingStopPrice, quantity, orderConfirmId, stopPriceOffset, limitPriceOffset, stopLossPriceOffset, title, pattern,
             highPrice, lowPrice, openPrice, closePrice, handleSendOrderClick, handleTextChange, handleClose, handleRadioChange,
-            orderTypeValue, target1Price, target2Price, oneRPrice, symbolAvgPrice, symbolOrders, symbolPosition
+            orderTypeValue, target1Price, target2Price, oneRPrice, symbolAvgPrice, symbolOrders, symbolPosition, 
+			lastSelTabOrdPos, setLastSelTabOrdPos
         }}>
             {children}
         </OrderContext.Provider>

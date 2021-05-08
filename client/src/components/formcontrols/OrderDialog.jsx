@@ -154,7 +154,7 @@ export default function OrderDialog({patternCandles}) {
 		<div>
 			<Paper className={classes.orderContainer} >
 				{patternCandles && patternCandles.length > 0 && patternCandles.map((candles) => (
-					<Paper key={candles[1].title + candles[1].symbol + candles[1].timeframe} className={classes.orderItem} >
+					<Paper key={candles[1].title + candles[1].symbol + candles[1].date} className={classes.orderItem} >
 						<CandleGrid 
 							candles={candles}
 						/>

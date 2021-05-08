@@ -1,7 +1,7 @@
 var patterns = require('./patterns');
 const alpha = require('alphavantage')({ key: '' });
 
-var barChartTimer, watchlistTimer, quoteTimer, ordersInterval, positionsInterval, balancesInterval;
+var barChartTimer, watchlistTimer, patternsTimer, quoteTimer, ordersInterval, positionsInterval, balancesInterval;
 var currentSymbol, currentUrl;
 module.exports = {
     clearBarChartInterval: function () {
@@ -12,7 +12,7 @@ module.exports = {
     },
     getRefreshInterval: function () {
         if(this.isRegularSessionTime()){
-            return 2000;
+            return 2500;
         }
 
         return 10000;
@@ -138,14 +138,13 @@ module.exports = {
     },
     getPatternsRecursive: function(cb){
         
-        clearInterval(watchlistTimer);
+        clearInterval(patternsTimer);
         
-        watchlistTimer = setInterval(async () => {
+        patternsTimer = setInterval(async () => {
             if(this.isRegularSessionTime()){
                 const patternData = await this.get("api/pattern", cb);
                 
                 if(patternData){
-                    console.log(patternData);
                     cb(patternData);
                 }
             }

@@ -15,9 +15,6 @@ const ChartActionsProvider = ({ children }) => {
     const [url, setUrl] = useState('');
     const [isPreMarket, setIsPreMarket] = useState(false);
     const [currentWatchlist, setCurrentWatchlist] = useState([]);
-    const [currentPatterns, setCurrentPatterns] = useState([]);
-    const [timeframes, setTimeframes] = useState([]);
-    const [patternTypes, setPatternTypes] = useState([]);
     const [lastPrice, setLastPrice] = useState();
     const [currentTimeframe, setCurrentTimeframe] = useState();
     
@@ -31,21 +28,12 @@ const ChartActionsProvider = ({ children }) => {
         setUrl(resolvedUrl);
         setChartText(`${symbol},${unit === 'Minute' ? interval : ''} ${unit}`);
         
-        const loadPatterns = (data) => {
-            var patternList = [];
-            data.patterns.forEach(pattern => {
-                pattern.candles[0].date = new Date(new Date(pattern.candles[0].date).toJSON());
-                pattern.candles[1].date = new Date(new Date(pattern.candles[1].date).toJSON());
-                pattern.candles[0].timeframe = pattern.timeframe;
-                pattern.candles[1].timeframe = pattern.timeframe;
-                patternList.push(pattern.candles);
-            });
-            setCurrentPatterns(patternList);
-        };
+        
         
         const loadBarchartData = (data) => {
             const lastBar = data[data.length - 1];
-            setLastPrice(lastBar.close);
+            if(lastBar)
+                setLastPrice(lastBar.close);
             // console.log(data)
             setBarChartData(data);
         }
@@ -55,9 +43,6 @@ const ChartActionsProvider = ({ children }) => {
             const payload = { method: 'STREAM', url: resolvedUrl };
             http.getBarChartData(payload, loadBarchartData, symbol);
             http.getWatchlist(setCurrentWatchlist);
-            http.getPatterns(loadPatterns);
-            http.getPatternTimeframes(setTimeframes);
-            http.getPatternTypes(setPatternTypes);
         }
     }, [unit, interval, symbol, isPreMarket, userId]);
     
@@ -92,7 +77,14 @@ const ChartActionsProvider = ({ children }) => {
         }, 1000);
     }
 
-    const setSymbolText = (candle) => {
+    const setSymbolText = (symbol) => {
+        
+		var symbolText = document.getElementById('symbol');
+		symbolText.value = symbol;
+		setSymbol(symbol);
+	}
+
+    const setSymbolTextFromCandle = (candle) => {
         const symbol = candle.symbol;
         const tsRegX = /\d+/g;
         const timeframe = parseInt(candle.timeframe.match(tsRegX));
@@ -109,43 +101,46 @@ const ChartActionsProvider = ({ children }) => {
 		setSymbol(symbol);
 	}
 
-	const handleAddWatchlist = async (e, setOpen) => {
+	const handleAddWatchlist = (e, setOpen) => {
 		if (e.type === 'keydown' && e.key !== 'Enter') return;
 		e.preventDefault();
 		var stockSymbol = document.getElementById('addStockSymbol');
 		
-		const payload = { 
-			Symbol: stockSymbol.value,
+        addFavWatchlist(stockSymbol.value);
+        
+		setOpen(false);
+	}
+
+    const addFavWatchlist = async (symbol) => {
+        const payload = { 
+			Symbol: symbol,
 		};
 	
 		const addedSymbol = await http.send('POST','api/watchlist', payload);
 	
 		if(addedSymbol){
-			console.log(addedSymbol);
 			const newSymbol = {
 				Symbol: addedSymbol.symbol
 			};
 			setCurrentWatchlist([...currentWatchlist,  newSymbol]);
 			http.getWatchlist(setCurrentWatchlist);
 		}
-		setOpen(false);
-	}
+    }
 	
-	const handleDeleteWatchlist = async (e, stock) => {
-		e.preventDefault();
+	const handleDeleteWatchlist = async (symbol) => {
 		
-		setCurrentWatchlist(currentWatchlist.filter(list => list.Symbol !== stock.Symbol));
+		setCurrentWatchlist(currentWatchlist.filter(list => list.Symbol !== symbol));
 		
 		const payload = { 
-			Symbol: stock.Symbol,
+			Symbol: symbol,
 		};
 
-		http.send('DELETE',`api/watchlist/${stock.Symbol}`, payload);
+		http.send('DELETE',`api/watchlist/${symbol}`, payload);
 	}
 
     return (
         <ChartActionsContext.Provider value={{
-            stockQuote, 
+            stockQuote,  lastPrice,
             barChartData, 
             symbol, setSymbol,
             unit, 
@@ -155,9 +150,9 @@ const ChartActionsProvider = ({ children }) => {
             isPreMarket, setIsPreMarket,
             onUnitClicked, 
             onTextChanged,
-            setSymbolText,
-            currentWatchlist, handleAddWatchlist, handleDeleteWatchlist,
-            currentPatterns, patternTypes, timeframes, lastPrice, currentTimeframe,
+            setSymbolText, setSymbolTextFromCandle,
+            currentWatchlist, currentTimeframe,
+            handleAddWatchlist, handleDeleteWatchlist, addFavWatchlist,  
         }}>
             {children}
         </ChartActionsContext.Provider>

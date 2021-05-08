@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import _ from "lodash";
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
@@ -12,6 +12,7 @@ import helper from '../../utils/helper';
 import { ChartActionsContext } from "../../contexts/ChartActionsProvider";
 import SimpleSelect from "../formcontrols/SimpleSelect";
 import DatePickers from "../formcontrols/DatePicker";
+import { PatternContext } from "../../contexts/PatternProvider";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -61,29 +62,19 @@ function LinkTab(props) {
 export default function PatternsPanel() {
 	const classes = useStyles();
 	const { 
-		barChartData, chartText, symbol, currentWatchlist, currentPatterns, patternTypes, timeframes, currentTimeframe, 
+		barChartData, chartText, symbol, currentWatchlist, currentTimeframe, 
 	} = useContext(ChartActionsContext);
+	const { 
+		displayPatterns, patternTypes, timeframes, setSelectedPatternTimeframe, 
+		setSelectedPatternType, lastSelectedTab, setLastSelectedTab,
+	} = useContext(PatternContext)
+
     var patternCandles = helper.getPatternCandleList(_.clone(barChartData), symbol, currentTimeframe);
-	const [value, setValue] = useState(0);
-	const [displayPatterns, setDisplayPatterns] = useState([]);
-	const [selectedPatternType, setSelectedPatternType] = useState("All");
-	const [selectedPatternTimeframe, setSelectedPatternTimeframe] = useState("All");
 	const [lastTimeframe, setLastTimeframe] = useState(1);
 	const [lastPatternType, setLastPatternType] = useState(3);
 
-	useEffect(() => {
-		if(selectedPatternTimeframe === "All" && selectedPatternType === "All"){
-			setDisplayPatterns(currentPatterns);
-		} else {
-			setDisplayPatterns(currentPatterns
-				.filter(items => (selectedPatternType !== "All" ? items[1].title === selectedPatternType : items[1].title === items[1].title) )
-				.filter(items => (selectedPatternTimeframe !== "All" ? items[1].timeframe === selectedPatternTimeframe : items[1].timeframe === items[1].timeframe)));
-		}
-
-	}, [currentPatterns, timeframes, selectedPatternType, selectedPatternTimeframe]);
-
 	const handleChange = (event, newValue) => {
-		setValue(newValue);
+		setLastSelectedTab(newValue);
 	};
 	
 	const onSelectChange = (e, name, items) => {
@@ -115,30 +106,16 @@ export default function PatternsPanel() {
             <AppBar position="static">
                 <Tabs
                     variant="fullWidth"
-                    value={value}
+                    value={lastSelectedTab}
                     onChange={handleChange}
                     aria-label="nav tabs example"
                     >
-                    <LinkTab label="Patterns" {...a11yProps(0)} />
-                    <LinkTab label="Watchlist" {...a11yProps(1)} />
-                    <LinkTab label="Pattern List" {...a11yProps(3)} />
+                    <LinkTab label="Watchlist" {...a11yProps(0)} />
+                    <LinkTab label="Patterns" {...a11yProps(1)} />
+                    <LinkTab label="Live Pattern" {...a11yProps(3)} />
                 </Tabs>
             </AppBar>
-			<TabPanel value={value} index={0}>
-				<Grid container>
-					<Grid item xs={12} > 
-						<Paper className={`${classes.watchlistBar} ${classes.head}`}>
-							<Typography variant="h6" component="h2" className={classes.title}>
-								Patterns for: {chartText}
-							</Typography>
-						</Paper>
-						<OrderDialog
-							patternCandles={patternCandles}
-						/>
-					</Grid>
-				</Grid>
-            </TabPanel>
-            <TabPanel value={value} index={1}>
+            <TabPanel value={lastSelectedTab} index={0}>
 				<Grid container>
 					<Grid item xs={12} > 
 						<Paper className={`${classes.watchlistBar} ${classes.head}`}>
@@ -160,7 +137,21 @@ export default function PatternsPanel() {
 				</Grid>
 				
             </TabPanel>
-			<TabPanel value={value} index={2}>
+			<TabPanel value={lastSelectedTab} index={1}>
+				<Grid container>
+					<Grid item xs={12} > 
+						<Paper className={`${classes.watchlistBar} ${classes.head}`}>
+							<Typography variant="h6" component="h2" className={classes.title}>
+								Patterns for: {chartText}
+							</Typography>
+						</Paper>
+						<OrderDialog
+							patternCandles={patternCandles}
+						/>
+					</Grid>
+				</Grid>
+            </TabPanel>
+			<TabPanel value={lastSelectedTab} index={2}>
 				<Grid container>
 					<Grid item xs={12} > 
 						<Paper className={`${classes.watchlistBar}`}>

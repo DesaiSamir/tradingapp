@@ -3,13 +3,19 @@ var router = express.Router();
 const helper = require('../utils/helpers');
 
 router.get('/:key', async function  (req, res, next)  {
+    const tsRegX = /\d+/g;
+    const key = parseInt(req.params.key.match(tsRegX));
     
-    const url = `/v2/accounts/${req.params.key}/orders?since=${helper.getDate()}`;
-    const accountOrders = await helper.send(req, res, 'GET', url);
+    if(key){
+        const url = `/v2/accounts/${req.params.key}/orders?since=${helper.getDate()}`;
+        const accountOrders = await helper.send(req, res, 'GET', url);
 
-    if(accountOrders && accountOrders.length > 0){
-        const retOrders = accountOrders.filter(order => order.StatusDescription === 'Queued' || order.StatusDescription === 'Received');
-        res.send(retOrders);
+        if(accountOrders && accountOrders.length > 0){
+            const retOrders = accountOrders.filter(order => order.StatusDescription === 'Queued' || order.StatusDescription === 'Received');
+            res.send(retOrders);
+        }
+    } else {
+        res.send([]);
     }
 })
 

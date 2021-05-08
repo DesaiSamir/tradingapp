@@ -64,7 +64,7 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
 
     const max = xAccessor(data[data.length - 1]);
     const min = xAccessor(data[Math.max(0, data.length - 100)]);
-    const xExtents = [min, max + 5];
+    const xExtents = [min, max + 8];
     const gridHeight = height - margin.top - margin.bottom;
 
     const elderRayHeight = 100;

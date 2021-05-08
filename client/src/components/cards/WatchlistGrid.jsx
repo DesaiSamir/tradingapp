@@ -133,7 +133,7 @@ export default function WatchlistGrid({stock}) {
                         </Grid>
                         <Grid>
                             <Button
-                                onClick={(e) => handleDeleteWatchlist(e, stock)}
+                                onClick={() => handleDeleteWatchlist(stock.Symbol)}
                                 color="secondary"
                                 className={classes.button}
                                 endIcon={<DeleteIcon/>}

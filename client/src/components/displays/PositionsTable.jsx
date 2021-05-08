@@ -91,7 +91,7 @@ export default function PositionsTable() {
 					</TableRow>
 				</TableHead>
 				<TableBody>
-					{positions.map((order) => (
+					{positions && positions.map((order) => (
 						<StyledTableRow 
 							key={order.TimeStamp} 
 							onClick={() => setSymbolText(order.Symbol)}

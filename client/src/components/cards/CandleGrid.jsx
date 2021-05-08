@@ -1,12 +1,16 @@
 import { useContext } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { 
-    Grid, Paper, Typography, ButtonBase 
+    Grid, Paper, Typography, ButtonBase, IconButton, Button 
 } from '@material-ui/core';
 import MiniCandlestick from '../displays/MiniCandlestick';
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import FavoriteIcon from '@material-ui/icons/Favorite';
+import FavoriteBorderIcon from '@material-ui/icons/FavoriteBorder';
 import helper from '../../utils/helper';
 import { ChartActionsContext } from '../../contexts/ChartActionsProvider';
 import { OrderContext } from '../../contexts/OrderProvider';
+import { PatternContext } from '../../contexts/PatternProvider';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -29,46 +33,83 @@ const useStyles = makeStyles((theme) => ({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    sendOrder: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    button: {
+        width: '100%',
+        padding: '3px 6px',
+    },
     font: {
         fontWeight: 'bold',
     },
 }));
 
 export default function CandleGrid({candles}) {
+    const candleInAction = candles[1];
     const classes = useStyles();
-    const { setSymbolText } = useContext(ChartActionsContext);
+    const { 
+        setSymbolTextFromCandle, currentWatchlist, addFavWatchlist, handleDeleteWatchlist, 
+    } = useContext(ChartActionsContext);
     const { handleClickOpenTradeDialog } = useContext(OrderContext);
+    const { 
+        handleRemovePattern, 
+    } = useContext(PatternContext);
+
+    const isFavorite = (
+        <>
+        { currentWatchlist.some(s => s.Symbol === candleInAction.symbol)
+            ? <FavoriteIcon onClick={() => handleDeleteWatchlist(candleInAction.symbol)}/>
+            : <FavoriteBorderIcon onClick={() => addFavWatchlist(candleInAction.symbol)}/>
+        }
+        </>
+    );
+
     return (
         <div className={classes.root}>
             <Paper className={classes.paper}>
                 <Grid container spacing={1}>
                     <Grid item >
-                        <ButtonBase className={classes.symbol} onClick={() => setSymbolText(candles[1])}>
+                        <ButtonBase className={classes.symbol} onClick={() => setSymbolTextFromCandle(candleInAction)}>
                             <Typography variant="h4" component="h2">
-                                {candles[1].symbol}
+                                {candleInAction.symbol}
                             </Typography>
                         </ButtonBase>
                     </Grid>
-                    <Grid item xs={12} sm container onClick={() => handleClickOpenTradeDialog(candles[1])}>
+                    <Grid item xs={12} sm container>
                         <Grid item xs container spacing={1}>
-                            <Grid item xs={12} container spacing={1}>
-                                <Grid item xs={5}>
+                            <Grid item xs={12} container spacing={1}  className={classes.sendOrder}>
+                                <Grid item xs={6} onClick={() => setSymbolTextFromCandle(candleInAction)}>
                                     <Typography variant="button" display="block" gutterBottom className={classes.font}>
-                                        {candles[1].title}
+                                        {candleInAction.title}
                                     </Typography>
+                                </Grid>
+                                <Grid item xs={4}>
+                                    <Button variant="contained" color="secondary" className={classes.button} onClick={() => handleClickOpenTradeDialog(candleInAction)}>
+                                        Send Order
+                                    </Button>
                                 </Grid>
                                 <Grid item xs={2}>
-                                    <Typography variant="button" display="block" gutterBottom className={classes.font}>
-                                        Pattern:
-                                    </Typography>
-                                </Grid>                                
-                                <Grid item xs={4}>
-                                    <Typography variant="button" display="block" gutterBottom>
-                                        {candles[1].pattern}
-                                    </Typography>
+                                    <IconButton
+                                        className={classes.iconButton}
+                                        edge='end'
+                                        color='secondary'
+                                    >
+                                        {isFavorite}
+                                    </IconButton>
+                                    <IconButton
+                                        className={classes.iconButton}
+                                        edge='end'
+                                        color='secondary'
+                                        onClick={() => handleRemovePattern(candleInAction)}
+                                    >
+                                        <DeleteForeverIcon />
+                                    </IconButton>
                                 </Grid>
                             </Grid>
-                            <Grid item xs={3} container>
+                            <Grid item xs={3} container onClick={() => setSymbolTextFromCandle(candleInAction)}>
                                 <Grid item xs={6}>
                                     <Typography variant="button" display="block" gutterBottom className={classes.font}>
                                         Open:
@@ -76,7 +117,7 @@ export default function CandleGrid({candles}) {
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Typography variant="button" display="block" gutterBottom>
-                                        {parseFloat(candles[1].open).toFixed(2)}
+                                        {parseFloat(candleInAction.open).toFixed(2)}
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={6}>
@@ -86,11 +127,11 @@ export default function CandleGrid({candles}) {
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Typography variant="button" display="block" gutterBottom>
-                                        {parseFloat(candles[1].close).toFixed(2)}
+                                        {parseFloat(candleInAction.close).toFixed(2)}
                                     </Typography>
                                 </Grid>
                             </Grid>
-                            <Grid item xs={3} container>
+                            <Grid item xs={3} container onClick={() => setSymbolTextFromCandle(candleInAction)}>
                                 <Grid item xs={6}>
                                     <Typography variant="button" display="block" gutterBottom className={classes.font}>
                                         High:
@@ -98,7 +139,7 @@ export default function CandleGrid({candles}) {
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Typography variant="button" display="block" gutterBottom>
-                                        {parseFloat(candles[1].high).toFixed(2)}
+                                        {parseFloat(candleInAction.high).toFixed(2)}
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={6}>
@@ -108,19 +149,19 @@ export default function CandleGrid({candles}) {
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Typography variant="button" display="block" gutterBottom>
-                                        {parseFloat(candles[1].low).toFixed(2)}
+                                        {parseFloat(candleInAction.low).toFixed(2)}
                                     </Typography>
                                 </Grid>
                             </Grid>
-                            <Grid item xs={4}>
+                            <Grid item xs={4} onClick={() => setSymbolTextFromCandle(candleInAction)}>
                                 <Typography variant="button" display="block" gutterBottom className={classes.font}>
                                     TimeStamp:
                                 </Typography>
                                 <Typography variant="button" gutterBottom>
-                                    {new Date(candles[1].date).toLocaleString()}
+                                    {new Date(candleInAction.date).toLocaleString()}
                                 </Typography>
                             </Grid>
-                            <Grid item xs={2}>
+                            <Grid item xs={2} onClick={() => setSymbolTextFromCandle(candleInAction)}>
                                 <Paper className={classes.miniChart}>
                                     {
                                         (candles) ? 

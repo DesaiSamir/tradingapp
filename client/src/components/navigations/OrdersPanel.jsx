@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import { Paper, AppBar, Tabs, Tab, Box } from '@material-ui/core';
 import Orders from '../../pages/Orders';
 import Positions from '../../pages/Positions';
+import { OrderContext } from '../../contexts/OrderProvider';
 
 function TabPanel(props) {
   	const { children, value, index, ...other } = props;
@@ -51,9 +52,9 @@ function LinkTab(props) {
 
 export default function OrdersPanel() {
 	const classes = useStyles();
-	const [value, setValue] = React.useState(0);
+	const { lastSelTabOrdPos, setLastSelTabOrdPos } = useContext(OrderContext);
 	const handleChange = (event, newValue) => {
-		setValue(newValue);
+		setLastSelTabOrdPos(newValue);
 	};
   
 	return (
@@ -61,7 +62,7 @@ export default function OrdersPanel() {
             <AppBar position="static">
                 <Tabs
                     variant="fullWidth"
-                    value={value}
+                    value={lastSelTabOrdPos}
                     onChange={handleChange}
                     aria-label="nav tabs example"
 				>
@@ -69,10 +70,10 @@ export default function OrdersPanel() {
                     <LinkTab label="Active Positions" {...a11yProps(1)} />
                 </Tabs>
             </AppBar>
-			<TabPanel value={value} index={0}>
+			<TabPanel value={lastSelTabOrdPos} index={0}>
 				<Orders />
             </TabPanel>
-            <TabPanel value={value} index={1}>
+            <TabPanel value={lastSelTabOrdPos} index={1}>
 				<Positions />
             </TabPanel>
         </div>

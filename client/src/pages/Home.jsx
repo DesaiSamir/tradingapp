@@ -7,6 +7,7 @@ import Login from "./Login";
 import ChartActionsProvider from "../contexts/ChartActionsProvider";
 import OrderProvider from '../contexts/OrderProvider';
 import BalanceProvider from "../contexts/BalanceProvider";
+import PatternProvider from "../contexts/PatternProvider";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -25,9 +26,11 @@ const Home = () => {
                 :
                     <BalanceProvider>
                         <ChartActionsProvider>
-                            <OrderProvider>
-                                <DrawerPanel />
-                            </OrderProvider>
+                            <PatternProvider>
+                                <OrderProvider>
+                                    <DrawerPanel />
+                                </OrderProvider>
+                            </PatternProvider>
                         </ChartActionsProvider>
                     </BalanceProvider>
             }
