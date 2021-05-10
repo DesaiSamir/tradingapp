@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useContext } from "react";
 import _ from "lodash";
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
@@ -66,37 +66,15 @@ export default function PatternsPanel() {
 		barChartData, chartText, symbol, currentWatchlist, currentTimeframe, 
 	} = useContext(ChartActionsContext);
 	const { 
-		displayPatterns, patternTypes, timeframes, setSelectedPatternTimeframe, 
-		setSelectedPatternType, lastSelectedTab, setLastSelectedTab,
+		displayPatterns, patternTypes, timeframes, lastSelectedTab, setLastSelectedTab, 
+		onSelectChange, lastTimeframe, lastPatternType, 
 	} = useContext(PatternContext)
 
     var patternCandles = helper.getPatternCandleList(_.clone(barChartData), symbol, currentTimeframe);
-	const [lastTimeframe, setLastTimeframe] = useState(1);
-	const [lastPatternType, setLastPatternType] = useState(3);
 
 	const handleChange = (event, newValue) => {
 		setLastSelectedTab(newValue);
 	};
-	
-	const onSelectChange = (e, name, items) => {
-		const id = e.target.value;
-		const item = items.filter(item => item.id === id)[0];
-		
-		switch (name) {
-			case 'types':
-				setSelectedPatternType(item.title);
-				setLastPatternType(id);
-				break;
-			
-			case 'timeframes':
-				setSelectedPatternTimeframe(item.title)
-				setLastTimeframe(id);
-				break;
-				
-			default:
-				break;
-		}
-	}
 
 	const onDateChange = (e, name) => {
 		console.log({e, name})

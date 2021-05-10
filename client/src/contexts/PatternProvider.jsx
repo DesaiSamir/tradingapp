@@ -12,6 +12,8 @@ const PatternProvider = ({ children }) => {
 	const [lastSelectedTab, setLastSelectedTab] = useState(0);
     const [symbolHasOrder, setSymbolHasOrder] = useState([]);
     const [symbolHasPosition, setSymbolHasPosition] = useState([]);
+	const [lastTimeframe, setLastTimeframe] = useState(1);
+	const [lastPatternType, setLastPatternType] = useState(3);
 
     useEffect(() => {
         const loadPatterns = (data) => {
@@ -24,19 +26,24 @@ const PatternProvider = ({ children }) => {
                     pattern.candles[1].timeframe = pattern.timeframe;
                     patternList.push(pattern);
                 });
+                const timeframeList = timeframes.timeframes && Array.prototype.map.call(timeframes.timeframes, t => t.title);
+                const patternTypeList = patternTypes.pattern_types && Array.prototype.map.call(patternTypes.pattern_types, p => p.title);
+                
                 if(selectedPatternTimeframe === "All" && selectedPatternType === "All"){
                     setDisplayPatterns(patternList);
                 } else {
                     setDisplayPatterns(patternList
-                        .filter(items => (selectedPatternType !== "All" ? items[1].pattern_name === selectedPatternType : items[1].pattern_name === items[1].pattern_name) )
-                        .filter(items => (selectedPatternTimeframe !== "All" ? items[1].timeframe === selectedPatternTimeframe : items[1].timeframe === items[1].timeframe)));
+                        .filter(items => (selectedPatternType !== "All" ? items.pattern_name === selectedPatternType : patternTypeList.includes(items.pattern_name)))
+                        .filter(items => (selectedPatternTimeframe !== "All" ? items.timeframe === selectedPatternTimeframe : timeframeList.includes(items.timeframe))));
                 }
                 const orderSymbolList = patternList.filter(p => p.has_active_order === 1 && p.symbol);
                 const orderSymbols = Array.prototype.map.call(orderSymbolList, s => s.symbol );
                 setSymbolHasOrder(orderSymbols);
+
                 const positionSymbolList = patternList.filter(p => p.has_active_position === 1 && p.symbol);
                 const positionSymbols = Array.prototype.map.call(positionSymbolList, s => s.symbol );
                 setSymbolHasPosition(positionSymbols);
+
                 setCurrentPatterns(data);
             }
         };
@@ -66,10 +73,30 @@ const PatternProvider = ({ children }) => {
 
 		http.send('DELETE',`api/pattern/${symbol}`, payload);
     }
+	
+	const onSelectChange = (e, name, items) => {
+		const id = e.target.value;
+		const item = items.filter(item => item.id === id)[0];
+		
+		switch (name) {
+			case 'types':
+				setSelectedPatternType(item.title);
+				setLastPatternType(id);
+				break;
+			
+			case 'timeframes':
+				setSelectedPatternTimeframe(item.title)
+				setLastTimeframe(id);
+				break;
+				
+			default:
+				break;
+		}
+	}
 
     return (
         <PatternContext.Provider value={{
-            selectedPatternTimeframe, setSelectedPatternTimeframe, selectedPatternType, setSelectedPatternType,
+            selectedPatternTimeframe, selectedPatternType, onSelectChange, lastTimeframe, lastPatternType, 
             currentPatterns, patternTypes, timeframes, displayPatterns, lastSelectedTab, setLastSelectedTab,
             handleRemovePattern, symbolHasOrder, symbolHasPosition, 
            

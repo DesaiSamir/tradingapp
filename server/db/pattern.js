@@ -95,18 +95,19 @@ Pattern.getIntradayPatternIfExist = async function (newIntradayPattern){
 Pattern.updatePatternIfHasOrder = async function(symbols){
     var query = `UPDATE tradingapp.intraday_patterns 
                 SET has_active_order = 0
-                WHERE symbol NOT IN (${symbols});`
-
+                WHERE symbol NOT IN (${symbols.length > 0 ? symbols : '""' });`
     await db.crudData(query, {});
 
-    query = `UPDATE tradingapp.intraday_patterns 
-            SET has_active_order = 1
-            WHERE symbol IN (${symbols});`
+    if(symbols.length > 0){
+        query = `UPDATE tradingapp.intraday_patterns 
+                SET has_active_order = 1
+                WHERE symbol IN (${symbols});`
 
-    const result = await db.crudData(query, {});
+        const result = await db.crudData(query, {});
 
-    if(result){
-        return result;
+        if(result){
+            return result;
+        }
     }
     return null; 
 }
@@ -114,18 +115,20 @@ Pattern.updatePatternIfHasOrder = async function(symbols){
 Pattern.updatePatternIfHasPosition = async function(symbols){
     var query = `UPDATE tradingapp.intraday_patterns 
                 SET has_active_position = 0
-                WHERE symbol NOT IN (${symbols});`
+                WHERE symbol NOT IN (${symbols.length > 0 ? symbols : '""' });`
 
     await db.crudData(query, {});
     
-    query = `UPDATE tradingapp.intraday_patterns 
-            SET has_active_position = 1
-            WHERE symbol IN (${symbols});`
+    if(symbols.length > 0){
+        query = `UPDATE tradingapp.intraday_patterns 
+                SET has_active_position = 1
+                WHERE symbol IN (${symbols});`
 
-        const result = await db.crudData(query, {});
-        
-    if(result){
-        return result;
+            const result = await db.crudData(query, {});
+            
+        if(result){
+            return result;
+        }
     }
     return null; 
 }

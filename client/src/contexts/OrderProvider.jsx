@@ -46,39 +46,33 @@ const OrderProvider = ({ children }) => {
     
     useEffect(() => {
 		const ordersData = (data) => {
-			if(data && data.length){
-				const symbolOrders = data.filter(order => order.Symbol === symbol);
-				if(symbolOrders){
-					setSymbolOrders(symbolOrders);
-				}
-
-				const symbols =  Array.prototype.map.call(data, s => `'${s.Symbol}'`).toString();
-				if(symbols.length > 0){
-					const payload = {symbols};
-					http.updatePatternsHasOrder(payload);
-				}
+			const symbolOrders = data && data.length && data.filter(order => order.Symbol === symbol);
+			if(symbolOrders){
+				setSymbolOrders(symbolOrders);
 			}
+			
+			const symbols =  Array.prototype.map.call(data, s => `'${s.Symbol}'`).toString();
+			const payload = {symbols};
+			http.updatePatternsHasOrder(payload);
+
 			setOrders(data);
 		}
 		const positionsData = (data) => {
-			if(data && data.length){
-				const symbolPosition = data.filter(pos => pos.Symbol === symbol)[0];
+			const symbolPosition = data && data.length && data.filter(pos => pos.Symbol === symbol)[0];
 				
-				if(symbolPosition){
-					setSymbolAvgPrice(symbolPosition.AveragePrice);
-					setSymbolPosition(symbolPosition);
-				}
-				else {
-					setSymbolAvgPrice(null);
-					setSymbolPosition(null);
-				}
-
-				const symbols =  Array.prototype.map.call(data, s => `'${s.Symbol}'`).toString();
-				if(symbols.length > 0){
-					const payload = {symbols};
-					http.updatePatternsHasPosition(payload);
-				}
+			if(symbolPosition){
+				setSymbolAvgPrice(symbolPosition.AveragePrice);
+				setSymbolPosition(symbolPosition);
 			}
+			else {
+				setSymbolAvgPrice(null);
+				setSymbolPosition(null);
+			}
+
+			const symbols =  Array.prototype.map.call(data, s => `'${s.Symbol}'`).toString();
+			const payload = {symbols};
+			http.updatePatternsHasPosition(payload);
+
 			setPositions(data);
 		}
         http.getAccountOrders(equitiesAccountKey, ordersData);
