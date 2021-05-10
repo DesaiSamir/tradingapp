@@ -14,11 +14,6 @@ var IntradayPattern = function(record){
     this.c_low = record.c_low;
     this.c_close = record.c_close;
     this.c_date = record.c_date;
-    this.p_open = record.p_open;
-    this.p_high = record.p_high;
-    this.p_low = record.p_low;
-    this.p_close = record.p_close;
-    this.p_date = record.p_date;
     this.candles = record.candles;
 }
 
@@ -86,14 +81,39 @@ Pattern.getIntradayPatterns = async function (){
 Pattern.getIntradayPatternIfExist = async function (newIntradayPattern){
     const qp = newIntradayPattern;
     const query = `SELECT symbol, timeframe, 
-                    c_open, c_high, c_low, c_close, c_date, 
-                    p_open, p_high, p_low, p_close, p_date, candles 
+                    c_open, c_high, c_low, c_close, c_date, candles 
                     FROM intraday_patterns ip 
                     WHERE symbol='${qp.symbol}' AND timeframe='${qp.timeframe}' AND c_date='${qp.c_date}';`
     const result = await db.getData(query);
     
     if(result){
         return true;
+    }
+    return null; 
+}
+
+Pattern.updatePatternIfHasOrder = async function(symbols){
+    const query = `UPDATE tradingapp.intraday_patterns 
+                    SET has_active_order=1
+                    WHERE symbol IN (${symbols});`
+
+    const result = await db.crudData(query, {});
+
+    if(result){
+        return result;
+    }
+    return null; 
+}
+
+Pattern.updatePatternIfHasPosition = async function(symbols){
+    const query = `UPDATE tradingapp.intraday_patterns 
+                    SET has_active_position=1
+                    WHERE symbol IN (${symbols});`
+
+    const result = await db.crudData(query, {});
+
+    if(result){
+        return result;
     }
     return null; 
 }
@@ -105,10 +125,9 @@ Pattern.insertIntradayPatterns = async function (newIntradayPattern){
     const qp = newIntradayPattern;
     const pattern_id = pattern_types.filter(p => p.title === qp.pattern_name)[0].id;
     const query = `INSERT INTO tradingapp.intraday_patterns
-                    (symbol, pattern_id, timeframe, c_open, c_high, c_low, c_close, c_date, p_open, p_high, p_low, p_close, p_Date, candles)
+                    (symbol, pattern_id, timeframe, c_open, c_high, c_low, c_close, c_date, candles)
                     VALUES('${qp.symbol}', ${pattern_id}, '${qp.timeframe}', 
-                            '${qp.c_open}', '${qp.c_high}', '${qp.c_low}', '${qp.c_close}', '${qp.c_date}', 
-                            '${qp.p_open}', '${qp.p_high}', '${qp.p_low}', '${qp.p_close}', '${qp.p_date}', '${qp.candles}');`
+                            '${qp.c_open}', '${qp.c_high}', '${qp.c_low}', '${qp.c_close}', '${qp.c_date}', '${qp.candles}');`
     const result = await db.crudData(query, newIntradayPattern);
     
     if(result){
@@ -152,11 +171,6 @@ Pattern.addNewPatterns = async function(patterns){
             c_low: parseFloat(p.c_low).toFixed(2),
             c_close: parseFloat(p.c_close).toFixed(2),
             c_date: p.c_date,
-            p_open: parseFloat(p.p_open).toFixed(2),
-            p_high: parseFloat(p.p_high).toFixed(2),
-            p_low: parseFloat(p.p_low).toFixed(2),
-            p_close: parseFloat(p.p_close).toFixed(2),
-            p_date: p.p_date,
             candles: JSON.stringify(p.candles)
         });
 

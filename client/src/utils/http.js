@@ -179,6 +179,12 @@ module.exports = {
             cb(purchaseOrder);
         }
     },
+    closePosition: async function(payload, cb){
+        const purchaseOrder = await this.send('POST','api/orders/close', payload);
+        if(purchaseOrder){
+            cb(purchaseOrder);
+        }
+    },
     deletePurchaseOrder: async function(orderid, cb = null){
 
         const purchaseOrder = await this.send('DELETE', `api/orders/${orderid}`);

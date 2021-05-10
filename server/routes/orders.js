@@ -42,6 +42,17 @@ router.put('/', async function  (req, res, next)  {
     }
 })
 
+router.post('/close', async function  (req, res, next)  {
+    const payload = req.body.payload;
+    const url = `/v2/orders`;
+    const orderData = await helper.send(req, res, 'POST', url, payload);
+
+    if(orderData){
+        payload.response = orderData;
+        res.send(orderData);
+    }
+})
+
 router.delete('/:orderid', async function  (req, res, next)  {
     const order_id = req.params.orderid;
     const url = `/v2/orders/${order_id}`;
