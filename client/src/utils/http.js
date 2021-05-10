@@ -150,6 +150,12 @@ module.exports = {
             }
         }, this.getRefreshInterval());
     },
+    updatePatternsHasOrder: async function(payload){
+        await this.send('PUT','api/pattern/hasorder', payload);
+    },
+    updatePatternsHasPosition: async function(payload){
+        await this.send('PUT','api/pattern/hasposition', payload);
+    },
     getPatternTimeframes: async function(cb){
         const timeframes = await this.get("api/pattern/timeframes", cb);
         

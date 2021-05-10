@@ -10,6 +10,8 @@ const PatternProvider = ({ children }) => {
     const [timeframes, setTimeframes] = useState([]);
     const [patternTypes, setPatternTypes] = useState([]);
 	const [lastSelectedTab, setLastSelectedTab] = useState(0);
+    const [symbolHasOrder, setSymbolHasOrder] = useState([]);
+    const [symbolHasPosition, setSymbolHasPosition] = useState([]);
 
     useEffect(() => {
         const loadPatterns = (data) => {
@@ -20,15 +22,21 @@ const PatternProvider = ({ children }) => {
                     pattern.candles[1].date = new Date(new Date(pattern.candles[1].date).toJSON());
                     pattern.candles[0].timeframe = pattern.timeframe;
                     pattern.candles[1].timeframe = pattern.timeframe;
-                    patternList.push(pattern.candles);
+                    patternList.push(pattern);
                 });
                 if(selectedPatternTimeframe === "All" && selectedPatternType === "All"){
                     setDisplayPatterns(patternList);
                 } else {
                     setDisplayPatterns(patternList
-                        .filter(items => (selectedPatternType !== "All" ? items[1].title === selectedPatternType : items[1].title === items[1].title) )
+                        .filter(items => (selectedPatternType !== "All" ? items[1].pattern_name === selectedPatternType : items[1].pattern_name === items[1].pattern_name) )
                         .filter(items => (selectedPatternTimeframe !== "All" ? items[1].timeframe === selectedPatternTimeframe : items[1].timeframe === items[1].timeframe)));
                 }
+                const orderSymbolList = patternList.filter(p => p.has_active_order === 1 && p.symbol);
+                const orderSymbols = Array.prototype.map.call(orderSymbolList, s => s.symbol );
+                setSymbolHasOrder(orderSymbols);
+                const positionSymbolList = patternList.filter(p => p.has_active_position === 1 && p.symbol);
+                const positionSymbols = Array.prototype.map.call(positionSymbolList, s => s.symbol );
+                setSymbolHasPosition(positionSymbols);
                 setCurrentPatterns(data);
             }
         };
@@ -63,7 +71,7 @@ const PatternProvider = ({ children }) => {
         <PatternContext.Provider value={{
             selectedPatternTimeframe, setSelectedPatternTimeframe, selectedPatternType, setSelectedPatternType,
             currentPatterns, patternTypes, timeframes, displayPatterns, lastSelectedTab, setLastSelectedTab,
-            handleRemovePattern, 
+            handleRemovePattern, symbolHasOrder, symbolHasPosition, 
            
         }}>
             {children}

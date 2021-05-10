@@ -45,6 +45,30 @@ router.post('/', async function  (req, res, next)  {
     }
 })
 
+router.put('/hasposition', async function  (req, res, next)  {
+    
+    const payload = req.body;
+    if(payload.symbols && payload.symbols.length > 0){
+        const patterns = await pattern.updatePatternIfHasPosition(payload.symbols);
+        
+        if(patterns){
+            res.send({patterns});
+        }
+    }
+})
+
+router.put('/hasorder', async function  (req, res, next)  {
+    
+    const payload = req.body;
+    if(payload.symbols && payload.symbols.length > 0){
+        const patterns = await pattern.updatePatternIfHasOrder(payload.symbols);
+        
+        if(patterns){
+            res.send({patterns});
+        }
+    }
+})
+
 router.delete('/', async function  (req, res, next)  {
     
 

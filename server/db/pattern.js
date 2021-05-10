@@ -93,9 +93,15 @@ Pattern.getIntradayPatternIfExist = async function (newIntradayPattern){
 }
 
 Pattern.updatePatternIfHasOrder = async function(symbols){
-    const query = `UPDATE tradingapp.intraday_patterns 
-                    SET has_active_order=1
-                    WHERE symbol IN (${symbols});`
+    var query = `UPDATE tradingapp.intraday_patterns 
+                SET has_active_order = 0
+                WHERE symbol NOT IN (${symbols});`
+
+    await db.crudData(query, {});
+
+    query = `UPDATE tradingapp.intraday_patterns 
+            SET has_active_order = 1
+            WHERE symbol IN (${symbols});`
 
     const result = await db.crudData(query, {});
 
@@ -106,12 +112,18 @@ Pattern.updatePatternIfHasOrder = async function(symbols){
 }
 
 Pattern.updatePatternIfHasPosition = async function(symbols){
-    const query = `UPDATE tradingapp.intraday_patterns 
-                    SET has_active_position=1
-                    WHERE symbol IN (${symbols});`
+    var query = `UPDATE tradingapp.intraday_patterns 
+                SET has_active_position = 0
+                WHERE symbol NOT IN (${symbols});`
 
-    const result = await db.crudData(query, {});
+    await db.crudData(query, {});
+    
+    query = `UPDATE tradingapp.intraday_patterns 
+            SET has_active_position = 1
+            WHERE symbol IN (${symbols});`
 
+        const result = await db.crudData(query, {});
+        
     if(result){
         return result;
     }

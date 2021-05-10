@@ -6,6 +6,7 @@ import {
 	Paper, AppBar, Tabs, Tab, Box, Grid, Typography 
 } from '@material-ui/core';
 import OrderDialog from '../formcontrols/OrderDialog';
+import PatternOrderDialog from '../formcontrols/PatternOrderDialog';
 import FormDialog from '../formcontrols/FormDialog';
 import WatchlistGrid from '../cards/WatchlistGrid';
 import helper from '../../utils/helper';
@@ -175,8 +176,8 @@ export default function PatternsPanel() {
 								onDateChange={onDateChange}
 							/>
 						</Paper>
-						<OrderDialog
-							patternCandles={displayPatterns}
+						<PatternOrderDialog
+							patterns={displayPatterns}
 						/>
 					</Grid>
 				</Grid>

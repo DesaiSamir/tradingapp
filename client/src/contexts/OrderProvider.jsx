@@ -46,23 +46,38 @@ const OrderProvider = ({ children }) => {
     
     useEffect(() => {
 		const ordersData = (data) => {
-			const symbolOrders = data.filter(order => order.Symbol === symbol);
-			if(symbolOrders){
-				setSymbolOrders(symbolOrders);
+			if(data && data.length){
+				const symbolOrders = data.filter(order => order.Symbol === symbol);
+				if(symbolOrders){
+					setSymbolOrders(symbolOrders);
+				}
+
+				const symbols =  Array.prototype.map.call(data, s => `'${s.Symbol}'`).toString();
+				if(symbols.length > 0){
+					const payload = {symbols};
+					http.updatePatternsHasOrder(payload);
+				}
 			}
-			
 			setOrders(data);
 		}
 		const positionsData = (data) => {
-			const symbolPosition = data && data.length && data.filter(pos => pos.Symbol === symbol)[0];
-			
-			if(symbolPosition){
-				setSymbolAvgPrice(symbolPosition.AveragePrice);
-				setSymbolPosition(symbolPosition);
-			}
-			else {
-				setSymbolAvgPrice(null);
-				setSymbolPosition(null);
+			if(data && data.length){
+				const symbolPosition = data.filter(pos => pos.Symbol === symbol)[0];
+				
+				if(symbolPosition){
+					setSymbolAvgPrice(symbolPosition.AveragePrice);
+					setSymbolPosition(symbolPosition);
+				}
+				else {
+					setSymbolAvgPrice(null);
+					setSymbolPosition(null);
+				}
+
+				const symbols =  Array.prototype.map.call(data, s => `'${s.Symbol}'`).toString();
+				if(symbols.length > 0){
+					const payload = {symbols};
+					http.updatePatternsHasPosition(payload);
+				}
 			}
 			setPositions(data);
 		}
@@ -82,7 +97,8 @@ const OrderProvider = ({ children }) => {
 		const cStopLimitAction = cIsBullish ? 'BUY' : 'SELLSHORT';
 		const cStopLossAction = cIsBullish ? 'SELL' : 'BUYTOCOVER';
 		const spo = 0.01;
-		const lpo = 0.03;
+		const p = c.close;
+		const lpo = p < 50 ? 0.05 : p < 100 ? .1 : p < 200 ? 0.2 : p < 500 ? 0.4 : p < 1000 ? 1 : 2;
 		const slpo = 0.01;
 		const cStopPrice = cIsBullish ? parseFloat(c.high) + spo : parseFloat(c.low) - spo;
 		const cLimitPrice = cIsBullish ? parseFloat(c.high) + lpo : parseFloat(c.low) - lpo;

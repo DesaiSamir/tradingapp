@@ -117,17 +117,14 @@ CREATE TABLE `intraday_patterns` (
   `c_low` varchar(10) NOT NULL,
   `c_close` varchar(10) NOT NULL,
   `c_date` varchar(100) NOT NULL,
-  `p_open` varchar(10) NOT NULL,
-  `p_high` varchar(10) NOT NULL,
-  `p_low` varchar(10) NOT NULL,
-  `p_close` varchar(10) NOT NULL,
-  `p_Date` varchar(100) NOT NULL,
+  `has_active_order` tinyint(1) DEFAULT 0,
+  `has_active_position` tinyint(1) DEFAULT 0,
   `candles` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`candles`)),
   `created` datetime DEFAULT current_timestamp(),
   PRIMARY KEY (`intraday_pattern_id`),
   KEY `intraday_patterns_FK` (`pattern_id`),
   CONSTRAINT `intraday_patterns_FK` FOREIGN KEY (`pattern_id`) REFERENCES `patterns` (`pattern_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=183 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 -- data setup for a single user
 INSERT INTO users (`username`, `fname`, `lname`, `password`) VALUES ('user', 'firstname', 'lastname', password('trader'));
