@@ -229,7 +229,7 @@ module.exports = {
                     cb(orders);
                 }
             }
-        }, this.getGeneralRefreshInterval());
+        }, 1000);
     },
     getAccountPositions: async function(key, cb){
 

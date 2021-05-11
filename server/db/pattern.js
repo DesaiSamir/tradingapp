@@ -68,8 +68,28 @@ Pattern.insertPattern = async function(newPattern){
     return null;
 }
 
-Pattern.getIntradayPatterns = async function (){
+Pattern.getAllPatterns = async function (){
     const query = `SELECT * FROM vw_intraday_patterns;`
+    const result = await db.getData(query);
+    
+    if(result){
+        return result;
+    }
+    return null; 
+}
+
+Pattern.getIntradayPatterns = async function (){
+    const query = `SELECT * FROM vw_intraday_patterns WHERE timeframe <> 'Daily';`
+    const result = await db.getData(query);
+    
+    if(result){
+        return result;
+    }
+    return null; 
+}
+
+Pattern.getDailyPatterns = async function (){
+    const query = `SELECT * FROM vw_intraday_patterns WHERE timeframe = 'Daily';`
     const result = await db.getData(query);
     
     if(result){

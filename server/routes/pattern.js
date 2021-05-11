@@ -5,7 +5,7 @@ const pattern = require('../db/pattern');
 
 router.get('/', async function  (req, res, next)  {
     
-    const patterns = await pattern.getIntradayPatterns();
+    const patterns = await pattern.getAllPatterns();
     
     if(patterns){
         patterns.forEach((pattern) => {
@@ -13,6 +13,32 @@ router.get('/', async function  (req, res, next)  {
             pattern.candles = patternCandles;
         })
         res.send({patterns});
+    }
+})
+
+router.get('/intraday', async function  (req, res, next)  {
+    
+    const patterns = await pattern.getIntradayPatterns();
+    
+    if(patterns){
+        patterns.forEach((pattern) => {
+            const patternCandles = JSON.parse(pattern.candles);
+            pattern.candles = patternCandles;
+        })
+        res.send(patterns);
+    }
+})
+
+router.get('/daily', async function  (req, res, next)  {
+    
+    const patterns = await pattern.getDailyPatterns();
+    
+    if(patterns){
+        patterns.forEach((pattern) => {
+            const patternCandles = JSON.parse(pattern.candles);
+            pattern.candles = patternCandles;
+        })
+        res.send(patterns);
     }
 })
 

@@ -56,7 +56,7 @@ const PatternProvider = ({ children }) => {
     const handleRemovePattern = async (pattern) => {
         console.log(pattern, displayPatterns);
         const symbol = pattern.symbol;
-        setDisplayPatterns(displayPatterns.filter(list => list[0].symbol !== symbol));
+        setDisplayPatterns(displayPatterns.filter(list => list.symbol !== symbol));
 		
 		const payload = { 
 			Symbol: symbol,
