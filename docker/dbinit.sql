@@ -144,13 +144,13 @@ ON COMPLETION NOT PRESERVE
 ENABLE
 DO DELETE FROM intraday_patterns
 	WHERE intraday_pattern_id NOT IN 
-			(SELECT MAX(intraday_pattern_id) id, c_date 
+			(SELECT MAX(intraday_pattern_id) id
 				FROM intraday_patterns ip 
 				WHERE ip.timeframe <> 'Daily' 
 				AND CAST(c_date AS DATE) > DATE_ADD(CURRENT_DATE(), INTERVAL -2 DAY)
 				GROUP BY symbol
 			UNION
-			SELECT MAX(intraday_pattern_id) id, c_date 
+			SELECT MAX(intraday_pattern_id) id
 				FROM intraday_patterns ip 
 				WHERE ip.timeframe = 'Daily' 
 				AND CAST(c_date AS DATE) > DATE_ADD(CURRENT_DATE(), INTERVAL -3 DAY)
@@ -173,7 +173,7 @@ select
     `ip`.`c_high` AS `high`,
     `ip`.`c_low` AS `low`,
     `ip`.`c_close` AS `close`,
-    `ip`.`c_date` AS `date`,
+    date_format(`ip`.`c_date`, '%Y-%m-%dT%H:%i:%s.000Z') AS `date`,
     `ip`.`has_active_order` AS `has_active_order`,
     `ip`.`has_active_position` AS `has_active_position`,
     `ip`.`candles` AS `candles`

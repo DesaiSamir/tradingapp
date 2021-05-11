@@ -15,17 +15,17 @@ const PatternProvider = ({ children }) => {
 
     useEffect(() => {
         const loadPatterns = (data) => {
-            if(data && data.patterns){
+            if(data){
                 var patternList = [];
-                data.patterns.forEach(pattern => {
+                data.forEach(pattern => {
                     pattern.candles[0].date = new Date(new Date(pattern.candles[0].date).toJSON());
                     pattern.candles[1].date = new Date(new Date(pattern.candles[1].date).toJSON());
                     pattern.candles[0].timeframe = pattern.timeframe;
                     pattern.candles[1].timeframe = pattern.timeframe;
                     patternList.push(pattern);
                 });
-                const timeframeList = timeframes.timeframes && Array.prototype.map.call(timeframes.timeframes, t => t.title);
-                const patternTypeList = patternTypes.pattern_types && Array.prototype.map.call(patternTypes.pattern_types, p => p.title);
+                const timeframeList = timeframes && Array.prototype.map.call(timeframes, t => t.title);
+                const patternTypeList = patternTypes && Array.prototype.map.call(patternTypes, p => p.title);
                 
                 if(selectedPatternTimeframe === "All" && selectedPatternType === "All"){
                     setDisplayPatterns(patternList);
@@ -57,9 +57,10 @@ const PatternProvider = ({ children }) => {
         console.log(pattern, displayPatterns);
         const symbol = pattern.symbol;
         setDisplayPatterns(displayPatterns.filter(list => list.symbol !== symbol));
+        setCurrentPatterns(currentPatterns.filter(list => list.symbol !== symbol));
 		
 		const payload = { 
-			Symbol: symbol,
+			symbol: symbol,
 		};
 
 		http.send('DELETE',`api/pattern/${symbol}`, payload);

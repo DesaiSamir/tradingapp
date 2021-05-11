@@ -45,6 +45,7 @@ export default function OrdersTable() {
 	const [limitErrorText, setLimitErrorText] = useState();
 	const [stopError, setStopError] = useState(false);
 	const [stopErrorText, setStopErrorText] = useState();
+	const [isTrailingStop, setIsTrailingStop] = useState(false);
     
     const handleClickCancle = () => {
 		setConfirmOpen(false);
@@ -60,13 +61,16 @@ export default function OrdersTable() {
 		setOrderType((type === 'BUY' || type === 'SELLSHORT') ? 'StopLimit' : 'StopMarket');
 		setStopPrice(order.StopPrice);
 		setLimitPrice(order.LimitPrice);
+		const cIsTrailingStop = order.TrailingStop ? true : false;
+		setIsTrailingStop(cIsTrailingStop);
 		setOrderInfo(order);
 		setUpdateOpen(true);
     };
 
 	const handleSendOrderClick = () => {
+		
 		setUpdateOpen(false);
-		const payload = {
+		var payload = {
 			order_id: orderInfo.OrderID,
 			payload:{
 				Symbol: orderInfo.Symbol,
@@ -76,6 +80,27 @@ export default function OrdersTable() {
 				Quantity: orderInfo.Quantity,
 			}
 		};
+
+		if(isTrailingStop){
+			const type = orderInfo.Type.toUpperCase();
+			var cTrailingStopPrice = ((type === 'SELL' || type === 'BUYTOCOVER') ? orderInfo.StopPrice - stopPrice : orderInfo.StopPrice + stopPrice);
+			cTrailingStopPrice = cTrailingStopPrice + orderInfo.TrailingStop.Amount;
+			payload = {
+				order_id: orderInfo.OrderID,
+				payload:{
+					Symbol: orderInfo.Symbol,
+					OrderType: orderType,
+					StopPrice: stopPrice,
+					LimitPrice: limitPrice,
+					Quantity: orderInfo.Quantity,
+					AdvancedOptions: {
+						TrailingStop: {
+							Amount: parseFloat(cTrailingStopPrice).toFixed(2),
+						}
+					}
+				}
+			};
+		}
 		
 		if((stopPrice !== orderInfo.StopPrice || limitPrice !== orderInfo.LimitPrice) && (!stopError || !limitError)) {
 			http.updatePurchaseOrder(payload, orderUpdated);

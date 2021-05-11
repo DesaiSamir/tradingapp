@@ -137,14 +137,14 @@ export default function PatternsPanel() {
 							<SimpleSelect 
 								onSelectChange={onSelectChange}
 								name="timeframes"
-								menuItems={timeframes.timeframes}
+								menuItems={timeframes}
 								defaultValue={lastTimeframe}
 								title="Timeframes"
 							/>
 							<SimpleSelect 
 								onSelectChange={onSelectChange}
 								name="types"
-								menuItems={patternTypes.pattern_types}
+								menuItems={patternTypes}
 								defaultValue={lastPatternType}
 								title="Pattern Types"
 							/>

@@ -12,7 +12,7 @@ router.get('/', async function  (req, res, next)  {
             const patternCandles = JSON.parse(pattern.candles);
             pattern.candles = patternCandles;
         })
-        res.send({patterns});
+        res.send(patterns);
     }
 })
 
@@ -47,7 +47,7 @@ router.get('/types', async function  (req, res, next)  {
     const pattern_types = await pattern.getPatterns();
     
     if(pattern_types){
-        res.send({pattern_types});
+        res.send(pattern_types);
     }
 })
 
@@ -56,7 +56,7 @@ router.get('/timeframes', async function  (req, res, next)  {
     const timeframes = await pattern.getTimeframes();
     
     if(timeframes){
-        res.send({timeframes});
+        res.send(timeframes);
     }
 })
 
@@ -67,7 +67,7 @@ router.post('/', async function  (req, res, next)  {
     const patterns = await pattern.addNewPatterns(payload);
     
     if(patterns){
-        res.send({patterns});
+        res.send(patterns);
     }
 })
 
@@ -77,7 +77,7 @@ router.put('/hasposition', async function  (req, res, next)  {
     const patterns = await pattern.updatePatternIfHasPosition(payload.symbols);
     
     if(patterns){
-        res.send({patterns});
+        res.send(patterns);
     }
 })
 
@@ -87,17 +87,16 @@ router.put('/hasorder', async function  (req, res, next)  {
     const patterns = await pattern.updatePatternIfHasOrder(payload.symbols);
     
     if(patterns){
-        res.send({patterns});
+        res.send(patterns);
     }
 })
 
 router.delete('/', async function  (req, res, next)  {
     
-
     const patterns = await pattern.deleteIntradayPatterns();
     
     if(patterns){
-        res.send({patterns});
+        res.send(patterns);
     }
 })
 
@@ -108,7 +107,7 @@ router.delete('/:symbol', async function  (req, res, next)  {
     const patterns = await pattern.deleteIntradayPatternsBySymbol(symbol);
     
     if(patterns){
-        res.send({patterns});
+        res.send(patterns);
     }
 })
 

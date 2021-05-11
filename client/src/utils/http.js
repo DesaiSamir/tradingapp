@@ -229,7 +229,7 @@ module.exports = {
                     cb(orders);
                 }
             }
-        }, 1000);
+        }, 2000);
     },
     getAccountPositions: async function(key, cb){
 

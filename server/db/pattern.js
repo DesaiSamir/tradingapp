@@ -151,7 +151,7 @@ Pattern.insertIntradayPatterns = async function (newIntradayPattern){
     const query = `INSERT INTO tradingapp.intraday_patterns
                     (symbol, pattern_id, timeframe, c_open, c_high, c_low, c_close, c_date, candles)
                     VALUES('${qp.symbol}', ${pattern_id}, '${qp.timeframe}', 
-                            '${qp.c_open}', '${qp.c_high}', '${qp.c_low}', '${qp.c_close}', '${qp.c_date}', '${qp.candles}');`
+                            '${qp.c_open}', '${qp.c_high}', '${qp.c_low}', '${qp.c_close}', STR_TO_DATE('${qp.c_date}','%Y-%m-%dT%H:%i:%s.000Z'), '${qp.candles}');`
     const result = await db.crudData(query, newIntradayPattern);
     
     if(result){
