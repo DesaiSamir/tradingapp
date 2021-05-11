@@ -136,3 +136,68 @@ INSERT INTO provider (`provider_name`) VALUES ('Alpha Advantage');
 -- data setup for watchlist
 INSERT INTO watchlist (`symbol`) VALUES ('SPY'), ('QQQ'), ('UVXY'), ('TSLA')
 
+-- Create event to delete old/expired patterns
+CREATE EVENT delete_expired_patterns
+ON SCHEDULE EVERY 5 MINUTE
+STARTS '2021-05-06 02:04:57.000'
+ON COMPLETION NOT PRESERVE
+ENABLE
+DO DELETE FROM intraday_patterns
+	WHERE intraday_pattern_id NOT IN 
+			(SELECT MAX(intraday_pattern_id) id, c_date 
+				FROM intraday_patterns ip 
+				WHERE ip.timeframe <> 'Daily' 
+				AND CAST(c_date AS DATE) > DATE_ADD(CURRENT_DATE(), INTERVAL -2 DAY)
+				GROUP BY symbol
+			UNION
+			SELECT MAX(intraday_pattern_id) id, c_date 
+				FROM intraday_patterns ip 
+				WHERE ip.timeframe = 'Daily' 
+				AND CAST(c_date AS DATE) > DATE_ADD(CURRENT_DATE(), INTERVAL -3 DAY)
+				GROUP BY symbol);
+
+-- Turn on Global event scheduler to run events.
+SET GLOBAL event_scheduler = ON;
+
+-- tradingapp.vw_intraday_patterns source
+CREATE OR REPLACE
+ALGORITHM = UNDEFINED VIEW `tradingapp`.`vw_intraday_patterns` AS
+select
+    `ip`.`intraday_pattern_id` AS `intraday_pattern_id`,
+    `ip`.`created` AS `created`,
+    `ip`.`symbol` AS `symbol`,
+    `p`.`pattern_name` AS `pattern_name`,
+    `p`.`pattern_type` AS `pattern_type`,
+    `ip`.`timeframe` AS `timeframe`,
+    `ip`.`c_open` AS `open`,
+    `ip`.`c_high` AS `high`,
+    `ip`.`c_low` AS `low`,
+    `ip`.`c_close` AS `close`,
+    `ip`.`c_date` AS `date`,
+    `ip`.`has_active_order` AS `has_active_order`,
+    `ip`.`has_active_position` AS `has_active_position`,
+    `ip`.`candles` AS `candles`
+from
+    (`tradingapp`.`intraday_patterns` `ip`
+join `tradingapp`.`patterns` `p` on
+    (`p`.`pattern_id` = `ip`.`pattern_id`))
+where
+    `ip`.`intraday_pattern_id` in (
+    select
+        max(`ip`.`intraday_pattern_id`) AS `id`
+    from
+        `tradingapp`.`intraday_patterns` `ip`
+    where
+        `ip`.`timeframe` <> 'Daily'
+    group by
+        `ip`.`symbol`)
+    or cast(`ip`.`c_date` as date) in (
+    select
+        max(cast(`ip2`.`c_date` as date))
+    from
+        `tradingapp`.`intraday_patterns` `ip2`
+    where
+        `ip2`.`timeframe` = 'Daily')
+    and `ip`.`timeframe` = 'Daily'
+order by
+    `ip`.`intraday_pattern_id` desc;

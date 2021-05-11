@@ -10,8 +10,6 @@ const PatternProvider = ({ children }) => {
     const [timeframes, setTimeframes] = useState([]);
     const [patternTypes, setPatternTypes] = useState([]);
 	const [lastSelectedTab, setLastSelectedTab] = useState(0);
-    const [symbolHasOrder, setSymbolHasOrder] = useState([]);
-    const [symbolHasPosition, setSymbolHasPosition] = useState([]);
 	const [lastTimeframe, setLastTimeframe] = useState(1);
 	const [lastPatternType, setLastPatternType] = useState(3);
 
@@ -36,13 +34,6 @@ const PatternProvider = ({ children }) => {
                         .filter(items => (selectedPatternType !== "All" ? items.pattern_name === selectedPatternType : patternTypeList.includes(items.pattern_name)))
                         .filter(items => (selectedPatternTimeframe !== "All" ? items.timeframe === selectedPatternTimeframe : timeframeList.includes(items.timeframe))));
                 }
-                const orderSymbolList = patternList.filter(p => p.has_active_order === 1 && p.symbol);
-                const orderSymbols = Array.prototype.map.call(orderSymbolList, s => s.symbol );
-                setSymbolHasOrder(orderSymbols);
-
-                const positionSymbolList = patternList.filter(p => p.has_active_position === 1 && p.symbol);
-                const positionSymbols = Array.prototype.map.call(positionSymbolList, s => s.symbol );
-                setSymbolHasPosition(positionSymbols);
 
                 setCurrentPatterns(data);
             }
@@ -60,7 +51,7 @@ const PatternProvider = ({ children }) => {
         }
         
         loadPatterns(currentPatterns);
-    }, [selectedPatternType, selectedPatternTimeframe, timeframes, patternTypes]);
+    }, [selectedPatternType, selectedPatternTimeframe, timeframes, patternTypes]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleRemovePattern = async (pattern) => {
         console.log(pattern, displayPatterns);
@@ -98,7 +89,7 @@ const PatternProvider = ({ children }) => {
         <PatternContext.Provider value={{
             selectedPatternTimeframe, selectedPatternType, onSelectChange, lastTimeframe, lastPatternType, 
             currentPatterns, patternTypes, timeframes, displayPatterns, lastSelectedTab, setLastSelectedTab,
-            handleRemovePattern, symbolHasOrder, symbolHasPosition, 
+            handleRemovePattern,
            
         }}>
             {children}

@@ -93,43 +93,32 @@ Pattern.getIntradayPatternIfExist = async function (newIntradayPattern){
 }
 
 Pattern.updatePatternIfHasOrder = async function(symbols){
-    var query = `UPDATE tradingapp.intraday_patterns 
-                SET has_active_order = 0
-                WHERE symbol NOT IN (${symbols.length > 0 ? symbols : '""' });`
-    await db.crudData(query, {});
+    var query = `UPDATE intraday_patterns ip
+                LEFT JOIN (SELECT symbol, 1 has_active_order 
+                            FROM vw_intraday_patterns 
+                            WHERE symbol IN (${symbols.length > 0 ? symbols : '""' })) vip ON vip.symbol = ip.symbol
+                SET ip.has_active_order = COALESCE(vip.has_active_order, 0);`
+    var result = await db.crudData(query, {});
 
-    if(symbols.length > 0){
-        query = `UPDATE tradingapp.intraday_patterns 
-                SET has_active_order = 1
-                WHERE symbol IN (${symbols});`
-
-        const result = await db.crudData(query, {});
-
-        if(result){
-            return result;
-        }
+    if(result){
+        return result;
     }
+
     return null; 
 }
 
 Pattern.updatePatternIfHasPosition = async function(symbols){
-    var query = `UPDATE tradingapp.intraday_patterns 
-                SET has_active_position = 0
-                WHERE symbol NOT IN (${symbols.length > 0 ? symbols : '""' });`
+    var query = `UPDATE intraday_patterns ip
+                LEFT JOIN (SELECT symbol, 1 has_active_position 
+                            FROM vw_intraday_patterns 
+                            WHERE symbol IN (${symbols.length > 0 ? symbols : '""' })) vip ON vip.symbol = ip.symbol
+                SET ip.has_active_position = COALESCE(vip.has_active_position, 0);`
+    var result = await db.crudData(query, {});
 
-    await db.crudData(query, {});
-    
-    if(symbols.length > 0){
-        query = `UPDATE tradingapp.intraday_patterns 
-                SET has_active_position = 1
-                WHERE symbol IN (${symbols});`
-
-            const result = await db.crudData(query, {});
-            
-        if(result){
-            return result;
-        }
+    if(result){
+        return result;
     }
+
     return null; 
 }
 
