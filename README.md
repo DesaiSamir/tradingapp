@@ -28,8 +28,9 @@ TS_CLIENT_ID="<TS_CLIENT_ID>"
 TS_CLIENT_SECRET="<TS_CLIENT_SECRET>"
 ```
 
-Below does nto work because of rate limiting...
-~~If you want to use AlphaAdvantage APIs add a key for that in the `.env` file. If you don't have a key get it from https://www.alphavantage.co/support/#api-key~~
+Alphavantage does not work because of rate limiting...
+
+~~If you want to use AlphaVantage APIs add a key for that in the `.env` file. If you don't have a key get it from https://www.alphavantage.co/support/#api-key~~
 
 ```dosini
 ALPHA_ADVANTAGE_KEY="<ALPHA_ADVANTAGE_KEY>" 
