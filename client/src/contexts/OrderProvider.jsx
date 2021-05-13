@@ -7,8 +7,9 @@ const http = require("../utils/http");
 const OrderProvider = ({ children }) => {
     const { equitiesAccountKey } = useContext(UserContext);
     const { symbol } = useContext(ChartActionsContext);
-    const [orders, setOrders] = useState(null);
-    const [positions, setPositions] = useState(null);
+    const [orders, setOrders] = useState([]);
+    const [activeOrders, setActiveOrders] = useState([]);
+    const [positions, setPositions] = useState([]);
 	const [orderOpen, setOrderOpen] = useState(false);
 	const [orderSymbol, setOrderSymbol] = useState();
 	const [isBullish, setIsBullish] = useState();
@@ -46,7 +47,8 @@ const OrderProvider = ({ children }) => {
     
     useEffect(() => {
 		const ordersData = (data) => {
-			const symbolOrders = data && data.length && data.filter(order => order.Symbol === symbol);
+			const aOrders =  data && data.length && data.filter(o => o.StatusDescription === 'Queued' || o.StatusDescription === 'Received')
+			const symbolOrders = aOrders && aOrders.filter(order => order.Symbol === symbol);
 			if(symbolOrders){
 				setSymbolOrders(symbolOrders);
 			}
@@ -55,6 +57,7 @@ const OrderProvider = ({ children }) => {
 			const payload = {symbols};
 			http.updatePatternsHasOrder(payload);
 
+			setActiveOrders(aOrders);
 			setOrders(data);
 		}
 		const positionsData = (data) => {
@@ -573,7 +576,7 @@ const OrderProvider = ({ children }) => {
             trailingStopPrice, quantity, orderConfirmId, stopPriceOffset, limitPriceOffset, stopLossPriceOffset, title, pattern,
             highPrice, lowPrice, openPrice, closePrice, handleSendOrderClick, handleTextChange, handleClose, handleRadioChange,
             orderTypeValue, target1Price, target2Price, oneRPrice, symbolAvgPrice, symbolOrders, symbolPosition, 
-			lastSelTabOrdPos, setLastSelTabOrdPos
+			lastSelTabOrdPos, setLastSelTabOrdPos, activeOrders
         }}>
             {children}
         </OrderContext.Provider>

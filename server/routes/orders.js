@@ -7,11 +7,12 @@ router.get('/:key', async function  (req, res, next)  {
     const key = parseInt(req.params.key.match(tsRegX));
     
     if(key){
+        const today = new Date();
         const url = `/v2/accounts/${req.params.key}/orders?since=${helper.getDate()}`;
         const accountOrders = await helper.send(req, res, 'GET', url);
-
+        const statuses = ['UROut', 'Canceled', 'Rejected'];
         if(accountOrders && accountOrders.length > 0){
-            const retOrders = accountOrders.filter(order => order.StatusDescription === 'Queued' || order.StatusDescription === 'Received');
+            const retOrders = accountOrders.filter(order => !statuses.includes(order.StatusDescription));
             res.send(retOrders);
         }
     } else {

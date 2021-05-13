@@ -26,14 +26,13 @@ const StyledTableCell = withStyles((theme) => ({
 const StyledTableRow = withStyles((theme) => ({
 	root: {
 		'&:nth-of-type(odd)': {
-		backgroundColor: theme.palette.action.hover,
 		},
 	},
 }))(TableRow);
 
-export default function OrdersTable() {
+export default function OrdersTable({containerHeight, orders = []}) {
     const classes = useStyles();
-    const { orders, reloadOrders } = useContext(OrderContext);
+    const { reloadOrders } = useContext(OrderContext);
 	const { setSymbolText } = useContext(ChartActionsContext);
 	const [updateOpen, setUpdateOpen] = useState(false);
 	const [orderInfo, setOrderInfo] = useState({});
@@ -46,7 +45,7 @@ export default function OrdersTable() {
 	const [stopError, setStopError] = useState(false);
 	const [stopErrorText, setStopErrorText] = useState();
 	const [isTrailingStop, setIsTrailingStop] = useState(false);
-    
+    console.log(containerHeight)
     const handleClickCancle = () => {
 		setConfirmOpen(false);
         http.deletePurchaseOrder(orderInfo.OrderID, orderCancled);
@@ -158,7 +157,7 @@ export default function OrdersTable() {
     return (
 		<Grid container>
 			<Grid item xs={12}  > 
-				<TableContainer component={Paper} className={classes.container}>
+				<TableContainer component={Paper} className={classes.container} style={{height: containerHeight}}>
 					<Table className={classes.table} stickyHeader aria-label="sticky table">
 						<TableHead>
 							<TableRow>
@@ -181,7 +180,7 @@ export default function OrdersTable() {
 							{orders && orders.map((order) => (
 								<StyledTableRow 
 									key={order.OrderID}
-									className={classes.row}
+									className={`${classes.row} ${order.StopPrice === 0 ? classes.profit : order.LimitPrice === 0 ? classes.loss : classes.purchase}`}
 								>
 									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.Symbol}</StyledTableCell>
 									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.OrderID}</StyledTableCell>
@@ -189,8 +188,12 @@ export default function OrdersTable() {
 									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.Type}</StyledTableCell>
 									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.TimeStamp}</StyledTableCell>
 									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.Quantity}</StyledTableCell>
-									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.StopPriceText}</StyledTableCell>
-									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.LimitPriceText}</StyledTableCell>
+									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>
+										{order.StopPrice === 0 ? 'StopLimit' : order.StopPriceText}
+									</StyledTableCell>
+									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>
+										{order.LimitPrice === 0 ? 'StopMarket' : order.LimitPriceText}
+									</StyledTableCell>
 									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.FilledPriceText}</StyledTableCell>
 									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.Duration}</StyledTableCell>
 									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.RejectReason}</StyledTableCell>
@@ -329,7 +332,6 @@ const useStyles = makeStyles((theme) => ({
 		bottom: 0,
 	},
 	container: {
-		height: 270,
 		top: 0,
 		bottom: 0,
 		position: 'relative',
@@ -365,4 +367,13 @@ const useStyles = makeStyles((theme) => ({
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
+	profit: {
+		backgroundColor: theme.palette.success.light,
+	},
+	loss: {
+		backgroundColor: theme.palette.error.light,
+	},
+	purchase: {
+		backgroundColor: theme.palette.action.hover,
+	}
 }))

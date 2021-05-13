@@ -2,7 +2,7 @@ var patterns = require('./patterns');
 const alpha = require('alphavantage')({ key: '' });
 
 var barChartTimer, watchlistTimer, patternsTimer, quoteTimer, ordersInterval, positionsInterval, balancesInterval;
-var currentSymbol, currentUrl;
+var currentSymbol, currentUrl, patternIntradayTimer;
 module.exports = {
     clearBarChartInterval: function () {
         clearInterval(barChartTimer);
@@ -131,7 +131,7 @@ module.exports = {
         const patternData = await this.get("api/pattern", cb);
         
         if(patternData){
-            console.log(patternData);
+            console.log({patternData});
             cb(patternData);
         }
         this.getPatternsRecursive(cb);
@@ -150,6 +150,29 @@ module.exports = {
             }
         }, this.getRefreshInterval());
     },
+    getPatternIntraday: async function(cb){
+        const intradayData = await this.get("api/pattern/intraday", cb);
+        
+        if(intradayData){
+            console.log({intradayData});
+            cb(intradayData);
+        }
+        this.getPatternIntradayRecursive(cb);
+    },
+    getPatternIntradayRecursive: function(cb){
+        
+        clearInterval(patternIntradayTimer);
+        
+        patternIntradayTimer = setInterval(async () => {
+            if(this.isRegularSessionTime()){
+                const patternData = await this.get("api/pattern/intraday", cb);
+                
+                if(patternData){
+                    cb(patternData);
+                }
+            }
+        }, 15000);
+    },
     updatePatternsHasOrder: async function(payload){
         await this.send('PUT','api/pattern/hasorder', payload);
     },
@@ -160,7 +183,7 @@ module.exports = {
         const timeframes = await this.get("api/pattern/timeframes", cb);
         
         if(timeframes){
-            console.log(timeframes);
+            console.log({timeframes});
             cb(timeframes);
         }
     },
@@ -168,7 +191,7 @@ module.exports = {
         const patternTypes = await this.get("api/pattern/types", cb);
         
         if(patternTypes){
-            console.log(patternTypes);
+            console.log({patternTypes});
             cb(patternTypes);
         }
         // this.getWatchlistRecursive(cb);

@@ -7,13 +7,13 @@ const BalanceProvider = ({ children }) => {
     const { equitiesAccountKey } = useContext(UserContext);
     const [balanceInfo, setBalanceInfo] = useState(null);
     const [balAccountName, setBalAccountName] = useState(null);
-    const [accountBalance, setAccountBalance] = useState(null);
-    const [realizedPnL, setRealizedPnL] = useState(null);
-    const [unRealizedPnL, setUnRealizedPnL] = useState(null);
-    const [netWorth, setNetWorth] = useState(null);
-    const [positionCost, setPositionCost] = useState(null);
-    const [overnightBuyPower, setOvernightBuyPower] = useState(null);
-    const [dayBuyPower, setDayBuyPower] = useState(null);
+    const [accountBalance, setAccountBalance] = useState(0.00);
+    const [realizedPnL, setRealizedPnL] = useState(0.00);
+    const [unRealizedPnL, setUnRealizedPnL] = useState(0.00);
+    const [netWorth, setNetWorth] = useState(0.00);
+    const [positionCost, setPositionCost] = useState(0.00);
+    const [overnightBuyPower, setOvernightBuyPower] = useState(0.00);
+    const [dayBuyPower, setDayBuyPower] = useState(0.00);
     const [closedPositions, setClosedPositions] = useState(null);
     
     useEffect(() => {
@@ -22,13 +22,13 @@ const BalanceProvider = ({ children }) => {
             if(bInfo){
                 setBalanceInfo(bInfo);
                 setBalAccountName(bInfo.DisplayName);
-                setAccountBalance(bInfo.RealTimeAccountBalance);
-                setRealizedPnL(bInfo.RealTimeRealizedProfitLoss);
-                setUnRealizedPnL(bInfo.RealTimeUnrealizedProfitLoss);
-                setNetWorth(bInfo.RealTimeEquity);
-                setPositionCost(bInfo.RealTimeCostOfPositions);
-                setOvernightBuyPower(bInfo.RealTimeOvernightBuyingPower);
-                setDayBuyPower(bInfo.RealTimeBuyingPower);
+                setAccountBalance(parseFloat(bInfo.RealTimeAccountBalance).toFixed(2));
+                setRealizedPnL(parseFloat(bInfo.RealTimeRealizedProfitLoss).toFixed(2));
+                setUnRealizedPnL(parseFloat(bInfo.RealTimeUnrealizedProfitLoss).toFixed(2));
+                setNetWorth(parseFloat(bInfo.RealTimeEquity).toFixed(2));
+                setPositionCost(parseFloat(bInfo.RealTimeCostOfPositions).toFixed(2));
+                setOvernightBuyPower(parseFloat(bInfo.RealTimeOvernightBuyingPower).toFixed(2));
+                setDayBuyPower(parseFloat(bInfo.RealTimeBuyingPower).toFixed(2));
                 setClosedPositions(bInfo.ClosedPositions);
             }
         }

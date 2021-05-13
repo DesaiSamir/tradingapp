@@ -2,9 +2,9 @@ import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import { Paper, AppBar, Tabs, Tab, Box } from '@material-ui/core';
-import Orders from '../../pages/Orders';
 import Positions from '../../pages/Positions';
 import { OrderContext } from '../../contexts/OrderProvider';
+import OrdersTable from '../displays/OrdersTable';
 
 function TabPanel(props) {
   	const { children, value, index, ...other } = props;
@@ -52,7 +52,7 @@ function LinkTab(props) {
 
 export default function OrdersPanel() {
 	const classes = useStyles();
-	const { lastSelTabOrdPos, setLastSelTabOrdPos } = useContext(OrderContext);
+	const { lastSelTabOrdPos, setLastSelTabOrdPos, activeOrders } = useContext(OrderContext);
 	const handleChange = (event, newValue) => {
 		setLastSelTabOrdPos(newValue);
 	};
@@ -71,7 +71,7 @@ export default function OrdersPanel() {
                 </Tabs>
             </AppBar>
 			<TabPanel value={lastSelTabOrdPos} index={0}>
-				<Orders />
+				<OrdersTable  containerHeight={270} orders={activeOrders} />
             </TabPanel>
             <TabPanel value={lastSelTabOrdPos} index={1}>
 				<Positions />

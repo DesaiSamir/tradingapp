@@ -4,7 +4,7 @@ import _ from "lodash";
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { 
     Drawer, AppBar, List, CssBaseline, Typography, Divider, IconButton, 
-	ListItem, ListItemIcon, ListItemText, Toolbar, MenuItem, Menu
+	ListItem, ListItemIcon, ListItemText, Toolbar, MenuItem, Menu, Grid
 } from '@material-ui/core';
 import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
@@ -20,10 +20,12 @@ import ListAltIcon from '@material-ui/icons/ListAlt';
 import Terminal from "../displays/Terminal";
 import Profile from "../../pages/Profile";
 import Market from "../../pages/Market";
-import Orders from '../../pages/Orders';
 import { UserContext } from '../../contexts/UserProvider';
 import Positions from '../../pages/Positions';
 import { ChartActionsContext } from '../../contexts/ChartActionsProvider';
+import { BalanceContext } from '../../contexts/BalanceProvider';
+import OrdersTable from '../displays/OrdersTable';
+import { OrderContext } from '../../contexts/OrderProvider';
 
 const drawerWidth = 240;
 const contentWidthOpen = window.innerWidth - drawerWidth;
@@ -101,7 +103,7 @@ const useStyles = makeStyles((theme) => ({
 	},
 	buttonText: {
 		...theme.typography.button,
-		padding: theme.spacing(1),
+		padding: '0px 5px',
 	},
 	loggedIn:{
 		display: 'flex',
@@ -110,6 +112,27 @@ const useStyles = makeStyles((theme) => ({
 	},
 	spacer: {
 		padding: theme.spacing(1),
+	},
+	up: {
+		color: theme.palette.success.dark,
+	},
+	down: {
+		color: 'red',
+	},
+	gridContainer: {
+		width: 210,
+		backgroundColor: theme.palette.primary.dark,
+	},
+	cards: {
+		display: 'flex',
+		flexWrap: 'wrap',
+		justifyContent: 'space-between',
+	},
+	card: {
+		width: 60,
+		flex: '0 1 20%',
+		cursor: 'pointer',
+		backgroundColor: theme.palette.primary.dark,
 	}
 }));
 
@@ -117,7 +140,9 @@ export default function DrawerPanel() {
 	const classes = useStyles();
 	const theme = useTheme();
 	const { userId } =  useContext(UserContext);
-	const { stockQuote } = useContext(ChartActionsContext);
+	const { stockQuote, setSymbolText } = useContext(ChartActionsContext);
+	const { realizedPnL, unRealizedPnL, closedPositions } = useContext(BalanceContext);
+	const { orders } = useContext(OrderContext)
 	const [open, setOpen] = React.useState(false);  
 	const [anchorEl, setAnchorEl] = React.useState(null);
 	const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
@@ -247,6 +272,48 @@ export default function DrawerPanel() {
 						Pattern Trading Bot
 					</Typography>
 					<div className={classes.grow} />
+					<div>
+						<div className={classes.cards}>
+							{
+								closedPositions && closedPositions.map( (p) => {
+									return (
+										<Grid container key={p.Symbol} className={`${classes.buttonText} ${classes.card}`} onClick={() => setSymbolText(p.Symbol)}>
+											<Grid item xs={5}>
+												{p.Symbol}: 
+											</Grid>
+											<Grid item xs={7} className={p.Profit >= 0 ? classes.up : classes.down}>
+												{p.Profit >= 0 ? `$${parseFloat(p.Profit).toFixed(2)}` : `$${parseFloat(p.Profit).toFixed(2) * -1}`}
+											</Grid>
+										</Grid>
+									)
+								})
+							}
+						</div>
+					</div>
+					<div>
+						<Grid container className={classes.gridContainer}>
+							<Grid item xs={8} >
+								<Typography  variant="h6" noWrap className={classes.buttonText}>
+									Today's PnL: 
+								</Typography>
+							</Grid>
+							<Grid item xs={4} >
+								<Typography  variant="h6" noWrap className={`${classes.buttonText} ${realizedPnL >= 0 ? classes.up : classes.down}`}>
+									{realizedPnL >= 0 ? `$${realizedPnL}` : `$${realizedPnL * -1}`}
+								</Typography>
+							</Grid>
+							<Grid item xs={8}>
+								<Typography  variant="h6" noWrap className={classes.buttonText}>
+									Unrealized PnL: 
+								</Typography>
+							</Grid>
+							<Grid item xs={4}>
+								<Typography  variant="h6" noWrap className={`${classes.buttonText} ${unRealizedPnL >= 0 ? classes.up : classes.down}`}>
+									{unRealizedPnL >= 0 ? `$${unRealizedPnL}` : `$${unRealizedPnL * -1}`}
+								</Typography>
+							</Grid>
+						</Grid>
+					</div>
 					<div className={classes.sectionDesktop}>
 						{   
 							!_.isNull(userId) ?
@@ -348,7 +415,7 @@ export default function DrawerPanel() {
 				<div className={open ? classes.containerOpen : classes.containerClose}>
 					{
 						component === 'Orders' ?
-							<Orders />
+							<OrdersTable  containerHeight={window.innerHeight - 112} orders={orders} />
 						:
 						component === 'Profile' ?
 							<Profile />
