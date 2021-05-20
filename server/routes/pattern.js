@@ -13,6 +13,8 @@ router.get('/', async function  (req, res, next)  {
             pattern.candles = patternCandles;
         })
         res.send(patterns);
+    } else {
+        res.send([]);
     }
 })
 
@@ -26,6 +28,8 @@ router.get('/intraday', async function  (req, res, next)  {
             pattern.candles = patternCandles;
         })
         res.send(patterns);
+    } else {
+        res.send([]);
     }
 })
 
@@ -39,6 +43,8 @@ router.get('/daily', async function  (req, res, next)  {
             pattern.candles = patternCandles;
         })
         res.send(patterns);
+    } else {
+        res.send([]);
     }
 })
 

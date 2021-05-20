@@ -4,7 +4,7 @@ import _ from "lodash";
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { 
     Drawer, AppBar, List, CssBaseline, Typography, Divider, IconButton, 
-	ListItem, ListItemIcon, ListItemText, Toolbar, MenuItem, Menu, Grid
+	ListItem, ListItemIcon, ListItemText, Toolbar, MenuItem, Menu, Grid, FormControlLabel, Checkbox
 } from '@material-ui/core';
 import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
@@ -90,7 +90,6 @@ const useStyles = makeStyles((theme) => ({
 		flexGrow: 1,
 		marginTop: `${appBarHeight - 5}px`,
 		overflowY: 'auto',
-		// height: window.innerHeight - 117
 	},
 	containerOpen: {
 		width: `${contentWidthOpen}px`,
@@ -115,24 +114,31 @@ const useStyles = makeStyles((theme) => ({
 	},
 	up: {
 		color: theme.palette.success.dark,
+		textAlign: 'center',
 	},
 	down: {
 		color: 'red',
+		textAlign: 'center',
 	},
 	gridContainer: {
-		width: 210,
+		width: 230,
 		backgroundColor: theme.palette.primary.dark,
+	},
+	cardContainer: {
+		maxWidth: 600,
+		maxHeight: 49,
 	},
 	cards: {
 		display: 'flex',
 		flexWrap: 'wrap',
-		justifyContent: 'space-between',
+		height: 49,
+		backgroundColor: theme.palette.primary.dark,
+		flexDirection: 'row',
 	},
 	card: {
-		width: 60,
-		flex: '0 1 20%',
+		width: 120,
+		height: 24.5,
 		cursor: 'pointer',
-		backgroundColor: theme.palette.primary.dark,
 	}
 }));
 
@@ -140,7 +146,7 @@ export default function DrawerPanel() {
 	const classes = useStyles();
 	const theme = useTheme();
 	const { userId } =  useContext(UserContext);
-	const { stockQuote, setSymbolText } = useContext(ChartActionsContext);
+	const { stockQuote, setSymbolText, isRegularSession, handleChangeRegularSession } = useContext(ChartActionsContext);
 	const { realizedPnL, unRealizedPnL, closedPositions } = useContext(BalanceContext);
 	const { orders } = useContext(OrderContext)
 	const [open, setOpen] = React.useState(false);  
@@ -230,6 +236,12 @@ export default function DrawerPanel() {
 							</IconButton>
 							<p>Logout</p>
 						</MenuItem>
+						<MenuItem>
+							<FormControlLabel
+								control={<Checkbox checked={isRegularSession} onChange={handleChangeRegularSession} name="IsRegularSession" />}
+								label="Override Session"
+							/>
+						</MenuItem>
 					</div>
 				: 
 					<MenuItem href={"api/login"}>
@@ -272,8 +284,8 @@ export default function DrawerPanel() {
 						Pattern Trading Bot
 					</Typography>
 					<div className={classes.grow} />
-					<div>
-						<div className={classes.cards}>
+					<div className={classes.cardContainer}>
+						<Grid container className={classes.cards}>
 							{
 								closedPositions && closedPositions.map( (p) => {
 									return (
@@ -288,7 +300,7 @@ export default function DrawerPanel() {
 									)
 								})
 							}
-						</div>
+						</Grid>
 					</div>
 					<div>
 						<Grid container className={classes.gridContainer}>

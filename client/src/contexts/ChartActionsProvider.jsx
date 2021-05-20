@@ -17,6 +17,7 @@ const ChartActionsProvider = ({ children }) => {
     const [currentWatchlist, setCurrentWatchlist] = useState([]);
     const [lastPrice, setLastPrice] = useState();
     const [currentTimeframe, setCurrentTimeframe] = useState();
+    const [isRegularSession, setIsRegularSession] = useState(false);
     
     useEffect(() => {
         const sessionTemplate = isPreMarket ? "&SessionTemplate=USEQPreAndPost" : '';
@@ -138,6 +139,11 @@ const ChartActionsProvider = ({ children }) => {
 		http.send('DELETE',`api/watchlist/${symbol}`, payload);
 	}
 
+	const handleChangeRegularSession = (e) => {
+		setIsRegularSession(e.target.checked);
+        http.overrideRegularSession(e.target.checked);
+	}
+
     return (
         <ChartActionsContext.Provider value={{
             stockQuote,  lastPrice,
@@ -148,8 +154,8 @@ const ChartActionsProvider = ({ children }) => {
             chartText, 
             url,
             isPreMarket, setIsPreMarket,
-            onUnitClicked, 
-            onTextChanged,
+            onUnitClicked, handleChangeRegularSession,
+            onTextChanged, setIsRegularSession, isRegularSession,
             setSymbolText, setSymbolTextFromCandle,
             currentWatchlist, currentTimeframe,
             handleAddWatchlist, handleDeleteWatchlist, addFavWatchlist,  

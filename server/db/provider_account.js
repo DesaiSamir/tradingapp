@@ -13,6 +13,19 @@ var ProviderAccount = function(record){
     this.is_simulated = record.is_simulated;
 };
 
+ProviderAccount.getAccountKeyByNameAndType = async function(prodiverName, type, is_simulated = 1){
+    const query = `SELECT * FROM provider_account pa 
+                    JOIN provider p ON p.provider_id = pa.provider_id 
+                    WHERE p.provider_name = '${prodiverName}' AND pa.type = '${type}' AND pa.is_simulated = '${is_simulated}';` ;
+
+    const result = await db.getData(query);
+
+    if(result){
+        return result[0];
+    }
+    return null;
+}
+
 ProviderAccount.createProviderAccount = function(newProviderAccount) {
     const qp = newProviderAccount;
     const query = `INSERT INTO provider_account (provider_id, can_day_trade, day_trading_qualified, name, account_key, type, type_desc, is_simulated)

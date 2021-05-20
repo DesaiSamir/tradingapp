@@ -111,7 +111,7 @@ CREATE TABLE `intraday_patterns` (
   `intraday_pattern_id` int(11) NOT NULL AUTO_INCREMENT,
   `symbol` varchar(100) NOT NULL,
   `pattern_id` int(11) NOT NULL,
-  `timeframe` enum('5M','15M','60M','Daily') DEFAULT NULL,
+  `timeframe` enum('5M','15M','60M','Daily','Weekly','Monthly') DEFAULT NULL,
   `c_open` varchar(10) NOT NULL,
   `c_high` varchar(10) NOT NULL,
   `c_low` varchar(10) NOT NULL,
@@ -146,7 +146,7 @@ DO DELETE FROM intraday_patterns
 	WHERE intraday_pattern_id NOT IN 
 			(SELECT MAX(intraday_pattern_id) id
 				FROM intraday_patterns ip 
-				WHERE ip.timeframe <> 'Daily' 
+				WHERE ip.timeframe NOT IN ('Daily', 'Weekly', 'Monthly') 
 				AND CAST(c_date AS DATE) > DATE_ADD(CURRENT_DATE(), INTERVAL -2 DAY)
 				GROUP BY symbol
 			UNION
@@ -154,7 +154,13 @@ DO DELETE FROM intraday_patterns
 				FROM intraday_patterns ip 
 				WHERE ip.timeframe = 'Daily' 
 				AND CAST(c_date AS DATE) > DATE_ADD(CURRENT_DATE(), INTERVAL -3 DAY)
+				GROUP BY symbol
+			UNION
+			SELECT MAX(intraday_pattern_id) id
+				FROM intraday_patterns ip 
+				WHERE ip.timeframe IN ('Weekly', 'Monthly') 
 				GROUP BY symbol);
+
 
 -- Turn on Global event scheduler to run events.
 SET GLOBAL event_scheduler = ON;

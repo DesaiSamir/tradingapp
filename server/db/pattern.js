@@ -49,6 +49,14 @@ Pattern.getTimeframes = async function(){
             id: 5,
             title: 'Daily',
         },
+        {
+            id: 6,
+            title: 'Weekly',
+        },
+        {
+            id: 7,
+            title: 'Monthly',
+        },
     ];
     if(timeframes){
         return timeframes;
@@ -103,7 +111,7 @@ Pattern.getIntradayPatternIfExist = async function (newIntradayPattern){
     const query = `SELECT symbol, timeframe, 
                     c_open, c_high, c_low, c_close, c_date, candles 
                     FROM intraday_patterns ip 
-                    WHERE symbol='${qp.symbol}' AND timeframe='${qp.timeframe}' AND c_date='${qp.c_date}';`
+                    WHERE symbol='${qp.symbol}' AND timeframe='${qp.timeframe}' AND c_date=STR_TO_DATE('${qp.c_date}','%Y-%m-%dT%H:%i:%s.000Z');`
     const result = await db.getData(query);
     
     if(result){
@@ -114,10 +122,21 @@ Pattern.getIntradayPatternIfExist = async function (newIntradayPattern){
 
 Pattern.updatePatternIfHasOrder = async function(symbols){
     var query = `UPDATE intraday_patterns ip
-                LEFT JOIN (SELECT symbol, 1 has_active_order 
-                            FROM vw_intraday_patterns 
-                            WHERE symbol IN (${symbols.length > 0 ? symbols : '""' })) vip ON vip.symbol = ip.symbol
-                SET ip.has_active_order = COALESCE(vip.has_active_order, 0);`
+                SET ip.has_active_order = 1
+                WHERE symbol IN (${symbols});`
+    var result = await db.crudData(query, {});
+
+    if(result){
+        return result;
+    }
+
+    return null; 
+}
+
+Pattern.updatePatternIfHasOrderBySymbol = async function(symbol){
+    var query = `UPDATE intraday_patterns ip
+                SET ip.has_active_order = 1
+                WHERE symbol = '${symbol}';`
     var result = await db.crudData(query, {});
 
     if(result){

@@ -2,7 +2,7 @@ var express = require('express');
 var path = require('path');
 var cookieSession = require('cookie-session');
 const { ts } = require('./config');
-var morgan = require('morgan')
+var morgan = require('morgan');
 
 const indexRouter = require('./routes/index');
 const accountsRouter = require('./routes/accounts');
@@ -11,11 +11,13 @@ const adminRouter = require('./routes/admin');
 const logoutRouter = require('./routes/logout');
 const profileRouter = require('./routes/profile');
 const marketdataRouter = require('./routes/marketdata');
+const symbollistsRouter = require('./routes/symbollists');
 
 //DB Routers
 const watchlistRouter = require('./routes/watchlist');
 const ordersRouter = require('./routes/orders');
 const patternRouter = require('./routes/pattern');
+const settingsRouter = require('./routes/settings');
 
 const app = express();
 
@@ -45,12 +47,14 @@ app.use('/api/admin', adminRouter);
 app.use('/api/logout', logoutRouter);
 app.use('/api/profile', profileRouter);
 app.use('/api/marketdata', marketdataRouter);
+app.use('/api/symbollists', symbollistsRouter);
 
 //DB Endpoints
 app.use('/api/watchlist', watchlistRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/pattern', patternRouter);
-
+app.use('/api/settings', settingsRouter);
+  
 // error handler
 app.use(function(err, req, res, next) {
 	try {

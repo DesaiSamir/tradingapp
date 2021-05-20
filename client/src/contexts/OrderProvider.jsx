@@ -47,16 +47,11 @@ const OrderProvider = ({ children }) => {
     
     useEffect(() => {
 		const ordersData = (data) => {
-			const aOrders =  data && data.length && data.filter(o => o.StatusDescription === 'Queued' || o.StatusDescription === 'Received')
-			const symbolOrders = aOrders && aOrders.filter(order => order.Symbol === symbol);
-			if(symbolOrders){
-				setSymbolOrders(symbolOrders);
-			}
-			
-			const symbols =  Array.prototype.map.call(data, s => `'${s.Symbol}'`).toString();
-			const payload = {symbols};
-			http.updatePatternsHasOrder(payload);
+			const aOrders =  data && data.length > 0 && data.filter(o => o.StatusDescription === 'Queued' || o.StatusDescription === 'Received');
 
+			const symbolOrders = aOrders && aOrders.filter(order => order.Symbol === symbol);
+			
+			setSymbolOrders(symbolOrders ? symbolOrders : []);
 			setActiveOrders(aOrders);
 			setOrders(data);
 		}
@@ -72,10 +67,6 @@ const OrderProvider = ({ children }) => {
 				setSymbolPosition(null);
 			}
 
-			const symbols =  Array.prototype.map.call(data, s => `'${s.Symbol}'`).toString();
-			const payload = {symbols};
-			http.updatePatternsHasPosition(payload);
-
 			setPositions(data);
 		}
         http.getAccountOrders(equitiesAccountKey, ordersData);
@@ -89,7 +80,7 @@ const OrderProvider = ({ children }) => {
 	const handleClickOpenTradeDialog = (candle) => {
 		setOrderOpen(true);
 		const c = candle;
-        const cSymbol = c.orderSymbol ? c.orderSymbol : symbol;
+        const cSymbol = c.symbol;
 		const cIsBullish = c.close > c.open;
 		const cStopLimitAction = cIsBullish ? 'BUY' : 'SELLSHORT';
 		const cStopLossAction = cIsBullish ? 'SELL' : 'BUYTOCOVER';
@@ -102,7 +93,7 @@ const OrderProvider = ({ children }) => {
 		const cOneRPrice = cIsBullish ? parseFloat(cStopPrice) - parseFloat(c.low) - slpo : parseFloat(c.high) + slpo - parseFloat(cStopPrice);
         const cTrailingStopPrice = parseFloat(cOneRPrice) * parseFloat(riskOffset);
 		var cStopLossPrice = cIsBullish ? parseFloat(cStopPrice) - parseFloat(cTrailingStopPrice) : parseFloat(cStopPrice) + parseFloat(cTrailingStopPrice);
-		const cQuantity = Math.floor(100000/ parseFloat(cStopPrice));
+		const cQuantity = Math.floor(10000/ parseFloat(cStopPrice));
         const cQuantityT1 = Math.floor(cQuantity/2);
         const cQuantityT2 = cQuantity - cQuantityT1;
         const cTarget1Price = cIsBullish ? parseFloat(cStopPrice) + ((parseFloat(cTrailingStopPrice) / 2) * parseFloat(riskOffset)) : parseFloat(cStopPrice) - ((parseFloat(cTrailingStopPrice) / 2) * parseFloat(riskOffset));

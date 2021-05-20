@@ -75,13 +75,14 @@ const useStyles = makeStyles((theme) => ({
 export default function PositionsTable() {
     const classes = useStyles();
     const { equitiesAccountKey } = useContext(UserContext);
-    const { positions, reloadOrders } = useContext(OrderContext);
+    const { positions, reloadOrders, activeOrders } = useContext(OrderContext);
 	const { setSymbolText } = useContext(ChartActionsContext);
 	const [confirmOpen, setConfirmOpen] = useState(false);
 	const [orderInfo, setOrderInfo] = useState({});
 
     const handleClosePosition = () => {
 		setConfirmOpen(false);
+
 		const quantity = orderInfo.Quantity;
 		const pos = orderInfo.LongShort;
 		const stopLossAction = pos === 'Long' ? 'SELL' : 'BUYTOCOVER';
@@ -97,8 +98,14 @@ export default function PositionsTable() {
 				TradeAction: stopLossAction,
 			}
 		};
-		console.log(payload);
-		http.closePosition(payload, positionClosed);
+		const orders = activeOrders.filter(o => o.Symbol === orderInfo.Symbol);
+		orders.forEach(order => {
+			http.deletePurchaseOrder(order.OrderID, positionClosed);
+		});
+		console.log({payload, orders});
+		setTimeout(() => {
+			http.closePosition(payload, positionClosed);			
+		}, 2000);
 
     };
 

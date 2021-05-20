@@ -69,7 +69,13 @@ function findPattern(dataArray, callback) {
         if (callback(...args)) {
             dataArray[i + 1][callbackName] = true;
             dataArray[i + 1]["pattern"] = callbackName;
-            matches.push(args[1]);
+            
+            dataArray[i]["candle"] = 0;
+            dataArray[i + 1]["candle"] = 1;
+
+            matches.push(args);
+            // break;
+            // matches.push(args[1]);
         } else {
             dataArray[i + 1][callbackName] = false;
         }

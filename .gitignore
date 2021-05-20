@@ -32,3 +32,4 @@ yarn-error.log*
 *.lock
 package-lock.json
 .npm
+*patterns-detect

@@ -56,7 +56,7 @@ export default function OrdersPanel() {
 	const handleChange = (event, newValue) => {
 		setLastSelTabOrdPos(newValue);
 	};
-  
+	
 	return (
         <div className={classes.root}>
             <AppBar position="static">

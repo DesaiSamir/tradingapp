@@ -2,7 +2,7 @@ var patterns = require('./patterns');
 const alpha = require('alphavantage')({ key: '' });
 
 var barChartTimer, watchlistTimer, patternsTimer, quoteTimer, ordersInterval, positionsInterval, balancesInterval;
-var currentSymbol, currentUrl, patternIntradayTimer;
+var currentSymbol, currentUrl, patternIntradayTimer, overrideSession = false, regularSession = false;
 module.exports = {
     clearBarChartInterval: function () {
         clearInterval(barChartTimer);
@@ -12,7 +12,7 @@ module.exports = {
     },
     getRefreshInterval: function () {
         if(this.isRegularSessionTime()){
-            return 2500;
+            return 3000;
         }
 
         return 10000;
@@ -24,16 +24,28 @@ module.exports = {
 
         return 10000;
     },
+    overrideRegularSession: function (override) {
+        overrideSession = override;        
+    },
     isRegularSessionTime: function () {
         const sessionStartTime = new Date(new Date().toLocaleDateString() + " 9:30:00 AM");
         const sessionEndTime = new Date(new Date().toLocaleDateString() + " 4:00:00 PM");
         const currentTime = new Date();
+        var currentSession = false;
         
-        if (currentTime > sessionStartTime && currentTime < sessionEndTime && currentTime.getDay() > 0 && currentTime.getDay() < 6) {
-            return true;
+        if ((currentTime > sessionStartTime && currentTime < sessionEndTime && currentTime.getDay() > 0 && currentTime.getDay() < 6) || overrideSession) {
+            currentSession = true;
         }
 
-        return false;
+        if(currentSession !== regularSession){
+            regularSession = currentSession;
+            const payload = {
+                setting_name: 'OverrideRegularSession',
+                setting_value: this.isRegularSessionTime() ? 1 : 0
+            }
+            this.send('POST', 'api/settings', payload);
+        }
+        return currentSession;
     },
     getProfileData: async function (cb) {
         const profileData = await this.get('api/profile');
@@ -47,7 +59,7 @@ module.exports = {
         currentSymbol = symbol;
         if(quoteData){
             console.log({quoteData});
-            cb(quoteData);
+            cb(quoteData[0]);
         }
     },
     getQuoteDataRecursive: function (payload, cb) {
@@ -59,7 +71,7 @@ module.exports = {
             if(this.isRegularSessionTime()){
                 const quoteData = await this.send('POST', 'api/marketdata', payload);
                 if(quoteData){
-                    cb(quoteData);
+                    cb(quoteData[0]);
                 }
             }
         }, this.getRefreshInterval());
@@ -252,7 +264,7 @@ module.exports = {
                     cb(orders);
                 }
             }
-        }, 2000);
+        }, 2500);
     },
     getAccountPositions: async function(key, cb){
 

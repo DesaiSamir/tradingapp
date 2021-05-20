@@ -38,6 +38,12 @@ const useStyles = makeStyles((theme) => ({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    timeframe: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+    },
     button: {
         width: '100%',
         padding: '3px 6px',
@@ -71,12 +77,15 @@ export default function CandleGrid({candles}) {
         <div className={classes.root}>
             <Paper className={classes.paper}>
                 <Grid container spacing={1}>
-                    <Grid item >
+                    <Grid item className={classes.timeframe}>
                         <ButtonBase className={classes.symbol} onClick={() => setSymbolTextFromCandle(candleInAction)}>
                             <Typography variant="h4" component="h2">
                                 {candleInAction.symbol}
                             </Typography>
                         </ButtonBase>
+                        <Typography variant="button" display="block" gutterBottom className={classes.font}>
+                            {candleInAction.timeframe}
+                        </Typography>
                     </Grid>
                     <Grid item xs={12} sm container>
                         <Grid item xs container spacing={1}>

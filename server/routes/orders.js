@@ -1,22 +1,69 @@
 var express = require('express');
 var router = express.Router();
 const helper = require('../utils/helpers');
+const pattern = require('../db/pattern');
+const setting = require('../db/settings');
+var activeOrders = [];
+var ordersInterval = 0;
 
-router.get('/:key', async function  (req, res, next)  {
+getActiveOrdersRecursive = async (req, res) => {
+    clearInterval(ordersInterval);
+    ordersInterval = setInterval(async () =>{
+        const regularSession = await setting.getSettingsByName('OverrideRegularSession');
+        if(parseInt(regularSession.value) === 1){
+            getActiveOrders(req, res);
+        } 
+    }, 1500);
+}
+
+getActiveOrders = async (req, res) => {
     const tsRegX = /\d+/g;
     const key = parseInt(req.params.key.match(tsRegX));
-    
     if(key){
-        const today = new Date();
-        const url = `/v2/accounts/${req.params.key}/orders?since=${helper.getDate()}`;
-        const accountOrders = await helper.send(req, res, 'GET', url);
-        const statuses = ['UROut', 'Canceled', 'Rejected'];
+        const url = `/v2/accounts/${key}/orders?since=${helper.getDate()}`;
+        const accountOrders = await helper.send(req, res, 'GET', url);            
         if(accountOrders && accountOrders.length > 0){
-            const retOrders = accountOrders.filter(order => !statuses.includes(order.StatusDescription));
-            res.send(retOrders);
+            const statuses = ['UROut', 'Canceled', 'Rejected'];
+            activeOrders = accountOrders.filter(order => !statuses.includes(order.StatusDescription));
+            const symbols = [...new Set(activeOrders.filter(order => order.StatusDescription !== 'Filled').map(s => `'${s.Symbol}'`))].toString();
+            pattern.updatePatternIfHasOrder(symbols);
+            activeOrders.filter(o => ['Buy', 'Sell Short'].includes(o.Type)).forEach(order => {
+                const triggered = accountOrders.filter(o => parseInt(o.TriggeredBy) === order.OrderID && o.StatusDescription === 'Filled')[0];
+                
+                if(triggered){
+                    switch (order.Type) {
+                        case 'Buy':
+                            var buy = triggered.FilledPrice - order.FilledPrice;
+                            order.TriggeredBy = parseFloat(buy * order.Quantity).toFixed(2);
+                            break;
+
+                        case 'Sell Short':
+                            var short = order.FilledPrice - triggered.FilledPrice;
+                            order.TriggeredBy = parseFloat(short * order.Quantity).toFixed(2);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            });
+            // console.log(activeOrders)
+            return activeOrders;
         }
+    }
+}
+
+router.get('/:key', async function  (req, res, next)  {
+
+    if(activeOrders.length > 0){
+        res.send(activeOrders);
     } else {
-        res.send([]);
+        getActiveOrdersRecursive(req, res);
+        const orders = await getActiveOrders(req, res);
+        if(orders){
+            res.send(orders);
+        } else {
+            res.send([]);
+        }
     }
 })
 
@@ -26,6 +73,10 @@ router.post('/', async function  (req, res, next)  {
     const orderData = await helper.send(req, res, 'POST', url, payload);
 
     if(orderData){
+        const orderSuccess = orderData.filter(o => o.OrderStatus === 'Failed').length === 0;
+        if(orderSuccess){
+            pattern.updatePatternIfHasOrderBySymbol(payload.Symbol);
+        }
         payload.response = orderData;
         res.send(orderData);
     }

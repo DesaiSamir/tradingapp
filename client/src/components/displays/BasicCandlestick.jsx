@@ -12,7 +12,7 @@ import {
     ZoomButtons, withDeviceRatio, withSize, Label, Annotate, BarAnnotation
 } from "react-financial-charts";
 import { OrderContext } from "../../contexts/OrderProvider";
-// import { ChartActionsContext } from "../../contexts/ChartActionsProvider";
+import { ChartActionsContext } from "../../contexts/ChartActionsProvider";
 
 var stockChartHeight = 360;
 
@@ -27,7 +27,7 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
         stockChartHeight = document.getElementById('timeframes').clientHeight;
     
     const { handleClickOpenTradeDialog, symbolOrders, symbolAvgPrice } = useContext(OrderContext);
-    // const { lastPrice } = useContext(ChartActionsContext);
+    const { stockQuote } = useContext(ChartActionsContext);
 
     const xScaleProvider = discontinuousTimeScaleProviderBuilder().inputDateAccessor(
         (d => d.date),
@@ -145,7 +145,7 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
         textIconFill: 'green',
         textIconFontSize: 20,
         className: 'bullish',
-        y: ({ yScale, datum }) => yScale(datum.low- 0.10), // > 1000 ? datum.low - 4 : datum.low > 500 ? datum.low - 1.5 : datum.low > 100 ? datum.low - .35 : datum.low > 10 ? datum.low - .17 : datum.low - .03),
+        y: ({ yScale, datum }) => yScale(datum.high ),
         x: ({ xScale, xAccessor, datum }) => xScale(xAccessor(datum)),
         onClick: (e, datum) => onCandleClicked(e, datum, xAccessor, xScale) - 0.35,
     };
@@ -156,7 +156,7 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
         textIconFill: 'red',
         textIconFontSize: 20,
         className: 'bearish',
-        y: ({ yScale, datum }) => yScale(datum.high + 0.01),// > 1000 ? datum.high + 4 : datum.high > 500 ? datum.high + 1.5 : datum.high > 100 ? datum.high + .35 : datum.high > 10 ? datum.high + .17 : datum.high + .03),
+        y: ({ yScale, datum }) => yScale(datum.high),
         x: ({ xScale, xAccessor, datum }) => xScale(xAccessor(datum)) - 0.35,
         onClick: onCandleClicked,
     };
@@ -240,7 +240,7 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
 
                 <ZoomButtons />
                 <Label
-                    text={chartText}
+                    text={stockQuote.Description}
                     {...rest}
                     x={(width - margin.left - margin.right) / 2}
                     y={(height - margin.top - margin.bottom) / 2}

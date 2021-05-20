@@ -30,7 +30,7 @@ const StyledTableRow = withStyles((theme) => ({
 	},
 }))(TableRow);
 
-export default function OrdersTable({containerHeight, orders = []}) {
+export default function OrdersTable({containerHeight, orders}) {
     const classes = useStyles();
     const { reloadOrders } = useContext(OrderContext);
 	const { setSymbolText } = useContext(ChartActionsContext);
@@ -45,7 +45,7 @@ export default function OrdersTable({containerHeight, orders = []}) {
 	const [stopError, setStopError] = useState(false);
 	const [stopErrorText, setStopErrorText] = useState();
 	const [isTrailingStop, setIsTrailingStop] = useState(false);
-    console.log(containerHeight)
+	
     const handleClickCancle = () => {
 		setConfirmOpen(false);
         http.deletePurchaseOrder(orderInfo.OrderID, orderCancled);
@@ -162,7 +162,7 @@ export default function OrdersTable({containerHeight, orders = []}) {
 						<TableHead>
 							<TableRow>
 								<StyledTableCell>Symbol</StyledTableCell>
-								<StyledTableCell>Order#</StyledTableCell>
+								<StyledTableCell>OrderID</StyledTableCell>
 								<StyledTableCell>OrderStatus</StyledTableCell>
 								<StyledTableCell>Type</StyledTableCell>
 								<StyledTableCell>Entered</StyledTableCell>
@@ -171,32 +171,28 @@ export default function OrdersTable({containerHeight, orders = []}) {
 								<StyledTableCell>LimitPrice</StyledTableCell>
 								<StyledTableCell>FilledPrice</StyledTableCell>
 								<StyledTableCell>Duration</StyledTableCell>
-								<StyledTableCell>RejectReason</StyledTableCell>
+								<StyledTableCell>TriggeredBy</StyledTableCell>
 								<StyledTableCell><UpdateIcon /></StyledTableCell>
 								<StyledTableCell><DeleteForeverIcon /></StyledTableCell>
 							</TableRow>
 						</TableHead>
 						<TableBody>
-							{orders && orders.map((order) => (
+							{orders && orders.length > 0 && orders.map((order) => (
 								<StyledTableRow 
 									key={order.OrderID}
 									className={`${classes.row} ${order.StopPrice === 0 ? classes.profit : order.LimitPrice === 0 ? classes.loss : classes.purchase}`}
 								>
-									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.Symbol}</StyledTableCell>
-									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.OrderID}</StyledTableCell>
-									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.StatusDescription}</StyledTableCell>
-									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.Type}</StyledTableCell>
-									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.TimeStamp}</StyledTableCell>
-									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.Quantity}</StyledTableCell>
-									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>
-										{order.StopPrice === 0 ? 'StopLimit' : order.StopPriceText}
-									</StyledTableCell>
-									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>
-										{order.LimitPrice === 0 ? 'StopMarket' : order.LimitPriceText}
-									</StyledTableCell>
-									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.FilledPriceText}</StyledTableCell>
-									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.Duration}</StyledTableCell>
-									<StyledTableCell onClick={() => setSymbolText(order.Symbol)}>{order.RejectReason}</StyledTableCell>
+									<StyledTableCell className={classes.pointer} onClick={() => setSymbolText(order.Symbol)}>{order.Symbol}</StyledTableCell>
+									<StyledTableCell>{order.OrderID}</StyledTableCell>
+									<StyledTableCell>{order.StatusDescription}</StyledTableCell>
+									<StyledTableCell>{order.Type}</StyledTableCell>
+									<StyledTableCell>{new Date(`${order.TimeStamp} UTC`).toLocaleString()}</StyledTableCell>
+									<StyledTableCell>{order.Quantity}</StyledTableCell>
+									<StyledTableCell>{order.StopPrice === 0 ? 'StopLimit' : order.StopPriceText}</StyledTableCell>
+									<StyledTableCell>{order.LimitPrice === 0 ? 'StopMarket' : order.LimitPriceText}</StyledTableCell>
+									<StyledTableCell>{order.FilledPriceText}</StyledTableCell>
+									<StyledTableCell>{order.Duration}</StyledTableCell>
+									<StyledTableCell>{order.TriggeredBy}</StyledTableCell>
 									<StyledTableCell>
 										<IconButton
 											className={classes.iconButton}
@@ -327,9 +323,11 @@ const useStyles = makeStyles((theme) => ({
 		minWidth: 700,
 	},
 	row: {
-		cursor: 'pointer',
 		top: 0,
 		bottom: 0,
+	},
+	pointer: {
+		cursor: 'pointer',
 	},
 	container: {
 		top: 0,
