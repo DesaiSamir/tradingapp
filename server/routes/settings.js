@@ -1,12 +1,21 @@
 var express = require('express');
 var router = express.Router();
-var s = require('../db/settings');
+var s = require('../db/setting');
 
 /* GET settings. */
 router.get('/', async function(req, res, next) {
 	const settings = await s.getSettings();
 	if(settings){
 		res.send(settings);
+	} else {
+		res.send([]);
+	}
+});
+
+router.get('/units', async function(req, res, next) {
+	const units = s.getUnits();
+	if(units){
+		res.send(units);
 	} else {
 		res.send([]);
 	}

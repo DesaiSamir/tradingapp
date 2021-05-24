@@ -3,10 +3,16 @@ var db = require('../database');
 var Setting = function(record){
     this.setting_name = record.setting_name;
     this.setting_value = record.setting_value;
+    this.unit = record.unit;
+}
+
+Setting.getUnits = function(){
+    const units = ['General', 'Number', '$', '%'];
+    return units;
 }
 
 Setting.getSettings = async function(){
-    const query = `SELECT * FROM settings;`
+    const query = `SELECT setting_id id, name, value, unit FROM settings;`
     const result = await db.getData(query);
     
     if(result){
@@ -25,10 +31,10 @@ Setting.getSettingsByName = async function(setting_name){
     return null;
 }
 
-Setting.updateSettingByName = async function(setting_name, setting_value){
+Setting.updateSettingById = async function(setting){
     var query = `UPDATE settings s
-                SET s.value = '${setting_value}'
-                WHERE s.name = '${setting_name}';`
+                SET s.name = '${setting.name}', s.value = '${setting.value}', s.unit = '${setting.unit}' 
+                WHERE s.setting_id = '${setting.id}';`
     var result = await db.crudData(query, {});
 
     if(result){
@@ -41,9 +47,9 @@ Setting.updateSettingByName = async function(setting_name, setting_value){
 Setting.insertSetting = async function (newSetting){
     const qp = newSetting;
     const query = `INSERT INTO tradingapp.settings
-                    (name, value)
-                    VALUES('${qp.setting_name}', ${qp.setting_value};`
-    const result = await db.crudData(query, newSetting);
+                    (name, value, unit)
+                    VALUES('${qp.name}', '${qp.value}', '${qp.unit}');`
+    const result = await db.crudData(query, qp);
     
     if(result){
         return result;
@@ -51,8 +57,8 @@ Setting.insertSetting = async function (newSetting){
     return null; 
 }
 
-Setting.deleteSetting = async function(setting_name){
-    const query = `DELETE FROM settings WHERE name = ${setting_name};`
+Setting.deleteSetting = async function(setting){
+    const query = `DELETE FROM settings WHERE setting_id = ${setting.id};`
 
     const result = await db.crudData(query, {});
     
@@ -62,20 +68,20 @@ Setting.deleteSetting = async function(setting_name){
     return null;
 }
 
-Setting.addOrUpdateSetting = async function(setting){
-    const newSetting = new Setting({            
-        setting_name: setting.setting_name,
-        setting_value: setting.setting_value
-    });
-
-    const settingExist = await this.getSettingsByName(newSetting.setting_name);
-    if(settingExist){
-        this.updateSettingByName(newSetting.setting_name, newSetting.setting_value);
-    } else {
-        this.insertSetting(newSetting);
+Setting.addOrUpdateSetting = async function(settings){
+    if(settings.length > 0){
+        settings.forEach(s => {            
+            if(s.isNew){
+                this.insertSetting(s);
+            } else {
+                if(s.isEdited){
+                    this.updateSettingById(s);
+                }
+            }
+        }, this);
     }
     
-    return (setting);
+    return (settings);
 }
 
 module.exports = Setting;

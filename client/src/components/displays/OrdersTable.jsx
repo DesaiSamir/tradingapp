@@ -45,6 +45,7 @@ export default function OrdersTable({containerHeight, orders}) {
 	const [stopError, setStopError] = useState(false);
 	const [stopErrorText, setStopErrorText] = useState();
 	const [isTrailingStop, setIsTrailingStop] = useState(false);
+	const [trailingStop, setTrailingStop] = useState();
 	
     const handleClickCancle = () => {
 		setConfirmOpen(false);
@@ -56,12 +57,13 @@ export default function OrdersTable({containerHeight, orders}) {
 	}
     
 	const handleClickUpdate = (order) => {
-		const type = order.Type.toUpperCase();
-		setOrderType((type === 'BUY' || type === 'SELLSHORT') ? 'StopLimit' : 'StopMarket');
+		const type = order.Type.toUpperCase().replace(' ', '');
+		setOrderType((type === 'BUY' || type === 'SELLSHORT' || order.StopPrice === 0) ? 'Limit' : 'StopMarket');
 		setStopPrice(order.StopPrice);
 		setLimitPrice(order.LimitPrice);
 		const cIsTrailingStop = order.TrailingStop ? true : false;
 		setIsTrailingStop(cIsTrailingStop);
+		setTrailingStop(orderInfo.TrailingStop ? order.TrailingStop.Amount : 0);
 		setOrderInfo(order);
 		setUpdateOpen(true);
     };
@@ -81,9 +83,6 @@ export default function OrdersTable({containerHeight, orders}) {
 		};
 
 		if(isTrailingStop){
-			const type = orderInfo.Type.toUpperCase();
-			var cTrailingStopPrice = ((type === 'SELL' || type === 'BUYTOCOVER') ? orderInfo.StopPrice - stopPrice : orderInfo.StopPrice + stopPrice);
-			cTrailingStopPrice = cTrailingStopPrice + orderInfo.TrailingStop.Amount;
 			payload = {
 				order_id: orderInfo.OrderID,
 				payload:{
@@ -94,19 +93,20 @@ export default function OrdersTable({containerHeight, orders}) {
 					Quantity: orderInfo.Quantity,
 					AdvancedOptions: {
 						TrailingStop: {
-							Amount: parseFloat(cTrailingStopPrice).toFixed(2),
+							Amount: parseFloat(trailingStop).toFixed(2),
 						}
 					}
 				}
 			};
 		}
-		
-		if((stopPrice !== orderInfo.StopPrice || limitPrice !== orderInfo.LimitPrice) && (!stopError || !limitError)) {
+		console.log(payload);
+		if((parseFloat(stopPrice) !== orderInfo.StopPrice || parseFloat(limitPrice) !== orderInfo.LimitPrice) && (!stopError || !limitError)) {
 			http.updatePurchaseOrder(payload, orderUpdated);
 		} 
 	};
 
-	const orderUpdated = () => {
+	const orderUpdated = (data) => {
+		console.log(data);
 		reloadOrders();
 	}
 
@@ -124,8 +124,11 @@ export default function OrdersTable({containerHeight, orders}) {
 	};
 
 	const handleTextChange = (e) => {
-		const price = parseFloat(e.target.value).toFixed(2);
-		
+		const price = parseFloat(e.target.value);
+		const type = orderInfo.Type.toUpperCase().replace(' ', '');
+		const ts =  orderInfo.StopPrice - price;
+		// console.log(ts, orderInfo.TrailingStop.Amount, orderInfo.StopPrice, price, orderInfo,orderInfo.type)
+		orderInfo.TrailingStop && setTrailingStop(parseFloat(type === 'SELL' ? ts + orderInfo.TrailingStop.Amount : orderInfo.TrailingStop.Amount - ts).toFixed(2));
 		switch (e.target.name) {
 			case 'STOPPRICE':
 				if(limitPrice !== 0 && price > limitPrice){
@@ -147,6 +150,10 @@ export default function OrdersTable({containerHeight, orders}) {
 					setLimitErrorText('');
 					setLimitPrice(price);
 				}
+				break;
+			
+			case 'TRAILINGSTOP':
+				
 				break;
 
 			default:
@@ -236,7 +243,7 @@ export default function OrdersTable({containerHeight, orders}) {
 								</Grid>
 							</Grid>
 							<Grid item xs={9} sm container spacing={2}>
-								<Grid item xs={6}>
+								<Grid item xs={4}>
 									<TextField
 										id="QUANTITY"
 										name="QUANTITY"
@@ -245,12 +252,20 @@ export default function OrdersTable({containerHeight, orders}) {
 										defaultValue={orderInfo.Quantity}
 									/>
 								</Grid>
-								<Grid item xs={6}>
+								<Grid item xs={4}>
 									<TextField
 										id="ORDERID"
 										label="ORDER ID"
 										InputProps={{ readOnly: true, }}
 										defaultValue={orderInfo.OrderID}
+									/>
+								</Grid>
+								<Grid item xs={4}>
+									<TextField
+										id="TRAILINGSTOP"
+										label="TRAILING STOP"
+										value={trailingStop}
+										onChange={handleTextChange}
 									/>
 								</Grid>
 								<Grid item xs={4}>

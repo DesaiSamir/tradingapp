@@ -240,7 +240,7 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
 
                 <ZoomButtons />
                 <Label
-                    text={stockQuote.Description}
+                    text={`${chartText} ${stockQuote.Description}`}
                     {...rest}
                     x={(width - margin.left - margin.right) / 2}
                     y={(height - margin.top - margin.bottom) / 2}
@@ -273,6 +273,10 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                                 {
                                     label: "Diff",
                                     value: pricesDisplayFormat(currentItem.high - currentItem.low),
+                                },
+                                {
+                                    label: "Bar %",
+                                    value: `${pricesDisplayFormat(((currentItem.high - currentItem.low) * 100) / lastClose)}%`,
                                 },
                                 {
                                     label: "Volume",

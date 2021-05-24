@@ -17,9 +17,11 @@ import LogoutIcon from "@material-ui/icons/MeetingRoom";
 import LoginIcon from '@material-ui/icons/VpnKey';
 import ReceiptIcon from '@material-ui/icons/Receipt';
 import ListAltIcon from '@material-ui/icons/ListAlt';
+import SupervisorAccountIcon from '@material-ui/icons/SupervisorAccount';
 import Terminal from "../displays/Terminal";
 import Profile from "../../pages/Profile";
 import Market from "../../pages/Market";
+import Admin from "../../pages/Admin";
 import { UserContext } from '../../contexts/UserProvider';
 import Positions from '../../pages/Positions';
 import { ChartActionsContext } from '../../contexts/ChartActionsProvider';
@@ -421,6 +423,10 @@ export default function DrawerPanel() {
 						<ListItemIcon><AccountCircleIcon /></ListItemIcon>
 						<ListItemText primary={"Profile"} />
 					</ListItem>
+					<ListItem button key={"Admin"} onClick={()=> setComponent("Admin")}>
+						<ListItemIcon><SupervisorAccountIcon /></ListItemIcon>
+						<ListItemText primary={"Admin"} />
+					</ListItem>					
 				</List>
 			</Drawer>
 			<main className={classes.content}>
@@ -434,6 +440,9 @@ export default function DrawerPanel() {
 						:
 						component === 'Positions' ?
 							<Positions />
+						:
+						component === 'Admin' ?
+							<Admin />
 						:
 						component === 'Quote' ?
 							<Terminal 

@@ -207,3 +207,60 @@ where
     and `ip`.`timeframe` = 'Daily'
 order by
     `ip`.`intraday_pattern_id` desc;
+
+-- tradingapp.settings definition
+CREATE TABLE `settings` (
+  `setting_id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) DEFAULT NULL,
+  `value` varchar(100) DEFAULT NULL,
+  `created` datetime DEFAULT current_timestamp(),
+  `updated` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`setting_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO tradingapp.settings (setting_id, name, value, unit, created, updated)
+VALUES(1, 'OverrideRegularSession', 0, 'Number'),
+(2, 'MaxCostOfPositionPerTrade', 10, '%')
+(3, 'AutoTradingOn', 1);
+
+
+-- tradingapp.user_settings definition
+CREATE TABLE `user_settings` (
+  `user_setting_id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `setting_id` int(11) NOT NULL,
+  `setting_value` varchar(4000) NOT NULL,
+  `created` datetime DEFAULT current_timestamp(),
+  `updated` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`user_setting_id`),
+  KEY `user_settings_FK` (`user_id`),
+  KEY `user_settings_FK_1` (`setting_id`),
+  CONSTRAINT `user_settings_FK` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  CONSTRAINT `user_settings_FK_1` FOREIGN KEY (`setting_id`) REFERENCES `settings` (`setting_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- tradingapp.vw_user_settings source
+CREATE OR REPLACE
+ALGORITHM = UNDEFINED VIEW `tradingapp`.`vw_user_settings` AS
+select
+    `u`.`user_id` AS `user_id`,
+    `u`.`username` AS `username`,
+    `s`.`settings` AS `settings`
+from
+    ((
+    select
+        `us`.`user_id` AS `user_id`,
+        json_arrayagg(json_object('id',
+        `s`.`setting_id`,
+        'name',
+        `s`.`name`,
+        'unit',
+        `s`.`unit`,
+        'value',
+        `us`.`setting_value`)) AS `settings`
+    from
+        (`tradingapp`.`settings` `s`
+    join `tradingapp`.`user_settings` `us` on
+        (`us`.`setting_id` = `s`.`setting_id`))) `s`
+join `tradingapp`.`users` `u` on
+    (`u`.`user_id` = `s`.`user_id`));

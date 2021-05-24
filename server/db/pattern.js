@@ -87,7 +87,7 @@ Pattern.getAllPatterns = async function (){
 }
 
 Pattern.getIntradayPatterns = async function (){
-    const query = `SELECT * FROM vw_intraday_patterns WHERE timeframe <> 'Daily';`
+    const query = `SELECT * FROM vw_intraday_patterns WHERE timeframe NOT IN ('Daily', 'Weekly', 'Monthly') ;`
     const result = await db.getData(query);
     
     if(result){
@@ -97,7 +97,7 @@ Pattern.getIntradayPatterns = async function (){
 }
 
 Pattern.getDailyPatterns = async function (){
-    const query = `SELECT * FROM vw_intraday_patterns WHERE timeframe = 'Daily';`
+    const query = `SELECT * FROM vw_intraday_patterns WHERE timeframe IN ('Daily', 'Weekly', 'Monthly') ;`
     const result = await db.getData(query);
     
     if(result){

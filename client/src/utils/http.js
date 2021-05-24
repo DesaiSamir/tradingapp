@@ -1,5 +1,4 @@
 var patterns = require('./patterns');
-const alpha = require('alphavantage')({ key: '' });
 
 var barChartTimer, watchlistTimer, patternsTimer, quoteTimer, ordersInterval, positionsInterval, balancesInterval;
 var currentSymbol, currentUrl, patternIntradayTimer, overrideSession = false, regularSession = false;
@@ -154,7 +153,7 @@ module.exports = {
         
         patternsTimer = setInterval(async () => {
             if(this.isRegularSessionTime()){
-                const patternData = await this.get("api/pattern", cb);
+                const patternData = await this.get("api/pattern/intraday", cb);
                 
                 if(patternData){
                     cb(patternData);
@@ -387,59 +386,36 @@ module.exports = {
             return res;
         }
     },
-    getaa: function (symbol, cb) {
-        alpha.data.daily(symbol, 'compact').then(data => {
-            const polished = alpha.util.polish(data);
-            const formatPolished = this.formatAAData(polished)
-            // console.log(formatPolished)
-            cb(formatPolished);
-          });
+    getSettings: async function(cb){
+        const settings = await this.get('api/settings');
+        
+        if(settings){
+            console.log({settings});
+            cb(settings);
+        }
     },
-    getdaily: function (symbol, cb) {
-        alpha.data.daily(symbol, 'compact').then(data => {
-            const polished = alpha.util.polish(data);
-            const formatPolished = this.formatAAData(polished)
-            // console.log(formatPolished)
-            cb(formatPolished);
-          });
+    getSettingUnits: async function(cb){
+        const units = await this.get('api/settings/units');
+        
+        if(units){
+            console.log({units});
+            cb(units);
+        }
     },
-    getintraday: function (symbol, cb) {
-        alpha.data.intraday(symbol, 'compact', 'json', '5min').then(data => {
-            const polished = alpha.util.polish(data);
-            const formatPolished = this.formatAAData(polished)
-            console.log(formatPolished)
-            cb(formatPolished);
-          });
+    saveSettings: async function(payload, cb){
+        const settings = await this.send('PUT', 'api/settings', payload);
+        
+        if(settings){
+            cb(settings);
+        }
     },
-    formatAAData: function (data){
-        var formatedData = [];
-         Object.keys(data).forEach(key => {
-             const chartData = data[key]
-             if (key.indexOf('meta') !== 0) {
-                //  console.log(key)
-                 Object.keys(chartData).forEach(item => {
-                    const date = item;
-                    const dataPoints = chartData[item];
-                    // console.log(dataPoints)
-                    const dt = new Date(date);
-                    formatedData.push({
-                        date: dt,
-                        open: dataPoints.open,
-                        high: dataPoints.high, 
-                        low: dataPoints.low,
-                        close: dataPoints.close,
-                        volume: dataPoints.volume,
-                        dividend: "",
-                        absoluteChange: "",
-                        percentChange: "",
-                        split: ""
-                    })
-                 })
-             }
-         })
-
-         return formatedData.sort((a, b) => (a.date > b.date) ? 1 : -1);
-
-    }
+    getUserSettings: async function(username,cb){
+        const userSettings = await this.get(`api/usersettings/${username}`);
+        
+        if(userSettings){
+            console.log({userSettings});
+            cb(userSettings);
+        }
+    },
 };
 

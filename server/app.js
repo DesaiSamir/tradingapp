@@ -18,6 +18,7 @@ const watchlistRouter = require('./routes/watchlist');
 const ordersRouter = require('./routes/orders');
 const patternRouter = require('./routes/pattern');
 const settingsRouter = require('./routes/settings');
+const userSettingsRouter = require('./routes/user_settings');
 
 const app = express();
 
@@ -54,6 +55,7 @@ app.use('/api/watchlist', watchlistRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/pattern', patternRouter);
 app.use('/api/settings', settingsRouter);
+app.use('/api/usersettings', userSettingsRouter);
   
 // error handler
 app.use(function(err, req, res, next) {

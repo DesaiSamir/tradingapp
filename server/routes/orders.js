@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 const helper = require('../utils/helpers');
 const pattern = require('../db/pattern');
-const setting = require('../db/settings');
+const setting = require('../db/setting');
 var activeOrders = [];
 var ordersInterval = 0;
 
@@ -23,31 +23,39 @@ getActiveOrders = async (req, res) => {
         const url = `/v2/accounts/${key}/orders?since=${helper.getDate()}`;
         const accountOrders = await helper.send(req, res, 'GET', url);            
         if(accountOrders && accountOrders.length > 0){
-            const statuses = ['UROut', 'Canceled', 'Rejected'];
-            activeOrders = accountOrders.filter(order => !statuses.includes(order.StatusDescription));
-            const symbols = [...new Set(activeOrders.filter(order => order.StatusDescription !== 'Filled').map(s => `'${s.Symbol}'`))].toString();
-            pattern.updatePatternIfHasOrder(symbols);
-            activeOrders.filter(o => ['Buy', 'Sell Short'].includes(o.Type)).forEach(order => {
-                const triggered = accountOrders.filter(o => parseInt(o.TriggeredBy) === order.OrderID && o.StatusDescription === 'Filled')[0];
+            try {
                 
-                if(triggered){
-                    switch (order.Type) {
-                        case 'Buy':
-                            var buy = triggered.FilledPrice - order.FilledPrice;
-                            order.TriggeredBy = parseFloat(buy * order.Quantity).toFixed(2);
-                            break;
+                const statuses = ['UROut', 'Canceled', 'Rejected'];
+                activeOrders = accountOrders.filter(order => !statuses.includes(order.StatusDescription));
+                const symbols = [...new Set(activeOrders.filter(order => order.StatusDescription !== 'Filled').map(s => `'${s.Symbol}'`))].toString();            
+                symbols.length > 0 && pattern.updatePatternIfHasOrder(symbols);
+                activeOrders.filter(o => ['Buy', 'Sell Short'].includes(o.Type)).forEach(order => {
+                    const triggered = accountOrders.filter(o => parseInt(o.TriggeredBy) === order.OrderID && o.StatusDescription === 'Filled');
+                    
+                    if(triggered && triggered.length > 0){
+                        const filledAvg = triggered.map(t => t.FilledPrice).reduce((a, b) => a + b) / triggered.length;
+                        switch (order.Type) {
+                            case 'Buy':
+                                var buy = filledAvg - order.FilledPrice;
+                                order.TriggeredBy = parseFloat(buy * order.Quantity).toFixed(2);
+                                break;
 
-                        case 'Sell Short':
-                            var short = order.FilledPrice - triggered.FilledPrice;
-                            order.TriggeredBy = parseFloat(short * order.Quantity).toFixed(2);
-                            break;
-                        default:
-                            break;
+                            case 'Sell Short':
+                                var short = order.FilledPrice - filledAvg;
+                                order.TriggeredBy = parseFloat(short * order.Quantity).toFixed(2);
+                                break;
+                            default:
+                                break;
+                        }
                     }
-                }
-            });
-            // console.log(activeOrders)
-            return activeOrders;
+                });
+                // console.log(activeOrders)
+                return activeOrders;
+                
+            } catch (error) {
+                console.error(error);
+                return activeOrders;
+            }
         }
     }
 }
