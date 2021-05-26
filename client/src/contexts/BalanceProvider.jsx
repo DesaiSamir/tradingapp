@@ -4,7 +4,7 @@ export const BalanceContext = createContext(null);
 const http = require("../utils/http");
 
 const BalanceProvider = ({ children }) => {
-    const { equitiesAccountKey } = useContext(UserContext);
+    const { equitiesAccountKey, reloadAllData } = useContext(UserContext);
     const [balanceInfo, setBalanceInfo] = useState(null);
     const [balAccountName, setBalAccountName] = useState(null);
     const [accountBalance, setAccountBalance] = useState(0.00);
@@ -36,7 +36,7 @@ const BalanceProvider = ({ children }) => {
         if(equitiesAccountKey){
             http.getAccountBalances(equitiesAccountKey, callback);
         }
-    }, [equitiesAccountKey]);
+    }, [equitiesAccountKey, reloadAllData]);
     
     return (
         <BalanceContext.Provider value={{

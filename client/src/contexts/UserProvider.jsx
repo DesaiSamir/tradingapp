@@ -11,6 +11,7 @@ const UserProvider = ({ children }) => {
     const [settings, setSettings] = useState(null);
     const [settingUnits, setSettingUnits] = useState(null);
     const [userSettings, setUserSettings] = useState(null);
+    const [reloadAllData, setReloadAllData] = useState(false);
     
     useEffect(() => {
         const userProfileData = (data) => {
@@ -33,7 +34,7 @@ const UserProvider = ({ children }) => {
         http.getProfileData(userProfileData);
         http.getSettings(setSettings);
         http.getSettingUnits(setSettingUnits);
-    }, []);
+    }, [reloadAllData]);
 
     const reloadSettings = () => {        
         http.getSettings(setSettings);
@@ -57,7 +58,8 @@ const UserProvider = ({ children }) => {
             userId, username,
             accounts, 
             equitiesAccountKey,
-            settings, userSettings, settingUnits, reloadSettings, saveSettings
+            settings, userSettings, settingUnits, reloadSettings, saveSettings,
+            reloadAllData, setReloadAllData,
         }}>
             {children}
         </UserContext.Provider>

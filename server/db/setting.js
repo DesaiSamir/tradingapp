@@ -7,7 +7,7 @@ var Setting = function(record){
 }
 
 Setting.getUnits = function(){
-    const units = ['General', 'Number', '$', '%'];
+    const units = {'General':'General', 'Number':'Number', '$':'$', '%':'%'};
     return units;
 }
 
@@ -44,6 +44,19 @@ Setting.updateSettingById = async function(setting){
     return null; 
 }
 
+Setting.updateSettingByName = async function(setting){
+    var query = `UPDATE settings s
+                SET s.value = '${setting.value}' 
+                WHERE s.name = '${setting.name}';`
+    var result = await db.crudData(query, {});
+
+    if(result){
+        return result;
+    }
+
+    return null; 
+}
+
 Setting.insertSetting = async function (newSetting){
     const qp = newSetting;
     const query = `INSERT INTO tradingapp.settings
@@ -70,15 +83,30 @@ Setting.deleteSetting = async function(setting){
 
 Setting.addOrUpdateSetting = async function(settings){
     if(settings.length > 0){
-        settings.forEach(s => {            
-            if(s.isNew){
-                this.insertSetting(s);
-            } else {
-                if(s.isEdited){
-                    this.updateSettingById(s);
+        settings.forEach(s => {
+            if(s.action){
+                
+                switch (s.action) {
+                    case 'New':
+                        this.insertSetting(s);
+                        break;
+
+                    case 'Edited':
+                        this.updateSettingById(s);
+                        break;
+
+                    case 'Deleted':
+                        this.deleteSetting(s);
+                        break;
+                
+                    default:
+                        break;
                 }
             }
         }, this);
+    } else if (typeof settings === 'object' && settings !== null) {
+        console.log(settings)
+        this.updateSettingByName(settings);
     }
     
     return (settings);

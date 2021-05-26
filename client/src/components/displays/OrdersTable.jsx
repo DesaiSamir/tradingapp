@@ -249,7 +249,7 @@ export default function OrdersTable({containerHeight, orders}) {
 										name="QUANTITY"
 										label="QUANTITY"
 										InputProps={{ readOnly: true, }}
-										defaultValue={orderInfo.Quantity}
+										value={orderInfo.Quantity}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -257,7 +257,7 @@ export default function OrdersTable({containerHeight, orders}) {
 										id="ORDERID"
 										label="ORDER ID"
 										InputProps={{ readOnly: true, }}
-										defaultValue={orderInfo.OrderID}
+										value={orderInfo.OrderID}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -273,7 +273,7 @@ export default function OrdersTable({containerHeight, orders}) {
 										id={orderType}
 										label={orderType}
 										InputProps={{ readOnly: true, }}
-										defaultValue={orderType}
+										value={orderType}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -282,7 +282,7 @@ export default function OrdersTable({containerHeight, orders}) {
 										id={`LIMITPRICE`}
 										name="LIMITPRICE"
 										label={`LIMIT PRICE`}
-										defaultValue={orderInfo.LimitPrice}
+										value={orderInfo.LimitPrice}
 										onChange={handleTextChange}
 										helperText={limitErrorText}
 									/>
@@ -293,7 +293,7 @@ export default function OrdersTable({containerHeight, orders}) {
 										id="STOPPRICE"
 										name="STOPPRICE"
 										label="STOP PRICE"
-										defaultValue={orderInfo.StopPrice}
+										value={orderInfo.StopPrice}
 										onChange={handleTextChange}
 										helperText={stopErrorText}
 									/>

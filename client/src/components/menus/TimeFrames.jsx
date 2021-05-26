@@ -4,16 +4,17 @@ import {
     IconButton, InputBase
 } from '@material-ui/core';
 import SearchIcon from '@material-ui/icons/Search';
-import StopDataIcon from '@material-ui/icons/StopScreenShare';
 import PreMarketIcon from '@material-ui/icons/WatchLater';
-import http from "../../utils/http";
+import ReplayIcon from '@material-ui/icons/Replay';
 import { ChartActionsContext } from '../../contexts/ChartActionsProvider';
+import { UserContext } from '../../contexts/UserProvider';
 
 const TimeFrames = () => {
     const classes = useStyles();
 	const { 
 		onUnitClicked, setIsPreMarket, onTextChanged,
 	} = useContext(ChartActionsContext);
+	const { setReloadAllData, reloadAllData } = useContext(UserContext);
     
 	const unitIntervalList = [
 		{
@@ -117,13 +118,13 @@ const TimeFrames = () => {
                     <PreMarketIcon />
                 </IconButton>
                 <IconButton
-                    aria-label="stop data pull"
+                    aria-label="reload data pull"
                     color="inherit"
-                    name="StopData"
-                    title="Stop Data Pull"
-                    onClick={() => {http.clearBarChartInterval(); http.clearQuoteInterval(); }}
+                    name="ReloadData"
+                    title="Reload All Data"
+					onClick={() => {setReloadAllData(!reloadAllData); }}
                 >
-                    <StopDataIcon />
+                    <ReplayIcon />
                 </IconButton>
             
             </div>

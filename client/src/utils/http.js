@@ -35,13 +35,13 @@ module.exports = {
         if ((currentTime > sessionStartTime && currentTime < sessionEndTime && currentTime.getDay() > 0 && currentTime.getDay() < 6) || overrideSession) {
             currentSession = true;
         }
-
         if(currentSession !== regularSession){
             regularSession = currentSession;
             const payload = {
-                setting_name: 'OverrideRegularSession',
-                setting_value: this.isRegularSessionTime() ? 1 : 0
+                name: 'OverrideRegularSession',
+                value: this.isRegularSessionTime() ? 1 : 0
             }
+            console.log({payload});
             this.send('POST', 'api/settings', payload);
         }
         return currentSession;

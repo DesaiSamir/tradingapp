@@ -66,7 +66,7 @@ export default function CandleGrid({candles}) {
 
     const isFavorite = (
         <>
-        { currentWatchlist.some(s => s.Symbol === candleInAction.symbol)
+        { currentWatchlist && currentWatchlist.some(s => s.Symbol === candleInAction.symbol)
             ? <FavoriteIcon onClick={() => handleDeleteWatchlist(candleInAction.symbol)}/>
             : <FavoriteBorderIcon onClick={() => addFavWatchlist(candleInAction.symbol)}/>
         }

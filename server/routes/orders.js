@@ -3,6 +3,7 @@ var router = express.Router();
 const helper = require('../utils/helpers');
 const pattern = require('../db/pattern');
 const setting = require('../db/setting');
+const provider_account = require('../db/provider_account');
 var activeOrders = [];
 var ordersInterval = 0;
 
@@ -18,9 +19,10 @@ getActiveOrdersRecursive = async (req, res) => {
 
 getActiveOrders = async (req, res) => {
     const tsRegX = /\d+/g;
-    const key = parseInt(req.params.key.match(tsRegX));
+    // const key = parseInt(req.params.key.match(tsRegX));
+    const key = await provider_account.getAccountKeyByNameAndType('Tradestation', 'M', 1);
     if(key){
-        const url = `/v2/accounts/${key}/orders?since=${helper.getDate()}`;
+        const url = `/v2/accounts/${key.account_key}/orders?since=${helper.getDate()}`;
         const accountOrders = await helper.send(req, res, 'GET', url);            
         if(accountOrders && accountOrders.length > 0){
             try {
@@ -59,6 +61,21 @@ getActiveOrders = async (req, res) => {
         }
     }
 }
+
+router.get('/', async function  (req, res, next)  {
+
+    if(activeOrders.length > 0){
+        res.send(activeOrders);
+    } else {
+        getActiveOrdersRecursive(req, res);
+        const orders = await getActiveOrders(req, res);
+        if(orders){
+            res.send(orders);
+        } else {
+            res.send([]);
+        }
+    }
+})
 
 router.get('/:key', async function  (req, res, next)  {
 

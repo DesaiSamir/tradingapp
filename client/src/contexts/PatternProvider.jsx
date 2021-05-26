@@ -1,4 +1,5 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useContext } from "react";
+import { UserContext } from "./UserProvider";
 export const PatternContext = createContext(null);
 const http = require("../utils/http");
 
@@ -12,6 +13,8 @@ const PatternProvider = ({ children }) => {
 	const [lastSelectedTab, setLastSelectedTab] = useState(0);
 	const [lastTimeframe, setLastTimeframe] = useState(1);
 	const [lastPatternType, setLastPatternType] = useState(3);
+    const { reloadAllData } = useContext(UserContext);
+    const [reloadData, setReloadData] = useState(false);
 
     useEffect(() => {
         const loadPatterns = (data) => {
@@ -38,9 +41,10 @@ const PatternProvider = ({ children }) => {
                 setCurrentPatterns(data);
             }
         };
-
-        if(currentPatterns.length === 0){
+        
+        if(currentPatterns.length === 0 || reloadData !== reloadAllData){
             http.getPatterns(loadPatterns);
+            setReloadData(reloadAllData);
         }
         
         if(timeframes.length === 0) {
@@ -51,7 +55,7 @@ const PatternProvider = ({ children }) => {
         }
         
         loadPatterns(currentPatterns);
-    }, [selectedPatternType, selectedPatternTimeframe, timeframes, patternTypes]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [selectedPatternType, selectedPatternTimeframe, timeframes, patternTypes, reloadAllData, reloadData]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleRemovePattern = async (pattern) => {
         console.log(pattern, displayPatterns);

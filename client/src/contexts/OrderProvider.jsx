@@ -5,7 +5,7 @@ export const OrderContext = createContext(null);
 const http = require("../utils/http");
 
 const OrderProvider = ({ children }) => {
-    const { equitiesAccountKey } = useContext(UserContext);
+    const { equitiesAccountKey, reloadAllData } = useContext(UserContext);
     const { symbol } = useContext(ChartActionsContext);
     const [orders, setOrders] = useState([]);
     const [activeOrders, setActiveOrders] = useState([]);
@@ -71,7 +71,7 @@ const OrderProvider = ({ children }) => {
 		}
         http.getAccountOrders(equitiesAccountKey, ordersData);
         http.getAccountPositions(equitiesAccountKey, positionsData);
-    }, [equitiesAccountKey, symbol, orderUpdated]);
+    }, [equitiesAccountKey, symbol, orderUpdated, reloadAllData]);
     
     const reloadOrders = () => {
 		setOrderUpdated(!orderUpdated);
@@ -91,13 +91,16 @@ const OrderProvider = ({ children }) => {
 		const cStopPrice = cIsBullish ? parseFloat(c.high) + spo : parseFloat(c.low) - spo;
 		const cLimitPrice = cIsBullish ? parseFloat(c.high) + lpo : parseFloat(c.low) - lpo;
 		const cOneRPrice = cIsBullish ? parseFloat(cStopPrice) - parseFloat(c.low) - slpo : parseFloat(c.high) + slpo - parseFloat(cStopPrice);
-        const cTrailingStopPrice = parseFloat(cOneRPrice) * parseFloat(riskOffset);
+		const barPercent = ((c.high - c.low) * 100) / c.close;
+		const barTrailingRisk = barPercent > 1 ? 2 : 1;
+		const oneRTrailing = parseFloat(cOneRPrice) * parseFloat(riskOffset);
+        const cTrailingStopPrice = oneRTrailing / barTrailingRisk;
 		var cStopLossPrice = cIsBullish ? parseFloat(cStopPrice) - parseFloat(cTrailingStopPrice) : parseFloat(cStopPrice) + parseFloat(cTrailingStopPrice);
 		const cQuantity = Math.floor(10000/ parseFloat(cStopPrice));
         const cQuantityT1 = Math.floor(cQuantity/2);
         const cQuantityT2 = cQuantity - cQuantityT1;
-        const cTarget1Price = cIsBullish ? parseFloat(cStopPrice) + ((parseFloat(cTrailingStopPrice) / 2) * parseFloat(riskOffset)) : parseFloat(cStopPrice) - ((parseFloat(cTrailingStopPrice) / 2) * parseFloat(riskOffset));
-        const cTarget2Price = cIsBullish ? parseFloat(cStopPrice) + (parseFloat(cTrailingStopPrice) * parseFloat(riskOffset)) : parseFloat(cStopPrice) - (parseFloat(cTrailingStopPrice) * parseFloat(riskOffset));
+        const cTarget1Price = cIsBullish ? parseFloat(cStopPrice) + ((parseFloat(oneRTrailing) / 2) * parseFloat(riskOffset)) : parseFloat(cStopPrice) - ((parseFloat(oneRTrailing) / 2) * parseFloat(riskOffset));
+        const cTarget2Price = cIsBullish ? parseFloat(cStopPrice) + (parseFloat(oneRTrailing) * parseFloat(riskOffset)) : parseFloat(cStopPrice) - (parseFloat(oneRTrailing) * parseFloat(riskOffset));
 
 		var currentTime = new Date();
 		const cOrderConfirmId = `${cStopLimitAction + cSymbol + currentTime.getHours() + currentTime.getMinutes() + currentTime.getSeconds()}`;

@@ -232,7 +232,7 @@ export default function OrderDialog({patternCandles}) {
 										id="QUANTITY"
 										name="QUANTITY"
 										label="QUANTITY"
-										defaultValue={quantity}
+										value={quantity}
 										onChange={handleTextChange}
 									/>
 								</Grid>
@@ -241,7 +241,7 @@ export default function OrderDialog({patternCandles}) {
 										id="CONFIRMID"
 										label="CONFIRM ID"
 										InputProps={{ readOnly: true, }}
-										defaultValue={orderConfirmId}
+										value={orderConfirmId}
 									/>
 								</Grid>
 								<Grid item xs={6}>
@@ -249,7 +249,7 @@ export default function OrderDialog({patternCandles}) {
 										id='RISKOFFSET'
 										name='RISKOFFSET'
 										label='RISK/REWARD OFFSET'
-										defaultValue={riskOffset}
+										value={riskOffset}
 										onChange={handleTextChange}
 									/>
 								</Grid>
@@ -258,7 +258,7 @@ export default function OrderDialog({patternCandles}) {
 										id='ONERPRICE'
 										name='ONERPRICE'
 										label='ONE "R" PRICe'
-										defaultValue={oneRPrice}
+										value={oneRPrice}
 										InputProps={{ readOnly: true, }}
 									/>
 								</Grid>

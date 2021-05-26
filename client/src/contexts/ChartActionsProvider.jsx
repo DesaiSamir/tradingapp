@@ -5,7 +5,7 @@ import { UserContext } from "./UserProvider";
 export const ChartActionsContext = createContext();
 
 const ChartActionsProvider = ({ children }) => {
-    const { userId,  } = useContext(UserContext);
+    const { userId, reloadAllData } = useContext(UserContext);
     const [stockQuote, setStockQuote] = useState([]);
     const [barChartData, setBarChartData] = useState([]);
     const [symbol, setSymbol] = useState('SPY');
@@ -45,7 +45,7 @@ const ChartActionsProvider = ({ children }) => {
             http.getBarChartData(payload, loadBarchartData, symbol);
             http.getWatchlist(setCurrentWatchlist);
         }
-    }, [unit, interval, symbol, isPreMarket, userId]);
+    }, [unit, interval, symbol, isPreMarket, userId, reloadAllData]);
     
     const onUnitClicked = (e, item) => {
         e.preventDefault();
