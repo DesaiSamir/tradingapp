@@ -43,6 +43,7 @@ const OrderProvider = ({ children }) => {
 	const [symbolOrders, setSymbolOrders] = useState([]);
 	const [symbolAvgPrice, setSymbolAvgPrice] = useState();
 	const [orderUpdated, setOrderUpdated] = useState(false);
+	const [totalFilledOrders, setTotalFilledOrders] = useState(0);
 	const [lastSelTabOrdPos, setLastSelTabOrdPos] = useState(0);
     
     useEffect(() => {
@@ -53,6 +54,7 @@ const OrderProvider = ({ children }) => {
 			
 			setSymbolOrders(symbolOrders ? symbolOrders : []);
 			setActiveOrders(aOrders);
+			setTotalFilledOrders(data && data.length);
 			setOrders(data);
 		}
 		const positionsData = (data) => {
@@ -570,7 +572,7 @@ const OrderProvider = ({ children }) => {
             trailingStopPrice, quantity, orderConfirmId, stopPriceOffset, limitPriceOffset, stopLossPriceOffset, title, pattern,
             highPrice, lowPrice, openPrice, closePrice, handleSendOrderClick, handleTextChange, handleClose, handleRadioChange,
             orderTypeValue, target1Price, target2Price, oneRPrice, symbolAvgPrice, symbolOrders, symbolPosition, 
-			lastSelTabOrdPos, setLastSelTabOrdPos, activeOrders
+			lastSelTabOrdPos, setLastSelTabOrdPos, activeOrders, totalFilledOrders
         }}>
             {children}
         </OrderContext.Provider>

@@ -98,8 +98,9 @@ CREATE TABLE `orders` (
 -- tradingapp.watchlist definition
 CREATE TABLE `watchlist` (
   `watchlist_id` int(11) NOT NULL AUTO_INCREMENT,
-  `watchlist_name` varchar(255) NOT NULL DEFAULT 'Default',
+  `watchlist_name` varchar(255) NOT NULL DEFAULT 'Watchlist',
   `symbol` varchar(10) NOT NULL,
+  `day_trade` tinyint(1) DEFAULT 0,
   `created` datetime DEFAULT current_timestamp(),
   `updated` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`watchlist_id`),
@@ -219,9 +220,9 @@ CREATE TABLE `settings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO tradingapp.settings (setting_id, name, value, unit, created, updated)
-VALUES(1, 'OverrideRegularSession', 0, 'Number'),
-(2, 'MaxCostOfPositionPerTrade', 10, '%')
-(3, 'AutoTradingOn', 1);
+VALUES	(1, 'OverrideRegularSession'	, 0	, 'Number'),
+      	(2, 'MaxCostOfPositionPerTrade'	, 10, '%'),
+		(3, 'AutoTradingOn'				, 1);
 
 
 -- tradingapp.user_settings definition
@@ -264,3 +265,34 @@ from
         (`us`.`setting_id` = `s`.`setting_id`))) `s`
 join `tradingapp`.`users` `u` on
     (`u`.`user_id` = `s`.`user_id`));
+
+-- tradingapp.vw_watchlist source
+CREATE OR REPLACE
+ALGORITHM = UNDEFINED VIEW `tradingapp`.`vw_watchlist` AS
+select
+    `tradingapp`.`watchlist`.`watchlist_id` AS `watchlist_id`,
+    `tradingapp`.`watchlist`.`watchlist_name` AS `watchlist_name`,
+    `tradingapp`.`watchlist`.`symbol` AS `symbol`,
+    `tradingapp`.`watchlist`.`day_trade` AS `day_trade`
+from
+    `tradingapp`.`watchlist`;
+
+-- tradingapp.patterns definition
+CREATE TABLE `patterns` (
+  `pattern_id` int(11) NOT NULL AUTO_INCREMENT,
+  `pattern_name` varchar(100) NOT NULL,
+  `pattern_type` enum('Bullish','Bearish') NOT NULL,
+  `created` datetime DEFAULT current_timestamp(),
+  `updated` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`pattern_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO tradingapp.patterns
+(pattern_name, pattern_type)
+VALUES	('All', 'Bullish')
+	,	('Engulfing - Bullish', 'Bullish')
+	,	('Engulfing - Bearish', 'Bearish')
+	,	('Potential Morning Star', 'Bullish')
+	,	('Morning Star', 'Bullish')
+	,	('Bullish Harami', 'Bullish')
+	,	('Bearish Harami', 'Bearish');

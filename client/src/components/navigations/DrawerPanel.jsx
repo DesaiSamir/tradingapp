@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import clsx from 'clsx';
 import _ from "lodash";
 import { makeStyles, useTheme } from '@material-ui/core/styles';
@@ -150,13 +150,18 @@ export default function DrawerPanel() {
 	const { userId } =  useContext(UserContext);
 	const { stockQuote, setSymbolText, isRegularSession, handleChangeRegularSession } = useContext(ChartActionsContext);
 	const { realizedPnL, unRealizedPnL, closedPositions } = useContext(BalanceContext);
-	const { orders } = useContext(OrderContext)
-	const [open, setOpen] = React.useState(false);  
-	const [anchorEl, setAnchorEl] = React.useState(null);
-	const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
+	const { orders, totalFilledOrders } = useContext(OrderContext)
+	const [open, setOpen] = useState(false);  
+	const [anchorEl, setAnchorEl] = useState(null);
+	const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
 	const isMenuOpen = Boolean(anchorEl);
 	const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
-	const [component, setComponent] = React.useState("Home");
+	const [component, setComponent] = useState("Home");
+	const [todaysPnL, setTodaysPnL] = useState(0);
+
+	useEffect(() => {
+		setTodaysPnL(parseFloat(parseFloat(realizedPnL) + totalFilledOrders).toFixed(2));
+	}, [totalFilledOrders, realizedPnL]);
 
 	const handleProfileMenuOpen = (event) => {
 		setAnchorEl(event.currentTarget);
@@ -312,8 +317,8 @@ export default function DrawerPanel() {
 								</Typography>
 							</Grid>
 							<Grid item xs={4} >
-								<Typography  variant="h6" noWrap className={`${classes.buttonText} ${realizedPnL >= 0 ? classes.up : classes.down}`}>
-									{realizedPnL >= 0 ? `$${realizedPnL}` : `$${realizedPnL * -1}`}
+								<Typography  variant="h6" noWrap className={`${classes.buttonText} ${todaysPnL >= 0 ? classes.up : classes.down}`}>
+									{(todaysPnL) >= 0 ? `$${todaysPnL}` : `$${todaysPnL * -1}`}
 								</Typography>
 							</Grid>
 							<Grid item xs={8}>

@@ -5,6 +5,7 @@ import {
 } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import { ChartActionsContext } from '../../contexts/ChartActionsProvider';
+import SyncAltIcon from '@material-ui/icons/SyncAlt';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -36,7 +37,7 @@ const useStyles = makeStyles((theme) => ({
 export default function WatchlistGrid({stock}) {
     const classes = useStyles();
     const { 
-        setSymbolText, handleDeleteWatchlist 
+        setSymbolText, handleDeleteWatchlist, handleDayTradeSymbol
     } = useContext(ChartActionsContext);
     
     return (
@@ -63,16 +64,6 @@ export default function WatchlistGrid({stock}) {
                                         {parseFloat(stock.Open).toFixed(2)}
                                     </Typography>
                                 </Grid>
-                                {/* <Grid item xs={6}>
-                                    <Typography variant="button" display="block" gutterBottom className={classes.font}>
-                                        Close:
-                                    </Typography>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Typography variant="button" display="block" gutterBottom>
-                                        {close}
-                                    </Typography>
-                                </Grid> */}
                             </Grid>
                             <Grid item xs={3} container>
                                 <Grid item xs={6}>
@@ -85,26 +76,6 @@ export default function WatchlistGrid({stock}) {
                                         {parseFloat(stock.Close).toFixed(2)}
                                     </Typography>
                                 </Grid>
-                                {/* <Grid item xs={6}>
-                                    <Typography variant="button" display="block" gutterBottom className={classes.font}>
-                                        High:
-                                    </Typography>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Typography variant="button" display="block" gutterBottom>
-                                        {high}
-                                    </Typography>
-                                </Grid> */}
-                                {/* <Grid item xs={6}>
-                                    <Typography variant="button" display="block" gutterBottom className={classes.font}>
-                                        Low:
-                                    </Typography>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Typography variant="button" display="block" gutterBottom>
-                                        {low}
-                                    </Typography>
-                                </Grid> */}
                             </Grid>
                             <Grid item xs={3} container>
                                 <Grid item xs={6}>
@@ -130,6 +101,13 @@ export default function WatchlistGrid({stock}) {
                                     </Typography>
                                 </Grid>
                             </Grid>
+                        </Grid>
+                        <Grid>
+                            <Button
+                                onClick={() => handleDayTradeSymbol(stock.Symbol)}                                
+                                className={classes.button}
+                                endIcon={<SyncAltIcon color={`${stock.DayTrade ? 'secondary' : 'disabled'}`}/>}
+                            />
                         </Grid>
                         <Grid>
                             <Button

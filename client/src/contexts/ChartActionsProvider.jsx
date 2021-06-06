@@ -20,10 +20,10 @@ const ChartActionsProvider = ({ children }) => {
     const [isRegularSession, setIsRegularSession] = useState(false);
     
     useEffect(() => {
-        const sessionTemplate = isPreMarket ? "&SessionTemplate=USEQPreAndPost" : '';
-        const url= `/v2/stream/barchart/$symbol/$interval/$unit?daysBack=$daysBack&lastDate=$lastDate${sessionTemplate}`;
+        const sessionTemplate = isPreMarket ? "SessionTemplate=USEQPreAndPost" : '';
+        const url= `/v2/stream/barchart/$symbol/$interval/$unit/$barsBack/$lastDate?${sessionTemplate}`;
         const resolvedUrl = url.replace('$symbol', symbol).replace('$unit', unit).replace('$interval', unit !== 'Minute' ? 1 : interval)
-                    .replace('$lastDate', helper.newDate(new Date())).replace('$daysBack', unit !== 'Minute' ? 1000 : isPreMarket || interval < 15 ? 30 : 300);
+                    .replace('$lastDate', helper.newDate(new Date())).replace('$barsBack', 600);
 
         setCurrentTimeframe(unit !== 'Minute' ? unit : `${interval}M`);
         setUrl(resolvedUrl);
@@ -47,14 +47,13 @@ const ChartActionsProvider = ({ children }) => {
         }
     }, [unit, interval, symbol, isPreMarket, userId, reloadAllData]);
     
-    const onUnitClicked = (e, item) => {
-        e.preventDefault();
+    const onUnitClicked = (item) => {
         setInterval(item.interval);
         setUnit(item.unit);
     }
 
     var timer;
-    const onTextChanged = (e, name) => {
+    const onTextChanged = (e, name) => {        
         var target = e.target.value;
         
         if(target === '')
@@ -75,7 +74,7 @@ const ChartActionsProvider = ({ children }) => {
                 default:
                     break;
             }
-        }, 1000);
+        }, 2000);
     }
 
     const setSymbolText = (symbol) => {
@@ -139,6 +138,19 @@ const ChartActionsProvider = ({ children }) => {
 		http.send('DELETE',`api/watchlist/${symbol}`, payload);
 	}
 
+    const handleDayTradeSymbol = async (symbol) => {
+		const cwlIndex = currentWatchlist.findIndex(list => list.Symbol === symbol);
+        let newCWL = [...currentWatchlist];
+        newCWL[cwlIndex] = {...newCWL[cwlIndex], DayTrade: !newCWL[cwlIndex].DayTrade};
+		setCurrentWatchlist(newCWL);
+		
+		const payload = { 
+			Symbol: symbol,
+		};
+
+		http.send('POST',`api/watchlist/daytrade`, payload);
+	}
+
 	const handleChangeRegularSession = (e) => {
 		setIsRegularSession(e.target.checked);
         http.overrideRegularSession(e.target.checked);
@@ -158,7 +170,7 @@ const ChartActionsProvider = ({ children }) => {
             onTextChanged, setIsRegularSession, isRegularSession,
             setSymbolText, setSymbolTextFromCandle,
             currentWatchlist, currentTimeframe,
-            handleAddWatchlist, handleDeleteWatchlist, addFavWatchlist,  
+            handleAddWatchlist, handleDeleteWatchlist, addFavWatchlist, handleDayTradeSymbol
         }}>
             {children}
         </ChartActionsContext.Provider>

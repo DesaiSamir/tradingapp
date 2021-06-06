@@ -96,14 +96,19 @@ router.post('/', async function  (req, res, next)  {
     const payload = req.body;
     const url = '/v2/orders';
     const orderData = await helper.send(req, res, 'POST', url, payload);
-
-    if(orderData){
-        const orderSuccess = orderData.filter(o => o.OrderStatus === 'Failed').length === 0;
-        if(orderSuccess){
-            pattern.updatePatternIfHasOrderBySymbol(payload.Symbol);
+    try {
+        
+        if(orderData){
+            const orderSuccess = orderData.filter(o => o.OrderStatus === 'Failed').length === 0;
+            if(orderSuccess){
+                pattern.updatePatternIfHasOrderBySymbol(payload.Symbol);
+            }
+            payload.response = orderData;
+            res.send(orderData);
         }
-        payload.response = orderData;
-        res.send(orderData);
+        
+    } catch (error) {
+        console.error(error);
     }
 })
 

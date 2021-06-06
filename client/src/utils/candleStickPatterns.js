@@ -1,5 +1,10 @@
+var isPatternBullish = false;
 function bodyLen(candlestick) {
     return Math.abs(candlestick.open - candlestick.close);
+}
+
+function candleLen(candlestick) {
+    return Math.abs(candlestick.high - candlestick.low);
 }
 
 function wickLen(candlestick) {
@@ -28,13 +33,40 @@ function isInvertedHammerLike(candlestick) {
            tailLen(candlestick) < bodyLen(candlestick);
 }
 
-function isEngulfed(previous, current) {
-    if(isBearish(previous) && current.open <= previous.close &&  current.close >= previous.open){
+function isTopShadowEngulfed(candle1, candle2){
+    if((candle2.open >= candle1.high) && (candle2.close <= candle1.open && candle2.close <= candle1.close)){
         return true;
     }
-    if(isBullish(previous) && current.open >= previous.close && current.close <= previous.open){
+    
+    if((candle2.open <= candle1.open && candle2.open <= candle1.close) && (candle2.close >= candle1.high)){
         return true;
     }
+    
+    return false;
+}
+
+function isBottomShadowEngulfed(candle1, candle2){
+    if((candle2.open >= candle1.open && candle2.open >= candle1.close) && (candle2.close <= candle1.low)){
+        return true;
+    }
+    
+    if((candle2.open <= candle1.low) && (candle2.close >= candle1.open && candle2.close >= candle1.close)){
+        return true;
+    }
+    
+    return false;
+}
+
+// Check if Candle1 is Engulfed by Candle2
+function isEngulfed(candle1, candle2) {
+    if((candle2.open >= candle1.open && candle2.open >= candle1.close) && (candle2.close <= candle1.open && candle2.close <= candle1.close)){
+        return true;
+    }
+    
+    if((candle2.open <= candle1.open && candle2.open <= candle1.close) && (candle2.close >= candle1.open && candle2.close >= candle1.close)){
+        return true;
+    }
+    
     return false;
 }
 
@@ -47,9 +79,34 @@ function isGapUp(previous, current) {
 }
 
 function isGapDown(previous, current) {
-    return isGap(current, previous);
+    return (current.open < previous.close && current.close < penetrationPercentPrice(previous, 5));
 }
 
+function isDoji(candlestick){
+    return  !isHammerLike(candlestick) && 
+            getCandleToBodyPercentValue(candlestick, bodyLen(candlestick)) < 30;
+}
+
+function getCandleToBodyPercentValue(candlestick){
+    return (bodyLen(candlestick) * 100) / candleLen(candlestick) ;
+}
+
+// function getCandlePercentValue(candlestick, percent){
+//     return (candleLen(candlestick) * percent / 100);
+// }
+
+function getBodyPercentValue(candlestick, percent){
+    return (bodyLen(candlestick) * percent / 100);
+}
+
+function penetrationPercentPrice(candlestick, percent){
+    const candlePercentPrice = getBodyPercentValue(candlestick, percent);
+    if(isBullish(candlestick)){
+        return candlestick.close - candlePercentPrice;
+    } else {
+        return candlestick.close + candlePercentPrice;
+    }
+}
 // Dynamic array search for callback arguments.
 function findPattern(dataArray, callback) {
     const upperBound = (dataArray.length - callback.length) + 1;
@@ -67,18 +124,17 @@ function findPattern(dataArray, callback) {
 
         // Destructure args and find matches.
         if (callback(...args)) {
-            dataArray[i + 1][callbackName] = true;
-            dataArray[i + 1]["pattern"] = callbackName;
+            dataArray[i + args.length - 1]["patternType"] = isPatternBullish ? "bullish" : "bearish";
+            dataArray[i + args.length - 1]["pattern"] += callbackName.substring(2, callbackName.length) + " ";
             
             dataArray[i]["candle"] = 0;
-            dataArray[i + 1]["candle"] = 1;
+            dataArray[i + args.length - 1]["candle"] = 1;
 
             matches.push(args);
+            // console.log(args)
             // break;
             // matches.push(args[1]);
-        } else {
-            dataArray[i + 1][callbackName] = false;
-        }
+        } 
     }
 
     return matches;
@@ -104,11 +160,31 @@ function isHangingMan(previous, current) {
            isHammerLike(current);
 }
 
-function isShootingStar(previous, current) {
+function isShootingStar(previous, middle, current) {
     return isBullish(previous) &&
-           isBearish(current) &&
-           isGapUp(previous, current) &&
-           isInvertedHammerLike(current);
+           isBearish(middle) &&
+           isGapUp(previous, middle) &&
+           (isInvertedHammerLike(middle) || isDoji(middle)) &&
+           (current.close < middle.close) &&
+           !isDoji(current);
+}
+
+function isMorningStar(previous, middle, current) {
+    const currCloseInUpperHalf = current.close >= penetrationPercentPrice(previous, 50);
+    return isBearish(previous) &&
+           isBullish(current) &&
+           isGapDown(previous, middle) &&
+           (isHammerLike(middle) || isDoji(middle)) && 
+           (current.close > middle.close) &&
+           !isDoji(current) &&
+           currCloseInUpperHalf;
+}
+
+function isPotentialMorningStar(previous, current) {
+    return isBearish(previous) &&
+           isBullish(current) &&
+           isGapDown(previous, current) &&
+           (isHammerLike(current) || isDoji(current));
 }
 
 function isBullishEngulfing(previous, current) {
@@ -126,15 +202,25 @@ function isBearishEngulfing(previous, current) {
 }
 
 function isBullishHarami(previous, current) {
+    const currOpenInLowerHalf = current.open <= penetrationPercentPrice(previous, 40);
+    const currCloseInUpperHalf = current.close >= penetrationPercentPrice(previous, 40);
     return isBearish(previous) &&
            isBullish(current) &&
-           isEngulfed(current, previous);
+           isEngulfed(current, previous) &&
+           isBottomShadowEngulfed(current, previous) &&
+           currOpenInLowerHalf &&
+           currCloseInUpperHalf;
 }
 
 function isBearishHarami(previous, current) {
+    const currOpenInUpperHalf = current.open >= penetrationPercentPrice(previous, 40);
+    const currCloseInLowerHalf = current.close <= penetrationPercentPrice(previous, 40);
     return isBullish(previous) &&
            isBearish(current) &&
-           isEngulfed(current, previous);
+           isEngulfed(current, previous) &&
+           isTopShadowEngulfed(current, previous) &&
+           currOpenInUpperHalf &&
+           currCloseInLowerHalf;
 }
 
 function isBullishKicker(previous, current) {
@@ -153,42 +239,62 @@ function isBearishKicker(previous, current) {
 // @public
 
 function hammer(dataArray) {
+    isPatternBullish = true;
     return findPattern(dataArray, isHammer);
 }
 
 function invertedHammer(dataArray) {
+    isPatternBullish = false;
     return findPattern(dataArray, isInvertedHammer);
 }
 
 function hangingMan(dataArray) {
+    isPatternBullish = false;
     return findPattern(dataArray, isShootingStar);
 }
 
 function shootingStar(dataArray) {
+    isPatternBullish = false;
     return findPattern(dataArray, isShootingStar);
 }
 
+function morningStar(dataArray){
+    isPatternBullish = true;
+    return findPattern(dataArray, isMorningStar);
+}
+
+function potentialMorningStar(dataArray){
+    isPatternBullish = true;
+    return findPattern(dataArray, isPotentialMorningStar);
+}
+
 function bullishEngulfing(dataArray) {
+    isPatternBullish = true;
     return findPattern(dataArray, isBullishEngulfing);
 }
 
 function bearishEngulfing(dataArray) {
+    isPatternBullish = false;
     return findPattern(dataArray, isBearishEngulfing);
 }
 
 function bullishHarami(dataArray) {
+    isPatternBullish = true;
     return findPattern(dataArray, isBullishHarami);
 }
 
 function bearishHarami(dataArray) {
+    isPatternBullish = false;
     return findPattern(dataArray, isBearishHarami);
 }
 
 function bullishKicker(dataArray) {
+    isPatternBullish = true;
     return findPattern(dataArray, isBullishKicker);
 }
 
 function bearishKicker(dataArray) {
+    isPatternBullish = false;
     return findPattern(dataArray, isBearishKicker);
 }
 
@@ -196,6 +302,7 @@ module.exports.isHammer = isHammer;
 module.exports.isInvertedHammer = isInvertedHammer;
 module.exports.isHangingMan = isHangingMan;
 module.exports.isShootingStar = isShootingStar;
+module.exports.isMorningStar = isMorningStar;
 module.exports.isBullishEngulfing = isBullishEngulfing;
 module.exports.isBearishEngulfing = isBearishEngulfing;
 module.exports.isBullishHarami = isBullishHarami;
@@ -207,6 +314,8 @@ module.exports.hammer = hammer;
 module.exports.invertedHammer = invertedHammer;
 module.exports.hangingMan = hangingMan;
 module.exports.shootingStar = shootingStar;
+module.exports.morningStar = morningStar;
+module.exports.potentialMorningStar = potentialMorningStar;
 module.exports.bullishEngulfing = bullishEngulfing;
 module.exports.bearishEngulfing = bearishEngulfing;
 module.exports.bullishHarami = bullishHarami;

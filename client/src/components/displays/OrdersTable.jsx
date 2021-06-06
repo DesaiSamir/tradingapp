@@ -168,6 +168,7 @@ export default function OrdersTable({containerHeight, orders}) {
 					<Table className={classes.table} stickyHeader aria-label="sticky table">
 						<TableHead>
 							<TableRow>
+								<StyledTableCell>No.</StyledTableCell>
 								<StyledTableCell>Symbol</StyledTableCell>
 								<StyledTableCell>OrderID</StyledTableCell>
 								<StyledTableCell>OrderStatus</StyledTableCell>
@@ -184,11 +185,12 @@ export default function OrdersTable({containerHeight, orders}) {
 							</TableRow>
 						</TableHead>
 						<TableBody>
-							{orders && orders.length > 0 && orders.map((order) => (
+							{orders && orders.length > 0 && orders.map((order, index) => (
 								<StyledTableRow 
 									key={order.OrderID}
 									className={`${classes.row} ${order.StopPrice === 0 ? classes.profit : order.LimitPrice === 0 ? classes.loss : classes.purchase}`}
 								>
+									<StyledTableCell>{index + 1}</StyledTableCell>
 									<StyledTableCell className={classes.pointer} onClick={() => setSymbolText(order.Symbol)}>{order.Symbol}</StyledTableCell>
 									<StyledTableCell>{order.OrderID}</StyledTableCell>
 									<StyledTableCell>{order.StatusDescription}</StyledTableCell>

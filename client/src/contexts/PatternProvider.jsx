@@ -12,7 +12,7 @@ const PatternProvider = ({ children }) => {
     const [patternTypes, setPatternTypes] = useState([]);
 	const [lastSelectedTab, setLastSelectedTab] = useState(0);
 	const [lastTimeframe, setLastTimeframe] = useState(1);
-	const [lastPatternType, setLastPatternType] = useState(3);
+	const [lastPatternType, setLastPatternType] = useState(0);
     const { reloadAllData } = useContext(UserContext);
     const [reloadData, setReloadData] = useState(false);
 
@@ -37,7 +37,10 @@ const PatternProvider = ({ children }) => {
                         .filter(items => (selectedPatternType !== "All" ? items.pattern_name === selectedPatternType : patternTypeList.includes(items.pattern_name)))
                         .filter(items => (selectedPatternTimeframe !== "All" ? items.timeframe === selectedPatternTimeframe : timeframeList.includes(items.timeframe))));
                 }
-
+                const patternType = patternTypes && patternTypes.find(p => p.title === selectedPatternTimeframe);
+                if(patternType){
+                    setLastPatternType(patternType.id)
+                }
                 setCurrentPatterns(data);
             }
         };

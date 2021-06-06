@@ -13,6 +13,7 @@ import {
 } from "react-financial-charts";
 import { OrderContext } from "../../contexts/OrderProvider";
 import { ChartActionsContext } from "../../contexts/ChartActionsProvider";
+import { getPercentDiff } from "../../utils/helper";
 
 var stockChartHeight = 360;
 
@@ -48,13 +49,13 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
         })
         .accessor((d) => d.ema26);
 
-        const ema200 = ema()
-            .id(2)
-            .options({ windowSize: 200 })
-            .merge((d, c) => {
-                d.ema200 = c;
-            })
-            .accessor((d) => d.ema200);
+    const ema200 = ema()
+        .id(2)
+        .options({ windowSize: 200 })
+        .merge((d, c) => {
+            d.ema200 = c;
+        })
+        .accessor((d) => d.ema200);
 
     const elder = elderRay();
 
@@ -77,9 +78,16 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
     const barChartExtents = (data) => {
         return data.volume;
     };
-
+    var dataLow = 0;
+    var dataHigh = 0;
     const candleChartExtents = (data) => {
-        return [data.high + 0.1, data.low - 0.1];
+        dataLow = dataLow === 0 ? data.low : data.low < dataLow ? data.low : dataLow;
+        dataHigh = dataHigh === 0 ? data.high : data.high > dataHigh ? data.high : dataHigh;
+        const percentDiff =  getPercentDiff(dataHigh, dataLow) / 1000;
+        const high = data.high + (dataHigh * percentDiff);
+        const low = data.low - (data.low * percentDiff);
+        
+        return [high, low];
     };
 
     const yEdgeIndicator = (data) => {
@@ -101,14 +109,15 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
         return color;
     };
 
-    const candelFillColor = (data) => {
-        var fillColor = data.close > data.open ? "#26a69a" : "#ef5350"
-
-        switch (data.pattern) {
-            case "isBullishEngulfing":
+    const candelFillColor = (data, seriesData = []) => {
+        const previous = seriesData[data.idx.index - 1];
+        var fillColor = data.close > data.open ? "#ffffff00" : previous && (data.close >= previous.close) ? "#26a69a" : "#ef5350";
+        
+        switch (data.patternType) {
+            case "bullish":
                 fillColor = 'green';
                 break;
-            case "isBearishEngulfing":
+            case "bearish":
                 fillColor = 'red';
                 break;
             default:
@@ -118,8 +127,28 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
         return fillColor;
     }
 
+    const candelStrokeColor = (data, seriesData = []) => {
+        const previous = seriesData[data.idx.index - 1];
+        const dataMax = Math.max(data.open, data.close);
+        const prevMax = previous && Math.max(previous.open, previous.close);
+        const prevMin = previous && Math.min(previous.open, previous.close);
+        var strokeColor = data.close > data.open 
+            ?   previous && (data.open < previous.close && data.close >= previous.open) 
+                ?   previous && (dataMax < prevMax || dataMax < prevMin) 
+                    ? "red"
+                    : "green"
+                :   previous && (dataMax < prevMin) 
+                    ? "red"
+                    : "green"  
+            :   previous && (data.close >= previous.close) 
+                ? "green" 
+                : "red";
+        
+        return strokeColor;
+    }
+
     const candlestickYAccessor = (data) => {
-        return { open: data.open, high: data.high, low: data.low, close: data.close, pattern: data.pattern};
+        return data;
     }   
 
     const onCandleClicked = (e, data) => {
@@ -140,7 +169,7 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
     });
 
     const annotBullish = {
-        tooltip: "Go Long",
+        tooltip: (data) => data.pattern,
         textIcon: '\u25B2',
         textIconFill: 'green',
         textIconFontSize: 20,
@@ -151,7 +180,7 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
     };
 
     const annotBerish = {
-        tooltip: "Go Short",
+        tooltip: (data) => data.pattern,
         textIcon: '\u25BC',
         textIconFill: 'red',
         textIconFontSize: 20,
@@ -167,6 +196,22 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
            return acc + (val.volume/length);
         }, 0);
     };
+
+    const whenBullish = (data) => {
+        var isBullish = false;
+        if(data.patternType === 'bullish'){
+            isBullish = true;
+        }
+        return isBullish;
+    }
+
+    const whenBearish = (data) => {
+        var isBerish = false;
+        if(data.patternType === 'bearish'){
+            isBerish = true;
+        }
+        return isBerish;
+    }
 
     return (
         <ChartCanvas
@@ -203,7 +248,13 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
             <Chart id={3} height={chartHeight} yExtents={candleChartExtents}>
                 <XAxis showGridLines showTickLabel={false} />
                 <YAxis showGridLines tickFormat={pricesDisplayFormat} />
-                <CandlestickSeries fill={candelFillColor} yAccessor={candlestickYAccessor} />
+                <CandlestickSeries 
+                    fill={(d) => candelFillColor(d, data)} 
+                    stroke={(d) => candelStrokeColor(d, data)} 
+                    widthRatio={.6} 
+                    candleStrokeWidth={1} 
+                    wickStroke={(d) => candelStrokeColor(d, data)}
+                    yAccessor={candlestickYAccessor} />
                 <LineSeries yAccessor={ema200.accessor()} strokeStyle={ema200.stroke()} />
                 <CurrentCoordinate yAccessor={ema200.accessor()} fillStyle={ema200.stroke()} />
                 <LineSeries yAccessor={ema26.accessor()} strokeStyle={ema26.stroke()} />
@@ -245,13 +296,13 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                     x={(width - margin.left - margin.right) / 2}
                     y={(height - margin.top - margin.bottom) / 2}
                 />
-                <Annotate with={BarAnnotation} usingProps={annotBullish} when={(data) => data.isBullishEngulfing} />
-                <Annotate with={BarAnnotation} usingProps={annotBerish} when={(data) => data.isBearishEngulfing} />
+                <Annotate with={BarAnnotation} usingProps={annotBullish} when={whenBullish} />
+                <Annotate with={BarAnnotation} usingProps={annotBerish} when={whenBearish} />
                 <OHLCTooltip origin={[8, 16]} textFill={(d) => (d.close > d.open ? "#26a69a" : "#ef5350")} />
                 <HoverTooltip
-                    yAccessor={ema12.accessor()}
+                    yAccessor={ema200.accessor()}
                     tooltip={{
-                        content: ({ currentItem, xAccessor }) => ({
+                        content: ({ currentItem, xAccessor, yAccessor}) => ({
                             x: timeDisplayFormat(xAccessor(currentItem)),
                             y: [
                                 {
@@ -281,6 +332,14 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                                 {
                                     label: "Volume",
                                     value: currentItem.volume && numberDisplayFormat(currentItem.volume),
+                                },
+                                {
+                                    label: "High200 %",
+                                    value: currentItem.ema200 && pricesDisplayFormat(getPercentDiff(currentItem.high, currentItem.ema200)),
+                                },
+                                {
+                                    label: "Low200 %",
+                                    value: currentItem.ema200 && pricesDisplayFormat(getPercentDiff(currentItem.low, currentItem.ema200)),
                                 },
                             ],
                         }),

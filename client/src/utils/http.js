@@ -360,7 +360,8 @@ module.exports = {
                         absoluteChange: "",
                         percentChange: "",
                         split: "",
-                        pattern: ""
+                        pattern: "",
+                        patternType: "",
                     });
                 }
             }

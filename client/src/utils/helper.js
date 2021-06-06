@@ -34,6 +34,9 @@ module.exports = {
         var newDate = new Date(date.setDate(date.getDate() + 1));
         return this.formatDate(newDate);
     },
+    getPercentDiff: function(a, b) {
+        return 100 * (a - b) / ((a + b) / 2);
+    },
     getPatternCandleList: function(chartData = [], symbol, currentTimeframe){
         var patternCandles = [];
         if(chartData.length > 0){
@@ -48,14 +51,14 @@ module.exports = {
             lastCandles.push({...chartData[1], title: 'Last Closed Candle', symbol, timeframe: currentTimeframe});
             patternCandles.push(lastCandles);
 
-            const lastBullishIndex = chartData.findIndex(candle=> candle.isBullishEngulfing);
+            const lastBullishIndex = chartData.findIndex(candle=> candle.patternType === 'bullish');
             if(lastBullishIndex > 0){
                 lastBullCandles.push({...chartData[lastBullishIndex + 1], title: '', symbol, timeframe: currentTimeframe});
                 lastBullCandles.push({...chartData[lastBullishIndex], title: 'Last Bullish Candle', symbol, timeframe: currentTimeframe});
                 patternCandles.push(lastBullCandles);
             }
 
-            const lastBearishIndex = chartData.findIndex(candle=> candle.isBearishEngulfing);
+            const lastBearishIndex = chartData.findIndex(candle=> candle.patternType === 'bearish');
             if(lastBearishIndex > 0){
                 lastBearCandles.push({...chartData[lastBearishIndex + 1], title: '', symbol, timeframe: currentTimeframe});
                 lastBearCandles.push({...chartData[lastBearishIndex], title: 'Last Bearish Candle', symbol, timeframe: currentTimeframe});
