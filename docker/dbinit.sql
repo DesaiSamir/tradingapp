@@ -157,31 +157,6 @@ INSERT INTO provider (`provider_name`) VALUES ('Alpha Advantage');
 -- data setup for watchlist
 INSERT INTO watchlist (`symbol`) VALUES ('SPY'), ('QQQ'), ('UVXY'), ('TSLA')
 
--- Create event to delete old/expired patterns
-CREATE EVENT delete_expired_patterns
-ON SCHEDULE EVERY 5 MINUTE
-STARTS '2021-05-06 02:04:57.000'
-ON COMPLETION NOT PRESERVE
-ENABLE
-DO DELETE FROM intraday_patterns
-	WHERE intraday_pattern_id NOT IN 
-			(SELECT MAX(intraday_pattern_id) id
-				FROM intraday_patterns ip 
-				WHERE ip.timeframe NOT IN ('Daily', 'Weekly', 'Monthly') 
-				AND CAST(c_date AS DATE) > DATE_ADD(CURRENT_DATE(), INTERVAL -2 DAY)
-				GROUP BY symbol
-			UNION
-			SELECT MAX(intraday_pattern_id) id
-				FROM intraday_patterns ip 
-				WHERE ip.timeframe = 'Daily' 
-				AND CAST(c_date AS DATE) > DATE_ADD(CURRENT_DATE(), INTERVAL -3 DAY)
-				GROUP BY symbol
-			UNION
-			SELECT MAX(intraday_pattern_id) id
-				FROM intraday_patterns ip 
-				WHERE ip.timeframe IN ('Weekly', 'Monthly') 
-				GROUP BY symbol);
-
 
 -- Turn on Global event scheduler to run events.
 SET GLOBAL event_scheduler = ON;
@@ -244,7 +219,6 @@ VALUES	(1, 'OverrideRegularSession'	, 0	, 'Number'),
       	(2, 'MaxCostOfPositionPerTrade'	, 10, '%'),
 		(3, 'AutoTradingOn'				, 1);
 
-
 -- tradingapp.user_settings definition
 CREATE TABLE `user_settings` (
   `user_setting_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -296,3 +270,28 @@ select
     `tradingapp`.`watchlist`.`day_trade` AS `day_trade`
 from
     `tradingapp`.`watchlist`;
+
+-- Create event to delete old/expired patterns
+CREATE EVENT delete_expired_patterns
+ON SCHEDULE EVERY 5 MINUTE
+STARTS '2021-05-06 02:04:57.000'
+ON COMPLETION NOT PRESERVE
+ENABLE
+DO DELETE FROM intraday_patterns
+	WHERE intraday_pattern_id NOT IN 
+			(SELECT MAX(intraday_pattern_id) id
+				FROM intraday_patterns ip 
+				WHERE ip.timeframe NOT IN ('Daily', 'Weekly', 'Monthly') 
+				AND CAST(c_date AS DATE) > DATE_ADD(CURRENT_DATE(), INTERVAL -2 DAY)
+				GROUP BY symbol
+			UNION
+			SELECT MAX(intraday_pattern_id) id
+				FROM intraday_patterns ip 
+				WHERE ip.timeframe = 'Daily' 
+				AND CAST(c_date AS DATE) > DATE_ADD(CURRENT_DATE(), INTERVAL -3 DAY)
+				GROUP BY symbol
+			UNION
+			SELECT MAX(intraday_pattern_id) id
+				FROM intraday_patterns ip 
+				WHERE ip.timeframe IN ('Weekly', 'Monthly') 
+				GROUP BY symbol);
