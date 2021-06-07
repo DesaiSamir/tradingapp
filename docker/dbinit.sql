@@ -157,10 +157,6 @@ INSERT INTO provider (`provider_name`) VALUES ('Alpha Advantage');
 -- data setup for watchlist
 INSERT INTO watchlist (`symbol`) VALUES ('SPY'), ('QQQ'), ('UVXY'), ('TSLA')
 
-
--- Turn on Global event scheduler to run events.
-SET GLOBAL event_scheduler = ON;
-
 -- tradingapp.vw_intraday_patterns source
 CREATE OR REPLACE
 ALGORITHM = UNDEFINED VIEW `tradingapp`.`vw_intraday_patterns` AS
@@ -295,3 +291,6 @@ DO DELETE FROM intraday_patterns
 				FROM intraday_patterns ip 
 				WHERE ip.timeframe IN ('Weekly', 'Monthly') 
 				GROUP BY symbol);
+
+-- Turn on Global event scheduler to run events.
+SET GLOBAL event_scheduler = ON;
