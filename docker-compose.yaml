@@ -3,7 +3,7 @@ services:
   tradingapp:
     build:
       context: .
-      target: development
+      # target: development
     ports:
       - 5000:3000
       - 3306:3306/tcp

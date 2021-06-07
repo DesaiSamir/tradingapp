@@ -107,6 +107,26 @@ CREATE TABLE `watchlist` (
   UNIQUE KEY `watchlist_UN` (`watchlist_name`,`symbol`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- tradingapp.patterns definition
+CREATE TABLE `patterns` (
+  `pattern_id` int(11) NOT NULL AUTO_INCREMENT,
+  `pattern_name` varchar(100) NOT NULL,
+  `pattern_type` enum('Bullish','Bearish') NOT NULL,
+  `created` datetime DEFAULT current_timestamp(),
+  `updated` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`pattern_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO tradingapp.patterns
+(pattern_name, pattern_type)
+VALUES	('All', 'Bullish')
+	,	('Engulfing - Bullish', 'Bullish')
+	,	('Engulfing - Bearish', 'Bearish')
+	,	('Potential Morning Star', 'Bullish')
+	,	('Morning Star', 'Bullish')
+	,	('Bullish Harami', 'Bullish')
+	,	('Bearish Harami', 'Bearish');
+
 -- tradingapp.intraday_patterns definition
 CREATE TABLE `intraday_patterns` (
   `intraday_pattern_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -276,23 +296,3 @@ select
     `tradingapp`.`watchlist`.`day_trade` AS `day_trade`
 from
     `tradingapp`.`watchlist`;
-
--- tradingapp.patterns definition
-CREATE TABLE `patterns` (
-  `pattern_id` int(11) NOT NULL AUTO_INCREMENT,
-  `pattern_name` varchar(100) NOT NULL,
-  `pattern_type` enum('Bullish','Bearish') NOT NULL,
-  `created` datetime DEFAULT current_timestamp(),
-  `updated` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`pattern_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-INSERT INTO tradingapp.patterns
-(pattern_name, pattern_type)
-VALUES	('All', 'Bullish')
-	,	('Engulfing - Bullish', 'Bullish')
-	,	('Engulfing - Bearish', 'Bearish')
-	,	('Potential Morning Star', 'Bullish')
-	,	('Morning Star', 'Bullish')
-	,	('Bullish Harami', 'Bullish')
-	,	('Bearish Harami', 'Bearish');
