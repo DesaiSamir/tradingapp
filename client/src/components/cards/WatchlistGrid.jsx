@@ -56,7 +56,7 @@ export default function WatchlistGrid({stock}) {
                             <Grid item xs={3} container>
                                 <Grid item xs={6}>
                                     <Typography variant="button" display="block" gutterBottom className={classes.font}>
-                                        Open:
+                                        OP:
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={6}>
@@ -68,7 +68,7 @@ export default function WatchlistGrid({stock}) {
                             <Grid item xs={3} container>
                                 <Grid item xs={6}>
                                     <Typography variant="button" display="block" gutterBottom className={classes.font}>
-                                        Close:
+                                        CL:
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={6}>
@@ -80,7 +80,7 @@ export default function WatchlistGrid({stock}) {
                             <Grid item xs={3} container>
                                 <Grid item xs={6}>
                                     <Typography variant="button" display="block" gutterBottom className={classes.font}>
-                                        High:
+                                        HI:
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={6}>
@@ -92,7 +92,7 @@ export default function WatchlistGrid({stock}) {
                             <Grid item xs={3} container>
                                 <Grid item xs={6}>
                                     <Typography variant="button" display="block" gutterBottom className={classes.font}>
-                                        Low:
+                                        LO:
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={6}>

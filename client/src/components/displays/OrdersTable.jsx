@@ -266,7 +266,7 @@ export default function OrdersTable({containerHeight, orders}) {
 									<TextField
 										id="TRAILINGSTOP"
 										label="TRAILING STOP"
-										value={trailingStop}
+										defaultValue={trailingStop}
 										onChange={handleTextChange}
 									/>
 								</Grid>
@@ -284,7 +284,7 @@ export default function OrdersTable({containerHeight, orders}) {
 										id={`LIMITPRICE`}
 										name="LIMITPRICE"
 										label={`LIMIT PRICE`}
-										value={orderInfo.LimitPrice}
+										defaultValue={limitPrice}
 										onChange={handleTextChange}
 										helperText={limitErrorText}
 									/>
@@ -295,7 +295,7 @@ export default function OrdersTable({containerHeight, orders}) {
 										id="STOPPRICE"
 										name="STOPPRICE"
 										label="STOP PRICE"
-										value={orderInfo.StopPrice}
+										defaultValue={stopPrice}
 										onChange={handleTextChange}
 										helperText={stopErrorText}
 									/>

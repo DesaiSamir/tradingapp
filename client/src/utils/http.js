@@ -1,4 +1,5 @@
 var patterns = require('./patterns');
+var h = require('./helper');
 
 var barChartTimer, watchlistTimer, patternsTimer, quoteTimer, ordersInterval, positionsInterval, balancesInterval;
 var currentSymbol, currentUrl, patternIntradayTimer, overrideSession = false, regularSession = false;
@@ -73,7 +74,7 @@ module.exports = {
                     cb(quoteData[0]);
                 }
             }
-        }, this.getRefreshInterval());
+        }, 10000);
     },
     getBarChartData: async function (payload, cb, symbol) {
         const barData = await this.send('POST', 'api/marketdata', payload);
@@ -81,7 +82,8 @@ module.exports = {
         if(barData){
             var responseData = barData;
             if(responseData.length > 0){
-                responseData = patterns.detectPattern(this.formatTSData(responseData));
+                const unit = payload.url.indexOf(`Minute`) > 0 && 'Minute';
+                responseData = patterns.detectPattern(this.formatTSData(responseData), unit);
             } else {
                 responseData = {
                     status: "Error fetching data.", 
@@ -103,7 +105,8 @@ module.exports = {
                 if(barData && currentSymbol === symbol && currentUrl === payload.url){
                     var responseData = barData;
                     if(responseData.length > 0){
-                        responseData = patterns.detectPattern(this.formatTSData(responseData));
+                        const unit = payload.url.indexOf(`Minute`) > 0 && 'Minute';
+                        responseData = patterns.detectPattern(this.formatTSData(responseData), unit);
                     } else {
                         responseData = {
                             status: "Error fetching data.", 
@@ -113,7 +116,7 @@ module.exports = {
                     cb(responseData);
                 }
             }
-        }, this.getRefreshInterval());
+        }, 15000);
     },
     getWatchlist: async function(cb){
         const watchlistData = await this.get("api/watchlist", cb);
@@ -136,7 +139,7 @@ module.exports = {
                     cb(watchlistData);
                 }
             }
-        }, this.getRefreshInterval());
+        }, 10000);
     },
     getPatterns: async function(cb){
         const patternData = await this.get("api/pattern", cb);
@@ -367,7 +370,48 @@ module.exports = {
             }
         })
 
-        return formatedData.sort((a, b) => (a.date > b.date) ? 1 : -1);
+        this.getSimpleMovingAverage(formatedData.sort((a, b) => (a.date > b.date) ? 1 : -1), 200);
+
+        return formatedData;
+    },
+    getSimpleMovingAverage: function(data, sma){
+        if(data && data.length > sma){
+            let mxcr = Math.abs(data[sma - 1].high - data[sma - 1].low);
+            let mxbr = Math.abs(data[sma - 1].open - data[sma - 1].close);
+            
+            for (let i = sma; i < data.length; i++) {
+                const candle = data[i];
+                let totalClose = 0;
+                let atbr = 0;
+                let atcr = 0;
+                const startIndex = i - sma;
+                const currMxcr = Math.abs(candle.high - candle.low);
+                mxcr = currMxcr > mxcr ? currMxcr : mxcr;
+                const currMxbr = Math.abs(candle.open - candle.close);
+                mxbr = currMxbr > mxbr ? currMxcr : mxbr;
+
+                data.slice(startIndex, i).forEach((d) => {
+                    atbr += Math.abs(d.open - d.close);
+                    atcr += Math.abs(d.high - d.low);
+                    totalClose += d.close;                    
+                });
+                
+                const candleSma = totalClose / sma;
+                const highPct = h.getPercentDiff(candle.high, candleSma);
+                const lowPct = h.getPercentDiff(candle.low, candleSma);
+
+                let averageTrueBodyRange = atbr / sma;
+                let averageTrueCandleRange = atcr / sma;
+
+                candle[`sma${sma}`] = candleSma;
+                candle[`sma${sma}highPct`] = highPct;
+                candle[`sma${sma}lowPct`] = lowPct;
+                candle[`atbr`] = averageTrueBodyRange;
+                candle[`atcr`] = averageTrueCandleRange;
+                candle[`mxbr`] = mxbr;
+                candle[`mxcr`] = mxcr;
+            }
+        }
     },
     get: async function (url) {
         const res = await fetch(url)

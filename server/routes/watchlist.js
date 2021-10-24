@@ -3,37 +3,57 @@ var router = express.Router();
 const watchlist = require('../db/watchlist');
 const helper = require('../utils/helpers');
 
-router.get('/', async function  (req, res, next)  {
-    const allWatchlist = await watchlist.getAllWatchlist();
+function addDayTradeFlag(watchlist, allWatchlist) {
+    if(watchlist.length > 0){
+        watchlist.forEach(wl => {
+            const dbWl = allWatchlist.filter(w => w.symbol === wl.Symbol)[0];
+            wl.DayTrade = dbWl.day_trade === 1 ? true : false;
+        });
+        return watchlist;
+    } else {
+        return [];
+    }
+}
 
-    if(allWatchlist){
-        const stocks =  Array.prototype.map.call(allWatchlist, s => s.symbol).toString();
-        const url = `/v2/data/quote/${stocks}`;
-        const watchlistData = await helper.send(req, res, 'GET', url);
-        if(watchlistData){
-            watchlistData.forEach(wl => {
-                const dbWl = allWatchlist.filter(w => w.symbol === wl.Symbol)[0];
-                wl.DayTrade = dbWl.day_trade === 1 ? true : false;
-            });
-            res.send(watchlistData);
+router.get('/', async function  (req, res, next)  {
+    try {
+        const allWatchlist = await watchlist.getAllWatchlist();
+
+        if(allWatchlist){
+            const stocks =  Array.prototype.map.call(allWatchlist, s => s.symbol).toString();
+            const url = `/v2/data/quote/${stocks}`;
+            const watchlistData = await helper.send(req, res, 'GET', url);
+            if(watchlistData){
+                res.send(addDayTradeFlag(watchlistData, allWatchlist));
+            } else {
+                res.send([])
+            }
         }
+            
+    } catch (error) {
+        console.error(error);
+        res.send([])
     }
 })
 
 router.get('/daytrade', async function  (req, res, next)  {
-    const allWatchlist = await watchlist.getDayTradeWatchlist();
+    try{
+        const allWatchlist = await watchlist.getDayTradeWatchlist();
 
-    if(allWatchlist){
-        const stocks =  Array.prototype.map.call(allWatchlist, s => s.symbol).toString();
-        const url = `/v2/data/quote/${stocks}`;
-        const watchlistData = await helper.send(req, res, 'GET', url);
-        if(watchlistData){
-            watchlistData.forEach(wl => {
-                const dbWl = allWatchlist.filter(w => w.symbol === wl.Symbol)[0];
-                wl.DayTrade = dbWl.day_trade === 1 ? true : false;
-            });
-            res.send(watchlistData);
+        if(allWatchlist){
+            const stocks =  Array.prototype.map.call(allWatchlist, s => s.symbol).toString();
+            const url = `/v2/data/quote/${stocks}`;
+            const watchlistData = await helper.send(req, res, 'GET', url);
+            if(watchlistData){
+                res.send(addDayTradeFlag(watchlistData, allWatchlist));
+            } else {
+                res.send([])
+            }
         }
+            
+    } catch (error) {
+        console.error(error);  
+        res.send([])      
     }
 })
 

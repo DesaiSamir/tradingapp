@@ -12,6 +12,7 @@ const logoutRouter = require('./routes/logout');
 const profileRouter = require('./routes/profile');
 const marketdataRouter = require('./routes/marketdata');
 const symbollistsRouter = require('./routes/symbollists');
+const quoteRouter = require('./routes/quote');
 
 //DB Routers
 const watchlistRouter = require('./routes/watchlist');
@@ -49,6 +50,7 @@ app.use('/api/logout', logoutRouter);
 app.use('/api/profile', profileRouter);
 app.use('/api/marketdata', marketdataRouter);
 app.use('/api/symbollists', symbollistsRouter);
+app.use('/api/quote', quoteRouter);
 
 //DB Endpoints
 app.use('/api/watchlist', watchlistRouter);

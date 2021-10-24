@@ -27,10 +27,8 @@ const ChartActionsProvider = ({ children }) => {
 
         setCurrentTimeframe(unit !== 'Minute' ? unit : `${interval}M`);
         setUrl(resolvedUrl);
-        setChartText(`${symbol},${unit === 'Minute' ? interval : ''} ${unit}`);
-        
-        
-        
+        setChartText(symbol);
+
         const loadBarchartData = (data) => {
             const lastBar = data[data.length - 1];
             if(lastBar)
@@ -38,9 +36,16 @@ const ChartActionsProvider = ({ children }) => {
             // console.log(data)
             setBarChartData(data);
         }
+
+        const loadQuoteData = (data) => {
+            if(data){
+                setChartText(`${symbol} - ${data.Description}`);
+                setStockQuote(data)
+            }
+        }
         
         if(userId){
-            http.getQuoteData(symbol, setStockQuote);
+            http.getQuoteData(symbol, loadQuoteData);
             const payload = { method: 'STREAM', url: resolvedUrl };
             http.getBarChartData(payload, loadBarchartData, symbol);
             http.getWatchlist(setCurrentWatchlist);
@@ -113,7 +118,7 @@ const ChartActionsProvider = ({ children }) => {
 
     const addFavWatchlist = async (symbol) => {
         const payload = { 
-			Symbol: symbol,
+			Symbol: symbol.toUpperCase(),
 		};
 	
 		const addedSymbol = await http.send('POST','api/watchlist', payload);

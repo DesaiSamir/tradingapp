@@ -4,18 +4,24 @@ const { ts } = require('../config');
 const helper = require('../utils/helpers');
 
 router.get('/', async function (req, res, next)  {
-
-    var redirect_uri = `http://${req.headers.host}${ts.api_callback}`;
-    var url = `${ts.base_url}/v2/authorize?response_type=code&state=&client_id=${ts.client_id}&scope=&redirect_uri=${redirect_uri}`;
-    
-    if(req.session && req.session.expires_in) {
-        const sessionInfo = await helper.login(req, res);
-        if(sessionInfo){
-            res.send(req.session);
-        }
-    } else {
-        res.redirect(url);
-    };
+    try {
+        
+        var redirect_uri = `http://${req.headers.host}${ts.api_callback}`;
+        var url = `${ts.base_url}/v2/authorize?response_type=code&client_id=${ts.client_id}&redirect_uri=${redirect_uri}`;
+        
+        if(req.session && req.session.expires_in) {
+            const sessionInfo = await helper.login(req, res);
+            if(sessionInfo){
+                res.send(req.session);
+            }
+        } else {
+            console.log(url)
+            res.redirect(url);
+        };
+        
+    } catch (error) {
+        console.log(error);       
+    }
 })
 
 router.get('/callback', async function (req, res, next)  {

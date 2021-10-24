@@ -11,7 +11,7 @@ getActiveOrdersRecursive = async (req, res) => {
     clearInterval(ordersInterval);
     ordersInterval = setInterval(async () =>{
         const regularSession = await setting.getSettingsByName('OverrideRegularSession');
-        if(parseInt(regularSession.value) === 1){
+        if(regularSession && parseInt(regularSession.value) === 1){
             getActiveOrders(req, res);
         } 
     }, 1500);

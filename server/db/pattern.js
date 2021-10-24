@@ -18,7 +18,7 @@ var IntradayPattern = function(record){
 }
 
 Pattern.getPatterns = async function(){
-    const query = `SELECT pattern_id as id, pattern_name as title, pattern_type FROM patterns;`
+    const query = `SELECT pattern_id as id, pattern_name as title, pattern_type FROM patterns ORDER BY pattern_type, title;`
     const result = await db.getData(query);
     
     if(result){
@@ -26,6 +26,9 @@ Pattern.getPatterns = async function(){
     }
     return null;
 }
+
+var pattern_types;
+Pattern.getPatterns().then(data => { pattern_types = data});
 
 Pattern.getTimeframes = async function(){
     const timeframes = [
@@ -108,10 +111,11 @@ Pattern.getDailyPatterns = async function (){
 
 Pattern.getIntradayPatternIfExist = async function (newIntradayPattern){
     const qp = newIntradayPattern;
+    const pattern_id = pattern_types.filter(p => p.title === qp.pattern_name)[0].id;
     const query = `SELECT symbol, timeframe, 
                     c_open, c_high, c_low, c_close, c_date, candles 
                     FROM intraday_patterns ip 
-                    WHERE symbol='${qp.symbol}' AND timeframe='${qp.timeframe}' AND c_date=STR_TO_DATE('${qp.c_date}','%Y-%m-%dT%H:%i:%s.000Z');`
+                    WHERE symbol='${qp.symbol}' AND timeframe='${qp.timeframe}' AND pattern_id=${pattern_id} AND c_date=STR_TO_DATE('${qp.c_date}','%Y-%m-%dT%H:%i:%s.000Z');`
     const result = await db.getData(query);
     
     if(result){
@@ -160,9 +164,6 @@ Pattern.updatePatternIfHasPosition = async function(symbols){
 
     return null; 
 }
-
-var pattern_types;
-Pattern.getPatterns().then(data => { pattern_types = data});
 
 Pattern.insertIntradayPatterns = async function (newIntradayPattern){
     const qp = newIntradayPattern;

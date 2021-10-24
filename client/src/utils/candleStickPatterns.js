@@ -15,6 +15,10 @@ function tailLen(candlestick) {
     return Math.min(candlestick.open, candlestick.close) - candlestick.low;
 }
 
+function isAboveAverageCandle(candlestick) {
+    return candleLen(candlestick) > candlestick.atcr;
+}
+
 function isBullish(candlestick) {
     return candlestick.open < candlestick.close;
 }
@@ -79,7 +83,7 @@ function isGapUp(previous, current) {
 }
 
 function isGapDown(previous, current) {
-    return (current.open < previous.close && current.close < penetrationPercentPrice(previous, 5));
+    return (current.open < previous.close && current.close < penetrationBodyPercentPrice(previous, 5));
 }
 
 function isDoji(candlestick){
@@ -91,15 +95,24 @@ function getCandleToBodyPercentValue(candlestick){
     return (bodyLen(candlestick) * 100) / candleLen(candlestick) ;
 }
 
-// function getCandlePercentValue(candlestick, percent){
-//     return (candleLen(candlestick) * percent / 100);
-// }
+function getCandlePercentValue(candlestick, percent){
+    return (candleLen(candlestick) * percent / 100);
+}
+
+function penetrationCandlePercentPrice(candlestick, percent){
+    const candlePercentPrice = getCandlePercentValue(candlestick, percent);
+    if(isBullish(candlestick)){
+        return candlestick.high - candlePercentPrice;
+    } else {
+        return candlestick.low + candlePercentPrice;
+    }
+}
 
 function getBodyPercentValue(candlestick, percent){
     return (bodyLen(candlestick) * percent / 100);
 }
 
-function penetrationPercentPrice(candlestick, percent){
+function penetrationBodyPercentPrice(candlestick, percent){
     const candlePercentPrice = getBodyPercentValue(candlestick, percent);
     if(isBullish(candlestick)){
         return candlestick.close - candlePercentPrice;
@@ -134,7 +147,9 @@ function findPattern(dataArray, callback) {
             // console.log(args)
             // break;
             // matches.push(args[1]);
-        } 
+        } else {
+            dataArray[i + 1][callbackName] = false;
+        }
     }
 
     return matches;
@@ -170,20 +185,22 @@ function isShootingStar(previous, middle, current) {
 }
 
 function isMorningStar(previous, middle, current) {
-    const currCloseInUpperHalf = current.close >= penetrationPercentPrice(previous, 50);
+    const currCloseInUpperHalf = current.close >= penetrationBodyPercentPrice(previous, 50);
     return isBearish(previous) &&
            isBullish(current) &&
            isGapDown(previous, middle) &&
            (isHammerLike(middle) || isDoji(middle)) && 
            (current.close > middle.close) &&
+           middle.high < previous.close &&
            !isDoji(current) &&
            currCloseInUpperHalf;
 }
 
 function isPotentialMorningStar(previous, current) {
     return isBearish(previous) &&
-           isBullish(current) &&
+        //    isBullish(current) &&
            isGapDown(previous, current) &&
+           current.high < previous.close &&
            (isHammerLike(current) || isDoji(current));
 }
 
@@ -194,6 +211,13 @@ function isBullishEngulfing(previous, current) {
            current.volume >= previous.volume;
 }
 
+function isPotentialBullishEngulfing(previous, current) {
+    return isBearish(previous) &&
+           isBullish(current) &&
+           isEngulfed(previous, current) &&
+           current.volume < previous.volume;
+}
+
 function isBearishEngulfing(previous, current) {
     return isBullish(previous) &&
            isBearish(current) &&
@@ -201,24 +225,49 @@ function isBearishEngulfing(previous, current) {
            current.volume >= previous.volume;
 }
 
+function isBuySetup(first, second, third, current) {
+    return isBearish(first) &&
+           isBearish(second) && second.high < first.high && second.low < first.low &&
+           isBearish(third) && third.high < second.high && third.low < second.low &&
+           isBullish(current);
+}
+
+function isThreeBarPlayBullish(first, previous, current) {
+    return isBullish(previous) &&
+           isAboveAverageCandle(previous) &&
+           isBearish(first) &&
+           current.low > penetrationCandlePercentPrice(previous, 50) &&
+           current.high > penetrationCandlePercentPrice(previous, 10) && 
+           current.high < penetrationCandlePercentPrice(previous, -5);
+}
+
+function isThreeBarPlayBearish(previous, current) {
+    return isBearish(previous) &&
+           isAboveAverageCandle(previous) &&
+           current.high < penetrationCandlePercentPrice(previous, 50) &&
+           current.low < penetrationCandlePercentPrice(previous, 10) && 
+           current.low > penetrationCandlePercentPrice(previous, -5);
+}
+
 function isBullishHarami(previous, current) {
-    const currOpenInLowerHalf = current.open <= penetrationPercentPrice(previous, 40);
-    const currCloseInUpperHalf = current.close >= penetrationPercentPrice(previous, 40);
+    const currOpenInLowerHalf = current.open <= penetrationBodyPercentPrice(previous, 40);
+    // const currCloseInUpperHalf = current.close >= penetrationBodyPercentPrice(previous, 40);
     return isBearish(previous) &&
            isBullish(current) &&
            isEngulfed(current, previous) &&
            isBottomShadowEngulfed(current, previous) &&
-           currOpenInLowerHalf &&
-           currCloseInUpperHalf;
+           isTopShadowEngulfed(current, previous) &&
+           currOpenInLowerHalf;
 }
 
 function isBearishHarami(previous, current) {
-    const currOpenInUpperHalf = current.open >= penetrationPercentPrice(previous, 40);
-    const currCloseInLowerHalf = current.close <= penetrationPercentPrice(previous, 40);
+    const currOpenInUpperHalf = current.open >= penetrationBodyPercentPrice(previous, 40);
+    const currCloseInLowerHalf = current.close <= penetrationBodyPercentPrice(previous, 40);
     return isBullish(previous) &&
            isBearish(current) &&
            isEngulfed(current, previous) &&
            isTopShadowEngulfed(current, previous) &&
+           isBottomShadowEngulfed(current, previous) &&
            currOpenInUpperHalf &&
            currCloseInLowerHalf;
 }
@@ -233,6 +282,14 @@ function isBearishKicker(previous, current) {
     return isBullish(previous) &&
            isBearish(current) &&
            isGapDown(previous, current);
+}
+
+function isNear200SMA(previous, current){
+    isPatternBullish = true;    
+    return (Math.abs(current.sma200highPct) < 1 || 
+            Math.abs(current.sma200lowPct) < 1) && 
+            current.close > current.sma200 && 
+            current.close > previous.close;
 }
 
 // Pattern detection in arrays.
@@ -273,9 +330,24 @@ function bullishEngulfing(dataArray) {
     return findPattern(dataArray, isBullishEngulfing);
 }
 
+function potentialBullishEngulfing(dataArray) {
+    isPatternBullish = true;
+    return findPattern(dataArray, isPotentialBullishEngulfing);
+}
+
 function bearishEngulfing(dataArray) {
     isPatternBullish = false;
     return findPattern(dataArray, isBearishEngulfing);
+}
+
+function threeBarPlayBullish(dataArray) {
+    isPatternBullish = true;
+    return findPattern(dataArray, isThreeBarPlayBullish);
+}
+
+function threeBarPlayBearish(dataArray) {
+    isPatternBullish = false;
+    return findPattern(dataArray, isThreeBarPlayBearish);
 }
 
 function bullishHarami(dataArray) {
@@ -288,6 +360,11 @@ function bearishHarami(dataArray) {
     return findPattern(dataArray, isBearishHarami);
 }
 
+function buySetup(dataArray){
+    isPatternBullish = true;
+    return findPattern(dataArray, isBuySetup);
+}
+
 function bullishKicker(dataArray) {
     isPatternBullish = true;
     return findPattern(dataArray, isBullishKicker);
@@ -296,6 +373,11 @@ function bullishKicker(dataArray) {
 function bearishKicker(dataArray) {
     isPatternBullish = false;
     return findPattern(dataArray, isBearishKicker);
+}
+
+function near200SMA(dataArray) {
+    isPatternBullish = true;
+    return findPattern(dataArray, isNear200SMA);
 }
 
 module.exports.isHammer = isHammer;
@@ -318,7 +400,12 @@ module.exports.morningStar = morningStar;
 module.exports.potentialMorningStar = potentialMorningStar;
 module.exports.bullishEngulfing = bullishEngulfing;
 module.exports.bearishEngulfing = bearishEngulfing;
+module.exports.threeBarPlayBullish = threeBarPlayBullish;
+module.exports.threeBarPlayBearish = threeBarPlayBearish;
 module.exports.bullishHarami = bullishHarami;
 module.exports.bearishHarami = bearishHarami;
 module.exports.bullishKicker = bullishKicker;
 module.exports.bearishKicker = bearishKicker;
+module.exports.potentialBullishEngulfing = potentialBullishEngulfing;
+module.exports.near200SMA = near200SMA;
+module.exports.buySetup = buySetup;

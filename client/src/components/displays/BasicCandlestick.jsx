@@ -12,7 +12,7 @@ import {
     ZoomButtons, withDeviceRatio, withSize, Label, Annotate, BarAnnotation
 } from "react-financial-charts";
 import { OrderContext } from "../../contexts/OrderProvider";
-import { ChartActionsContext } from "../../contexts/ChartActionsProvider";
+// import { ChartActionsContext } from "../../contexts/ChartActionsProvider";
 import { getPercentDiff } from "../../utils/helper";
 
 var stockChartHeight = 360;
@@ -28,14 +28,14 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
         stockChartHeight = document.getElementById('timeframes').clientHeight;
     
     const { handleClickOpenTradeDialog, symbolOrders, symbolAvgPrice } = useContext(OrderContext);
-    const { stockQuote } = useContext(ChartActionsContext);
+    // const { stockQuote } = useContext(ChartActionsContext);
 
     const xScaleProvider = discontinuousTimeScaleProviderBuilder().inputDateAccessor(
         (d => d.date),
     );
     const ema12 = ema()
         .id(1)
-        .options({ windowSize: 12 })
+        .options({ windowSize: 21 })
         .merge((d, c) => {
             d.ema12 = c;
         })
@@ -43,19 +43,26 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
 
     const ema26 = ema()
         .id(2)
-        .options({ windowSize: 26 })
+        .options({ windowSize: 51 })
         .merge((d, c) => {
             d.ema26 = c;
         })
         .accessor((d) => d.ema26);
 
     const ema200 = ema()
-        .id(2)
+        .id(3)
         .options({ windowSize: 200 })
         .merge((d, c) => {
             d.ema200 = c;
         })
-        .accessor((d) => d.ema200);
+        .accessor((d) => d.ema200)
+        .stroke('green');
+
+    const sma200 = ema()
+        .id(4)
+        .options({ windowSize: 200 })
+        .accessor((d) => d.sma200)
+        .stroke('#9B0A47');
 
     const elder = elderRay();
 
@@ -263,11 +270,19 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                 <CurrentCoordinate yAccessor={ema12.accessor()} fillStyle={ema12.stroke()} />
                 <MouseCoordinateY rectWidth={margin.right} displayFormat={pricesDisplayFormat} arrowWidth={10} />
                 <LineSeries yAccessor={() => lastClose} strokeStyle={lastColor}  />
+                <CurrentCoordinate yAccessor={sma200.accessor()} fillStyle={ema12.stroke()} />
+                <LineSeries yAccessor={sma200.accessor()} strokeStyle="#9B0A47" />
                 <EdgeIndicator itemType="last" rectWidth={margin.right} fill={openCloseColor} lineStroke={openCloseColor} 
                     displayFormat={pricesDisplayFormat} yAccessor={yEdgeIndicator} arrowWidth={10} strokeDasharray="Solid" />
                 <MovingAverageTooltip
                     origin={[8, 24]}
                     options={[
+                        {
+                            yAccessor: sma200.accessor(),
+                            type: "SMA",
+                            stroke: sma200.stroke(),
+                            windowSize: sma200.options().windowSize,
+                        },
                         {
                             yAccessor: ema200.accessor(),
                             type: "EMA",
@@ -291,7 +306,7 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
 
                 <ZoomButtons />
                 <Label
-                    text={`${chartText} ${stockQuote.Description}`}
+                    text={chartText}
                     {...rest}
                     x={(width - margin.left - margin.right) / 2}
                     y={(height - margin.top - margin.bottom) / 2}
@@ -302,7 +317,7 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                 <HoverTooltip
                     yAccessor={ema200.accessor()}
                     tooltip={{
-                        content: ({ currentItem, xAccessor, yAccessor}) => ({
+                        content: ({ currentItem, xAccessor}) => ({
                             x: timeDisplayFormat(xAccessor(currentItem)),
                             y: [
                                 {
@@ -322,7 +337,11 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                                     value: currentItem.close && pricesDisplayFormat(currentItem.close),
                                 },
                                 {
-                                    label: "Diff",
+                                    label: "Volume",
+                                    value: currentItem.volume && numberDisplayFormat(currentItem.volume),
+                                },
+                                {
+                                    label: "Bar Diff",
                                     value: pricesDisplayFormat(currentItem.high - currentItem.low),
                                 },
                                 {
@@ -330,16 +349,34 @@ const StockChart = ({ data: initialData, dateTimeFormat = "%d %b", height, ratio
                                     value: `${pricesDisplayFormat(((currentItem.high - currentItem.low) * 100) / lastClose)}%`,
                                 },
                                 {
-                                    label: "Volume",
-                                    value: currentItem.volume && numberDisplayFormat(currentItem.volume),
+                                    label: "H200 %",
+                                    value: `${currentItem.ema200 && pricesDisplayFormat(getPercentDiff(currentItem.high, currentItem.ema200))}%`,
                                 },
                                 {
-                                    label: "High200 %",
-                                    value: currentItem.ema200 && pricesDisplayFormat(getPercentDiff(currentItem.high, currentItem.ema200)),
+                                    label: "L200 %",
+                                    value: `${currentItem.ema200 && pricesDisplayFormat(getPercentDiff(currentItem.low, currentItem.ema200))}%`,
                                 },
                                 {
-                                    label: "Low200 %",
-                                    value: currentItem.ema200 && pricesDisplayFormat(getPercentDiff(currentItem.low, currentItem.ema200)),
+                                    label: "ATBR",
+                                    value: currentItem.atbr && pricesDisplayFormat(currentItem.atbr),
+                                },
+                                {
+                                    label: "ATCR",
+                                    value: currentItem.atcr && pricesDisplayFormat(currentItem.atcr),
+                                },
+                                {
+                                    label: "MXBR",
+                                    value: currentItem.mxbr && pricesDisplayFormat(currentItem.mxbr),
+                                },
+                                {
+                                    label: "MXCR",
+                                    value: currentItem.mxcr && pricesDisplayFormat(currentItem.mxcr),
+                                },
+                                {
+                                    label: "1R Tgt",
+                                    value: currentItem.open < currentItem.close 
+                                        ? pricesDisplayFormat(currentItem.high + (currentItem.high - currentItem.low))
+                                        : pricesDisplayFormat(currentItem.low - (currentItem.high - currentItem.low)),
                                 },
                             ],
                         }),
