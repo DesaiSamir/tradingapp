@@ -35,6 +35,10 @@ const getData = async function(query) {
 		return null;
 	} catch (error) {
 		console.log({query, error});
+		var str = ""
+		if(error.message && error.message.includes("connection is in closed state")){
+			handleDisconnect();
+		}
 	}
 };
 

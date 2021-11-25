@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "concurrently -k \"npm run server\" \"npm run client\"",
-    "prod": "node -r dotenv/config ./server/bin/www",
+    "prod": "node -r dotenv/config ./server/app.js",
     "server": "nodemon -r dotenv/config ./server/app.js",
     "debug": "node -r dotenv/config ./server/app.js",
     "client": "node client.js"
