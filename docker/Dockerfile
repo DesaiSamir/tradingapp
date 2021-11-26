@@ -4,7 +4,7 @@ WORKDIR /app
 
 RUN npm i npm@latest -g 
 
-ADD ../run.sh /root/run.sh
+ADD ./run.sh /root/run.sh
 
 EXPOSE 3000
 
